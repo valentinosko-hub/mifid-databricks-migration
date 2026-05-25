@@ -65,6 +65,14 @@ Step 5B1 note:
 - `Reg_CurrencyPrice_Ext`, `Reg_Ext_DailyMaxPrices`, and `Reg_Ext_T_PriceCandle60Min` are treated as SSIS-created staging outputs with materialized Delta targets in `main.regtech_ops_stg` (not replacement views).
 - `Reg_Ext_CurrencyPriceMaxDateWithSplit` remains unresolved pending candidate-comparison profiling; no silent source choice is made.
 
+Step 5B2 note:
+- `Reg_MigrationInOut_Population` -> `main.regtech.gold_regtech_reg_migrationinout_population` remains a confirmed gold source mapping, but the phase-1 staging object should be a prefixed materialized snapshot only after row-count and schema parity are accepted.
+- `Reg_RegulationInOutDailyData` -> `main.regtech.gold_regtech_reg_regulationinoutdailydata` remains a confirmed gold source mapping, but output-column parity is gated because the procedure output schema is not visible in `Pre_Regulation_Ext.dtsx`.
+- `Reg_Ext_HistorySplitRatio` -> `main.dealing.bronze_pricelog_history_splitratio` is a candidate/expected source with required-column and `IsCompletedOpenPositions = 1` filter validation pending.
+- `Reg_Ext_HedgeExecutionLog` -> `main.dealing.bronze_etoro_hedge_executionlog`, `Reg_Ext_HedgeHBCExecutionLog` -> `main.dealing.bronze_etoro_hedge_hbcexecutionlog`, and `Reg_Ext_HedgeHBCOrderLog` -> `main.dealing.bronze_etoro_hedge_hbcorderlog` are confirmed raw sources; package-side date filters, casts, and required columns still require profiling before staging SQL is executable.
+- `Reg_Ext_CustomerLatinName`, `Reg_Ext_Trade_GetInstrument`, `Reg_Ext_Trade_InstrumentMetaData`, `Reg_Ext_DictionaryCurrency`, and `Reg_Ext_DictionaryCurrencyType` are expected source / access pending until the corresponding Databricks source tables and required columns are confirmed.
+- `Reg_Instruments_ext` should be shaped from certified FIRDS/instrument gold sources (`main.regtech.gold_regtech_reg_instruments_scd` and `main.regtech.gold_regtech_reg_instruments_full_description`) only after parity to the SSIS raw join output is validated.
+
 ## Mappings not to use (legacy/reference-only)
 
 - Do not use optional/reference package artifacts as current mapping authority:

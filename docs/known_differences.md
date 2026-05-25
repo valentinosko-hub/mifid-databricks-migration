@@ -6,7 +6,8 @@ This document tracks known or intentional differences for the currently implemen
 - Static reference compatibility views
 - `ReplaceChar` UDF
 - Validation SQL scripts for static references and `ReplaceChar`
-- Pre_Regulation price/currency/split staging (Step 5B1 only)
+- Pre_Regulation price/currency/split staging (Step 5B1)
+- Pre_Regulation non-price staging analysis/profiling gates (Step 5B2)
 
 ## Scope and non-goals in this step
 
@@ -16,7 +17,7 @@ This document tracks known or intentional differences for the currently implemen
   - `Reg_Ext_DailyMaxPrices`
   - `Reg_Ext_CurrencyPriceMaxDateWithSplit` (profiling/comparison only)
   - `Reg_Ext_T_PriceCandle60Min`
-- No migration-in/out staging implementation.
+- Step 5B2 includes non-price profiling/gating only; no active non-price staging DDL is authored yet.
 - No `MIFID2_ext` staging implementation.
 - No final MiFID output table-generation implementation.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
@@ -56,7 +57,8 @@ This document tracks known or intentional differences for the currently implemen
 - Deferred artifact note:
   - `databricks/sql/02_udfs/02_instrumentmetadata_specialchar_conversion_deferred.sql`
 - `Reg_Ext_CurrencyPriceMaxDateWithSplit` final source and staging materialization are deferred until candidate profiling evidence selects one authoritative Databricks source.
-- `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` remain deferred to later modules even though materialization policy is already tracked as an unresolved item.
+- `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` remain gated until row-count/schema parity determines whether prefixed snapshots should be materialized from certified gold or recreated from SSIS-compatible logic.
+- `Reg_Ext_Trade_InstrumentMetaData` remains gated until its source schema is confirmed; this continues to block `InstrumentMetaData_SpecialChar_Conversion` population.
 
 ## Step 5B1 implementation differences and cautions
 
@@ -64,6 +66,14 @@ This document tracks known or intentional differences for the currently implemen
 - `Reg_Ext_CurrencyPriceMaxDateWithSplit` is intentionally left as profiling/comparison-only in Step 5B1; no silent source choice was made.
 - `Reg_Ext_T_PriceCandle60Min` staging SQL preserves SSIS-style logic (`DateFrom < report_date + 1 day`, latest row per `InstrumentID`, `InstrumentID < 100000`) and materializes to Delta.
 - All Step 5B1 targets are prefixed and scoped to `main.regtech_ops_stg`.
+
+## Step 5B2 implementation differences and cautions
+
+- `databricks/sql/03_pre_regulation_ext/04_non_price_source_profiling.sql` profiles expected/confirmed sources before active staging SQL is allowed.
+- `databricks/sql/03_pre_regulation_ext/05_non_price_staging_gates.sql` intentionally contains no `CREATE OR REPLACE TABLE` statements; it records why each non-price object is still gated.
+- `databricks/sql/03_pre_regulation_ext/06_non_price_validation.sql` contains validation templates for later execution after staging tables are materialized.
+- `Reg_Instruments_ext` is planned to use certified instrument gold/FIRDS sources if parity to the SSIS raw join output is confirmed.
+- Dictionary and trade instrument sources are marked expected source / access pending; columns are not assumed.
 
 ## Reference-only policy
 
