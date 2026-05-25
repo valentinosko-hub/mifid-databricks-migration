@@ -77,6 +77,48 @@ For Step 7 validation/execution windows, ensure availability of:
 - LEI history risk: current gsheet state may not represent historical LEI values for prior windows.
 - Sensitive-column governance risk: legacy source includes `Username`/`Password`/`SettingsXML`; phase-1 excludes these from normal staging by design.
 
+## Step 8 - ASIC2-compatible MiFID subset
+
+Primary Step 8 targets:
+
+- `main.regtech_ops_stg.bi_output_regtechops_asic2_transactions`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_asic2_transactions`
+- `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
+
+Supporting Step 8 staging targets:
+
+- `main.regtech_ops_stg.bi_output_regtechops_asic2_ext_openpositions_positionsreport`
+- `main.regtech_ops_stg.bi_output_regtechops_asic2_ext_positionchangelog`
+- `main.regtech_ops_stg.bi_output_regtechops_asic2_customer_positionreport`
+- `main.regtech_ops_stg.bi_output_regtechops_asic2_instrumentmetadata`
+- `main.regtech_ops_stg.bi_output_regtechops_asic2_positions`
+- `main.regtech_ops_stg.bi_output_regtechops_asic2_removed_op_partials`
+
+### Minimum seed requirements for Step 8 parity windows
+
+For Step 8 validation windows, ensure availability of:
+
+- Target-day (`ReportDate`) source data for open positions, customer/regulation enrichment, and instrument metadata dependencies.
+- Prior-day `ASIC2_Positions` when transaction parity branches depend on previous state.
+- Prior `ASIC2_Transactions` only if validation includes non-MiFID carry-forward fields; not required for the core 11-field MiFID compatibility contract.
+
+### Seed/cutover policy for Step 8
+
+- Phase-1 default: seed only requested validation windows.
+- Do not block Step 8 staging authoring on full historical backfill.
+- If older parity windows are requested, expand seed scope incrementally:
+  1. ext/customer/instrument dependencies,
+  2. `ASIC2_Positions`,
+  3. `ASIC2_Transactions`,
+  4. MiFID projection/view parity checks.
+
+### Known Step 8 history risks
+
+- Prior-day dependency risk: missing previous-position context can change transaction shaping in edge windows.
+- OpenTime semantics risk: `CDE_Execution_timestamp` parsing may differ across historical format variants.
+- Conditional fallback risk: if `Reg_DWH_StaticPosition` fallback is required in specific windows, missing seed coverage may affect `OpenPrice`.
+- UPI governance risk: UPI should remain non-blocking for MiFID fields unless validation proves impact.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.

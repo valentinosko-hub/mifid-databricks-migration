@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-7 - Unresolved Dependencies
+# Phase 1D / Steps 5-8 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -11,8 +11,14 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 | `Reg_Ext_CurrencyPriceMaxDateWithSplit` source selection | Two candidate mappings are documented and both are plausible | Price/split parity differences in MiFID and movement outputs | Choose source after candidate comparison checks (columns, run-window row counts, min/max dates, duplicate `PriceRateID`, `InstrumentID` coverage, freshness) | Yes (for full parity) |
 | `Reg_Ext_T_PriceCandle60Min` source shape confirmation | Candidate mapping exists, but required columns are not yet runtime-validated in target environment | Latest-price extraction may fail if source schema differs | Confirm `InstrumentID`, `BidLast`, `AskLast`, `DateFrom` via profiling before execution | Yes |
 | `MIFID2_Hedge_Report.RecordID` identity behavior | SQL Server uses `IDENTITY(100000001,1)` but Databricks has no direct equivalent behavior by default | Record sequencing drift and potential downstream mismatch | Decide deterministic generation strategy and document it | Yes |
-| ASIC2 replacement for legacy `ASIC_Transactions` | `SP_MIFID2_ETORO_Report` still references legacy object shape | MiFID ETORO output may not match intended ASIC2 source-of-truth | Finalize compatibility layer/table mapping from `ASIC2_Transactions` fields | Yes |
-| `CDE_Execution_timestamp -> OpenTime` mapping | Mapping is marked approximate, not fully validated | ETORO transaction timing fields may mismatch legacy output | Validate field-level transformation and timezone handling | Yes |
+| ASIC2 replacement for legacy `ASIC_Transactions` | `SP_MIFID2_ETORO_Report` still references legacy object shape | MiFID ETORO output may not match intended ASIC2 source-of-truth | Keep Step 8 compatibility projection/view gated until validation SQL proves field-contract parity | Yes |
+| `Trade.PositionForExternalUse` and `History.PositionForExternalUse` source contract for ASIC2 ext open positions | Step 8 expects these as primary ASIC2 open-position inputs but runtime column/access profiling is still pending | `ASIC2_ext_OpenPositions_PositionsReport` may fail or drift if source shapes differ from package assumptions | Run `databricks/sql/06_asic2_subset/01_asic2_source_profiling.sql` and confirm required columns before un-gating Step 8 ext staging SQL | Yes |
+| `History.BackOfficeCustomer` / customer-history source contract for ASIC2 customer profile | ASIC2 customer-position shaping needs historical customer/regulation enrichment, but final source-column contract is not confirmed | `ASIC2_Customer_PositionReport` parity can diverge and propagate into `ASIC2_Transactions` | Confirm source mapping and required-column contract before un-gating customer-profile staging template | Yes |
+| `ASIC2_InstrumentMetaData` source contract (`Trade.GetInstrument`, `Trade.InstrumentMetaData`, `Trade.Instrument`, `Trade.ProviderToInstrument`, `Dictionary.Currency`) | Inputs are expected in lineage, but runtime source availability/columns are still gated from Step 5B2 profiling | Instrument metadata can be incomplete or fail, impacting positions/transactions and MiFID compatibility fields | Complete profiling and document confirmed source path before activating `ASIC2_InstrumentMetaData` template | Yes |
+| `SP_ASIC2_Instrument_Automation` conditional dependency | Out of scope only if `ASIC2_InstrumentMetaData` can be recreated from profiled sources without procedure-only logic | Silent omission can break parity if automation-specific logic is required | Keep dependency conditional and explicitly re-check after profiling; activate only if proven necessary | Yes |
+| `SP_ASIC2_PositionReport_Agg` / aggregate ASIC2 outputs dependency | Out of scope only if they do not feed `ASIC2_Positions` / `ASIC2_Transactions` / MiFID projection | If required but skipped, downstream transaction parity may be incomplete | Verify with profiling and gate activation if direct feed is proven | Yes |
+| `CDE_Execution_timestamp -> OpenTime` mapping | Mapping is still unproven for ETORO semantics | MiFID compatibility view may expose incorrect transaction timing | Validate parse success, round-trip format behavior, and projected `OpenTime` parity before activation | Yes |
+| EMIR Refit UPI non-dependency proof for MiFID fields | UPI is present in full ASIC2 schema but should not affect MiFID-consumed compatibility columns unless proven | Pulling UPI logic into Step 8 unnecessarily can add avoidable dependencies and complexity | Use Step 8 validation checks to prove UPI does not alter the 11 required MiFID compatibility fields | No (unless validation proves impact) |
 | Historical seed strategy for `MIFID2_NPD_TRAX` | Full historical backfill is out of scope; optional seed policy not finalized | Backdated reconciliation windows may fail parity | Define minimal seed approach for validation-only windows | No (unless older validation window is requested) |
 | Historical seed strategy for `ASIC2_Transactions` | Same as above; history required only for some parity windows | Backdated ETORO parity may diverge | Define optional seed/rebuild boundaries and triggers | No (unless older validation window is requested) |
 | Materialization choice for `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` | Both SSIS-created staging and mapped gold equivalents exist | Inconsistent lineage and row-count mismatches between flows | Step 5B2 decision gate: prefer prefixed snapshots from certified gold only after row-count/schema parity passes; otherwise recreate SSIS-compatible materialized logic from run-date inputs | Yes (for deterministic reproducibility) |
@@ -28,7 +34,7 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 | Step 7 LEI completeness dependency | Hedge-liquidity mapping depends on gsheet LEI coverage for active/report-relevant accounts | Missing LEI can cause downstream hedge report/data-quality failures | Execute Step 7 LEI completeness checks and decide remediation policy for active accounts with missing LEI | Yes |
 | `Ext_MigrationInOut_Population` support-copy representation | SQL Server uses RegSupportDB support copy for cross-DB join behavior | Persistent/non-persistent mismatch can add lineage confusion or duplicate state | Represent as non-persistent CTE/temp relation in Databricks Step 6 flow; do not introduce a separate persistent business target | No |
 | `dbo.ReplaceChar` parity implementation | Function behavior is strict (trim-before-replace, specific character map) | Customer identifier/name outputs can drift from SQL Server | SQL authored in Step 4; execute targeted unit tests and compare against SQL Server outputs | Yes |
-| `Reg_DWH_StaticPosition` dependency treatment | Referenced in ASIC2 SPs but investigated as stale/legacy | Potential confusion about whether to include stale join path | Keep conditional/excluded unless proven to affect MiFID-consumed fields | No |
+| `Reg_DWH_StaticPosition` dependency treatment | Referenced in ASIC2 SPs but investigated as stale/legacy; OpenPrice fallback impact still unproven | Incorrect inclusion/exclusion policy can change `OpenPrice` parity in some windows | Keep conditional by default and activate only if fallback-impact validation proves MiFID-field effect | No (unless OpenPrice impact is proven) |
 | Audit/control persistence scope (`Reg_SSIS_Log`, `Reports_Control`, SQL Agent metadata) | Needed for lineage and reconciliation governance but not always required for table generation | Reduced observability and harder run diagnostics | Decide minimum audit/control artifacts to replicate in phase 1 | No |
 
 ## Explicitly non-blocking by current phase scope
@@ -42,11 +48,15 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 1. Complete Step 5B1 source profiling for `Reg_CurrencyPrice_Ext` and `Reg_Ext_DailyMaxPrices`.
 2. Resolve `Reg_Ext_CurrencyPriceMaxDateWithSplit` source selection from candidate comparison evidence.
 3. Complete Step 5B1 runtime validation for `Reg_Ext_T_PriceCandle60Min`.
-4. Finalize ASIC2 compatibility mapping for ETORO (`OpenTime` included).
-5. Decide `RecordID` strategy for `MIFID2_Hedge_Report`.
-6. Lock staging-vs-gold materialization policy for migration/in-out tables using Step 5B2 parity profiling.
-7. Confirm Step 5B2 expected source access/schema before authoring active non-price staging SQL.
-8. Confirm Step 6 movement source contracts and join/date parity before activating Step 6 staging DDL.
-9. Complete Step 7 liquidity source profiling and close required-column/access gaps.
-10. Decide Step 7 SCD seed/cutover strategy and removed-account `IsLast` parity/correction policy.
-11. Confirm Step 7 sensitive-column compatibility needs (if any) without exposing secrets.
+4. Complete Step 8 source profiling for open-positions, customer-profile, and instrument-metadata dependencies.
+5. Validate `CDE_Execution_timestamp -> OpenTime` semantics and approve compatibility mapping.
+6. Confirm whether `SP_ASIC2_Instrument_Automation` is required or remains conditional/out of scope.
+7. Confirm whether `SP_ASIC2_PositionReport_Agg` or aggregate ASIC2 outputs are truly non-feeding for Step 8.
+8. Validate UPI non-dependency for the 11 MiFID compatibility fields.
+9. Decide `RecordID` strategy for `MIFID2_Hedge_Report`.
+10. Lock staging-vs-gold materialization policy for migration/in-out tables using Step 5B2 parity profiling.
+11. Confirm Step 5B2 expected source access/schema before authoring active non-price staging SQL.
+12. Confirm Step 6 movement source contracts and join/date parity before activating Step 6 staging DDL.
+13. Complete Step 7 liquidity source profiling and close required-column/access gaps.
+14. Decide Step 7 SCD seed/cutover strategy and removed-account `IsLast` parity/correction policy.
+15. Confirm Step 7 sensitive-column compatibility needs (if any) without exposing secrets.

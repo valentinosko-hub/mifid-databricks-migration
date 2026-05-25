@@ -102,6 +102,40 @@ Step 7 note (Hedge liquidity mapping staging):
 - Sensitive source fields from `Trade.LiquidityAccounts` (`Username`, `Password`, `SettingsXML`) are intentionally excluded/masked for phase-1 normal staging objects.
 - `Reg_LiquidtyAcount_SCD` activation is gated by seed/cutover decision; removed-account `IsLast` behavior follows SQL Server parity by default (no silent correction).
 
+Step 8 note (ASIC2-compatible MiFID subset):
+- Confirmed/selected source mappings for Step 8 include:
+  - `History.PositionChangeLog` -> `main.trading.bronze_etoro_history_positionchangelog`
+  - `Trade.PositionForExternalUse` -> `main.bi_db.bronze_etoro_trade_positionforexternaluse`
+  - `History.PositionForExternalUse` -> `main.trading.bronze_etoro_history_position_datafactory`
+  - `Customer.Customer` -> `main.general.bronze_etoro_customer_customer`
+  - `History.Customer` -> `main.pii_data.bronze_etoro_history_customer`
+  - `Dictionary.Country` -> `main.general.bronze_etoro_dictionary_country`
+  - `Dictionary.Label` -> `main.general.bronze_etoro_dictionary_label`
+  - `Reg_Instruments_SCD` -> `main.regtech.gold_regtech_reg_instruments_scd`
+  - `Reg_Instruments_Full_Description` -> `main.regtech.gold_regtech_reg_instruments_full_description`
+  - `ThirdParty_Fivetran...regtech_excluded_instruments` -> `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
+  - `ThirdParty_Fivetran...regtech_excluded_position_ids` -> `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
+- Step 8 target objects are:
+  - `main.regtech_ops_stg.bi_output_regtechops_asic2_ext_openpositions_positionsreport`
+  - `main.regtech_ops_stg.bi_output_regtechops_asic2_ext_positionchangelog`
+  - `main.regtech_ops_stg.bi_output_regtechops_asic2_customer_positionreport`
+  - `main.regtech_ops_stg.bi_output_regtechops_asic2_positions`
+  - `main.regtech_ops_stg.bi_output_regtechops_asic2_instrumentmetadata`
+  - `main.regtech_ops_stg.bi_output_regtechops_asic2_removed_op_partials`
+  - `main.regtech_ops_stg.bi_output_regtechops_asic2_transactions`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_asic2_transactions`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
+- Step 8 execution remains gated until `databricks/sql/06_asic2_subset/01_asic2_source_profiling.sql` confirms required source columns and access.
+- Conditional dependency rules:
+  - `SP_ASIC2_Instrument_Automation` is out of scope only if `ASIC2_InstrumentMetaData` can be recreated without procedure-only logic.
+  - `SP_ASIC2_PositionReport_Agg` and aggregate outputs remain out of scope only if profiling confirms they do not feed `ASIC2_Positions` / `ASIC2_Transactions` / MiFID projection.
+  - `Reg_DWH_StaticPosition` remains conditional/legacy and non-blocking unless OpenPrice fallback impact is proven.
+  - EMIR Refit UPI remains non-blocking unless profiling proves effect on the 11 MiFID compatibility fields.
+- Expected source/access pending for Step 8:
+  - `History.BackOfficeCustomer`
+  - `Trade.GetInstrument`, `Trade.InstrumentMetaData`, `Trade.Instrument`, `Trade.ProviderToInstrument`, `Dictionary.Currency`
+  - Step 5 gated dependencies consumed by ASIC2 logic (`Reg_Ext_CustomerLatinName`, `Reg_Ext_DictionaryCurrency`, `Reg_Ext_CurrencyPriceMaxDateWithSplit`, `Reg_Ext_DailyMaxPrices`, `Reg_RegulationInOutDailyData`, `Reg_Instruments_ext`)
+
 ## Mappings not to use (legacy/reference-only)
 
 - Do not use optional/reference package artifacts as current mapping authority:

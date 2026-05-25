@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-7)
+# Known Differences (Current Safe + Steps 5B1-8)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -10,6 +10,7 @@ This document tracks known or intentional differences for the currently implemen
 - Pre_Regulation non-price staging analysis/profiling gates (Step 5B2)
 - Regulation movement staging analysis/profiling gates (Step 6)
 - Hedge liquidity mapping staging analysis/profiling gates (Step 7)
+- ASIC2-compatible MiFID subset profiling/gated templates (Step 8)
 
 ## Scope and non-goals in this step
 
@@ -22,6 +23,7 @@ This document tracks known or intentional differences for the currently implemen
 - Step 5B2 includes non-price profiling/gating only; no active non-price staging DDL is authored yet.
 - Step 6 includes regulation-movement profiling/gating only; no active movement staging DDL is authored yet.
 - Step 7 includes hedge-liquidity profiling/gating only; no active Step 7 staging/SCD DDL is enabled yet.
+- Step 8 includes ASIC2 subset profiling/gating only; no active Step 8 staging/view DDL is enabled yet.
 - No `MIFID2_ext` staging implementation.
 - No final MiFID output table-generation implementation.
 - No Hedge EU/UK final report implementation.
@@ -66,6 +68,9 @@ This document tracks known or intentional differences for the currently implemen
 - `Reg_Ext_Trade_InstrumentMetaData` remains gated until its source schema is confirmed; this continues to block `InstrumentMetaData_SpecialChar_Conversion` population.
 - Step 6 enrichment for `Reg_Regulation_Movments_Positions` remains gated until split-price parity (`Reg_Ext_CurrencyPriceMaxDateWithSplit`) is resolved.
 - Step 7 `Reg_LiquidtyAcount_SCD` activation remains gated until seed/cutover strategy is explicitly approved.
+- Step 8 compatibility view activation remains gated until `CDE_Execution_timestamp -> OpenTime` semantics are validated.
+- Step 8 keeps `SP_ASIC2_Instrument_Automation` and `SP_ASIC2_PositionReport_Agg` as conditional dependencies only; they are not activated unless profiling proves direct feed into required Step 8 outputs.
+- Step 8 keeps `Reg_DWH_StaticPosition` conditional/legacy and non-blocking unless OpenPrice fallback impact is proven for MiFID-consumed fields.
 
 ## Step 5B1 implementation differences and cautions
 
@@ -100,6 +105,26 @@ This document tracks known or intentional differences for the currently implemen
 - If compatibility shape later requires legacy sensitive columns, only masked/null placeholders should be exposed in a dedicated compatibility object.
 - SQL Server removed-account SCD behavior (does not explicitly set `IsLast = 0`) is preserved by default in the Step 7 gated template and is not silently corrected.
 - Legacy spellings `Liquidty` / `Acount` are preserved intentionally in Step 7 target object naming for parity.
+
+## Step 8 implementation differences and cautions
+
+- `databricks/sql/06_asic2_subset/01_asic2_source_profiling.sql` profiles Step 8 source visibility, required columns, conditional dependencies, and UPI/static-position gate evidence before any activation.
+- `databricks/sql/06_asic2_subset/02_asic2_ext_staging.sql` contains commented Delta templates for:
+  - `ASIC2_ext_OpenPositions_PositionsReport`
+  - `ASIC2_ext_PositionChangeLog`
+  - `ASIC2_Customer_PositionReport`
+- `databricks/sql/06_asic2_subset/03_asic2_positions_and_instruments.sql` contains commented Delta templates for:
+  - `ASIC2_InstrumentMetaData`
+  - `ASIC2_Positions`
+- `databricks/sql/06_asic2_subset/04_asic2_transactions.sql` contains commented Delta templates for:
+  - `ASIC2_Removed_OP_Partials`
+  - `ASIC2_Transactions`
+  - `MIFID2_ASIC2_Transactions`
+- `databricks/sql/06_asic2_subset/05_mifid_asic_compatibility_view.sql` contains a commented compatibility view template that exposes exactly:
+  - `DateID`, `ReportDate`, `CID`, `PositionID`, `InstrumentID`, `OpenORClose`, `IsBuy`, `OpenTime`, `Volume`, `OpenPrice`, `RegChange`
+- `databricks/sql/06_asic2_subset/06_asic2_validation.sql` includes OpenTime parsing checks, Quantity->Volume parity checks, exact 11-column compatibility schema checks, UPI non-dependency checks, and Reg_DWH_StaticPosition fallback-impact checks.
+- `CDE_Execution_timestamp -> OpenTime` is intentionally treated as unproven and remains validation-gated.
+- EMIR Refit UPI remains out of active Step 8 dependency scope unless validation proves impact on MiFID-consumed compatibility fields.
 
 ## Reference-only policy
 
