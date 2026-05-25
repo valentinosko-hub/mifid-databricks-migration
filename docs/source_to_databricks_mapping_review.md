@@ -73,6 +73,14 @@ Step 5B2 note:
 - `Reg_Ext_CustomerLatinName`, `Reg_Ext_Trade_GetInstrument`, `Reg_Ext_Trade_InstrumentMetaData`, `Reg_Ext_DictionaryCurrency`, and `Reg_Ext_DictionaryCurrencyType` are expected source / access pending until the corresponding Databricks source tables and required columns are confirmed.
 - `Reg_Instruments_ext` should be shaped from certified FIRDS/instrument gold sources (`main.regtech.gold_regtech_reg_instruments_scd` and `main.regtech.gold_regtech_reg_instruments_full_description`) only after parity to the SSIS raw join output is validated.
 
+Step 6 note (Regulation movement staging):
+- Primary target remains `main.regtech_ops_stg.bi_output_regtechops_reg_regulation_movments_positions` (legacy spelling preserved for parity).
+- Active movement build path uses migration population plus position/history sources, then post-load enrichment from instrument SCD and split-price data.
+- `RegSupportDB.dbo.Ext_MigrationInOut_Population` is treated as a support-copy artifact in SQL Server and should be represented as non-persistent temporary logic in Databricks (CTE/temp relation), not a new persistent business table.
+- `Reg_MigrationInOut_Population` can be consumed from prefixed snapshot `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population` after parity validation; certified gold `main.regtech.gold_regtech_reg_migrationinout_population` remains the confirmed fallback mapping.
+- `Reg_RegulationInOutDailyData` is not an active Step 6 build input for `Reg_Regulation_Movments_Positions`, but its mapping remains relevant for downstream consumers and parity governance.
+- Step 6 post-load price enrichment remains gated until `Reg_Ext_CurrencyPriceMaxDateWithSplit` source-selection/parity is resolved.
+
 ## Mappings not to use (legacy/reference-only)
 
 - Do not use optional/reference package artifacts as current mapping authority:

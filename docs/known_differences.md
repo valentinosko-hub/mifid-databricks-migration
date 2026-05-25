@@ -8,6 +8,7 @@ This document tracks known or intentional differences for the currently implemen
 - Validation SQL scripts for static references and `ReplaceChar`
 - Pre_Regulation price/currency/split staging (Step 5B1)
 - Pre_Regulation non-price staging analysis/profiling gates (Step 5B2)
+- Regulation movement staging analysis/profiling gates (Step 6)
 
 ## Scope and non-goals in this step
 
@@ -18,6 +19,7 @@ This document tracks known or intentional differences for the currently implemen
   - `Reg_Ext_CurrencyPriceMaxDateWithSplit` (profiling/comparison only)
   - `Reg_Ext_T_PriceCandle60Min`
 - Step 5B2 includes non-price profiling/gating only; no active non-price staging DDL is authored yet.
+- Step 6 includes regulation-movement profiling/gating only; no active movement staging DDL is authored yet.
 - No `MIFID2_ext` staging implementation.
 - No final MiFID output table-generation implementation.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
@@ -59,6 +61,7 @@ This document tracks known or intentional differences for the currently implemen
 - `Reg_Ext_CurrencyPriceMaxDateWithSplit` final source and staging materialization are deferred until candidate profiling evidence selects one authoritative Databricks source.
 - `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` remain gated until row-count/schema parity determines whether prefixed snapshots should be materialized from certified gold or recreated from SSIS-compatible logic.
 - `Reg_Ext_Trade_InstrumentMetaData` remains gated until its source schema is confirmed; this continues to block `InstrumentMetaData_SpecialChar_Conversion` population.
+- Step 6 enrichment for `Reg_Regulation_Movments_Positions` remains gated until split-price parity (`Reg_Ext_CurrencyPriceMaxDateWithSplit`) is resolved.
 
 ## Step 5B1 implementation differences and cautions
 
@@ -74,6 +77,14 @@ This document tracks known or intentional differences for the currently implemen
 - `databricks/sql/03_pre_regulation_ext/06_non_price_validation.sql` contains validation templates for later execution after staging tables are materialized.
 - `Reg_Instruments_ext` is planned to use certified instrument gold/FIRDS sources if parity to the SSIS raw join output is confirmed.
 - Dictionary and trade instrument sources are marked expected source / access pending; columns are not assumed.
+
+## Step 6 implementation differences and cautions
+
+- `databricks/sql/04_regulation_movements/01_regulation_movments_source_profiling.sql` profiles movement inputs before any executable Step 6 staging SQL is allowed.
+- `databricks/sql/04_regulation_movements/02_regulation_movments_staging.sql` is intentionally gated and keeps intended staging logic commented until Step 5/6 gates pass.
+- `databricks/sql/04_regulation_movements/03_regulation_movments_validation.sql` defines movement validation templates for later execution.
+- SQL Server support-copy object `RegSupportDB.dbo.Ext_MigrationInOut_Population` is represented as non-persistent temporary logic in Databricks Step 6 flow.
+- Legacy spelling `Movments` is preserved intentionally in target object naming for parity.
 
 ## Reference-only policy
 

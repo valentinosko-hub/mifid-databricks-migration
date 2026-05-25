@@ -1,4 +1,4 @@
-# Phase 1D / Step 5B1 - Unresolved Dependencies
+# Phase 1D / Steps 5-6 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -19,6 +19,9 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 | `Reg_Ext_MigrationInOut_STG` source reconstruction | SSIS builds `##TRAN_DATA` from multiple operational sources before loading the staging table | Incorrect migration/in-out rows can affect movement and MiFID report logic | Confirm Databricks equivalents for the temp-table inputs and validate reconstructed row counts against SQL Server | Yes |
 | Step 5B2 expected source access/schema validation | Several non-price sources are expected but not yet confirmed in runtime schema (`CustomerLatinName`, `Trade.GetInstrument`, `Trade.InstrumentMetaData`, `Dictionary.Currency`, `Dictionary.CurrencyType`) | Staging SQL may fail or silently diverge if expected sources/columns differ | Run `databricks/sql/03_pre_regulation_ext/04_non_price_source_profiling.sql` and document missing columns before authoring executable staging SQL | Yes |
 | `Reg_Instruments_ext` gold/FIRDS replacement shape | SSIS builds the object from raw trade joins, while phase 1 prefers certified gold/FIRDS sources | Missing columns such as visibility, currency IDs, or `IsFuture` can break downstream instrument logic | Validate `main.regtech.gold_regtech_reg_instruments_scd` / full-description coverage against the SSIS output contract before materialization | Yes |
+| `Reg_Regulation_Movments_Positions` Step 6 source parity | Active movement load depends on migration population, position/history branches, and post-load instrument/price enrichment | Movement rows, branch composition, and MIFID report filters can drift if join/date logic diverges | Validate Step 6 source contracts via `databricks/sql/04_regulation_movements/01_regulation_movments_source_profiling.sql` before enabling executable staging SQL | Yes |
+| `Reg_Regulation_Movments_Positions` price enrichment dependency | Step 6 post-load `EOD_Price` depends on split-price staging source choice still unresolved in Step 5B1 | Missing or incorrect `EOD_Price`/`Symbol` enrichment for movement rows | Resolve/validate `Reg_Ext_CurrencyPriceMaxDateWithSplit` parity before activating Step 6 enrichment logic | Yes |
+| `Ext_MigrationInOut_Population` support-copy representation | SQL Server uses RegSupportDB support copy for cross-DB join behavior | Persistent/non-persistent mismatch can add lineage confusion or duplicate state | Represent as non-persistent CTE/temp relation in Databricks Step 6 flow; do not introduce a separate persistent business target | No |
 | `dbo.ReplaceChar` parity implementation | Function behavior is strict (trim-before-replace, specific character map) | Customer identifier/name outputs can drift from SQL Server | SQL authored in Step 4; execute targeted unit tests and compare against SQL Server outputs | Yes |
 | `Reg_DWH_StaticPosition` dependency treatment | Referenced in ASIC2 SPs but investigated as stale/legacy | Potential confusion about whether to include stale join path | Keep conditional/excluded unless proven to affect MiFID-consumed fields | No |
 | Audit/control persistence scope (`Reg_SSIS_Log`, `Reports_Control`, SQL Agent metadata) | Needed for lineage and reconciliation governance but not always required for table generation | Reduced observability and harder run diagnostics | Decide minimum audit/control artifacts to replicate in phase 1 | No |
@@ -38,3 +41,4 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 5. Decide `RecordID` strategy for `MIFID2_Hedge_Report`.
 6. Lock staging-vs-gold materialization policy for migration/in-out tables using Step 5B2 parity profiling.
 7. Confirm Step 5B2 expected source access/schema before authoring active non-price staging SQL.
+8. Confirm Step 6 movement source contracts and join/date parity before activating Step 6 staging DDL.
