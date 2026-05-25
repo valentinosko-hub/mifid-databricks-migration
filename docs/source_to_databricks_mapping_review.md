@@ -27,6 +27,10 @@ These mappings are explicitly documented as established in `06_mappings`:
 - `Hedge.ExecutionLog` -> `main.dealing.bronze_etoro_hedge_executionlog`
 - `Hedge.HBCExecutionLog` -> `main.dealing.bronze_etoro_hedge_hbcexecutionlog`
 - `Hedge.HBCOrderLog` -> `main.dealing.bronze_etoro_hedge_hbcorderlog`
+- `Hedge.HedgeServerToLiquidityAccount` -> `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`
+- `Trade.LiquidityAccounts` -> `main.trading.bronze_etoro_trade_liquidityaccounts`
+- `Trade.LiquidityProviders` -> `main.trading.bronze_etoro_trade_liquidityproviders`
+- `Trade.LiquidityProviderType` -> `main.bi_db.bronze_etoro_trade_liquidityprovidertype`
 - `google_sheets.reg_liquidityaccountid_to_lei` -> `main.general.bronze_fivetran_google_sheets_reg_liquidityaccountid_to_lei`
 - `ThirdParty_Fivetran...regulation_report_excluded_cids` -> `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
 - `ThirdParty_Fivetran...regtech_excluded_instruments` -> `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
@@ -80,6 +84,23 @@ Step 6 note (Regulation movement staging):
 - `Reg_MigrationInOut_Population` can be consumed from prefixed snapshot `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population` after parity validation; certified gold `main.regtech.gold_regtech_reg_migrationinout_population` remains the confirmed fallback mapping.
 - `Reg_RegulationInOutDailyData` is not an active Step 6 build input for `Reg_Regulation_Movments_Positions`, but its mapping remains relevant for downstream consumers and parity governance.
 - Step 6 post-load price enrichment remains gated until `Reg_Ext_CurrencyPriceMaxDateWithSplit` source-selection/parity is resolved.
+
+Step 7 note (Hedge liquidity mapping staging):
+- Confirmed source mappings for Step 7 are:
+  - `Hedge.HedgeServerToLiquidityAccount` -> `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`
+  - `Trade.LiquidityAccounts` -> `main.trading.bronze_etoro_trade_liquidityaccounts`
+  - `Trade.LiquidityProviders` -> `main.trading.bronze_etoro_trade_liquidityproviders`
+  - `Trade.LiquidityProviderType` -> `main.bi_db.bronze_etoro_trade_liquidityprovidertype`
+  - `google_sheets.reg_liquidityaccountid_to_lei` -> `main.general.bronze_fivetran_google_sheets_reg_liquidityaccountid_to_lei`
+- Step 7 target staging objects are:
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_hedgeservertoliquidityaccount_ext`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_ext`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityproviders`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd`
+- Execution remains gated until Step 7 source profiling confirms required columns and access in runtime schema.
+- Sensitive source fields from `Trade.LiquidityAccounts` (`Username`, `Password`, `SettingsXML`) are intentionally excluded/masked for phase-1 normal staging objects.
+- `Reg_LiquidtyAcount_SCD` activation is gated by seed/cutover decision; removed-account `IsLast` behavior follows SQL Server parity by default (no silent correction).
 
 ## Mappings not to use (legacy/reference-only)
 

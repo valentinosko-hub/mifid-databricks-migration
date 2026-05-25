@@ -35,8 +35,51 @@ To validate a specific `ReportDate`, the following history scope must exist for 
 - Split-price source selection risk affects `EOD_Price` completeness and value parity.
 - Historical cutover risk exists if migration timestamps or position lifecycle events straddle date boundaries around report-date transitions.
 
+## Step 7 - Hedge liquidity mapping staging
+
+Primary Step 7 history target:
+
+- `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd`
+
+Supporting Step 7 ext staging targets:
+
+- `main.regtech_ops_stg.bi_output_regtechops_reg_hedgeservertoliquidityaccount_ext`
+- `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_ext`
+- `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid`
+- `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityproviders`
+
+### Minimum seed requirements for Step 7 parity windows
+
+For Step 7 validation/execution windows, ensure availability of:
+
+- Current liquidity account mappings:
+  - `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`
+  - `main.trading.bronze_etoro_trade_liquidityaccounts`
+  - `main.trading.bronze_etoro_trade_liquidityproviders`
+  - `main.bi_db.bronze_etoro_trade_liquidityprovidertype`
+- Current LEI mapping source:
+  - `main.general.bronze_fivetran_google_sheets_reg_liquidityaccountid_to_lei`
+- Existing SCD history baseline (if incremental cutover is selected):
+  - prior contents of `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd`
+
+### Seed/cutover policy for Step 7
+
+- Step 7 ext objects follow truncate/reload behavior and do not need deep historical backfill for phase-1 parity.
+- `Reg_LiquidtyAcount_SCD` requires explicit cutover decision:
+  - optional initial seed/rebuild template (history reset risk), or
+  - incremental cutover that preserves existing SCD history.
+- Phase-1 default should favor incremental cutover once source profiling and schema parity checks pass.
+
+### Known Step 7 history risks
+
+- SCD cutover risk: incorrect seed/rebuild choice can lose expected history windows.
+- Removed-account behavior risk: SQL Server removed-account update does not explicitly set `IsLast = 0`; parity/correction decision must be explicit.
+- LEI history risk: current gsheet state may not represent historical LEI values for prior windows.
+- Sensitive-column governance risk: legacy source includes `Username`/`Password`/`SettingsXML`; phase-1 excludes these from normal staging by design.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.
+- Full historical backfill of hedge liquidity SCD history.
 - Production deployment/cutover workflows.
 - File-delivery and response handling flows.

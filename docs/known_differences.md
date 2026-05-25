@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Step 5B1 Module)
+# Known Differences (Current Safe + Steps 5B1-7)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -9,6 +9,7 @@ This document tracks known or intentional differences for the currently implemen
 - Pre_Regulation price/currency/split staging (Step 5B1)
 - Pre_Regulation non-price staging analysis/profiling gates (Step 5B2)
 - Regulation movement staging analysis/profiling gates (Step 6)
+- Hedge liquidity mapping staging analysis/profiling gates (Step 7)
 
 ## Scope and non-goals in this step
 
@@ -20,8 +21,10 @@ This document tracks known or intentional differences for the currently implemen
   - `Reg_Ext_T_PriceCandle60Min`
 - Step 5B2 includes non-price profiling/gating only; no active non-price staging DDL is authored yet.
 - Step 6 includes regulation-movement profiling/gating only; no active movement staging DDL is authored yet.
+- Step 7 includes hedge-liquidity profiling/gating only; no active Step 7 staging/SCD DDL is enabled yet.
 - No `MIFID2_ext` staging implementation.
 - No final MiFID output table-generation implementation.
+- No Hedge EU/UK final report implementation.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
 - No CSV/7z/SFTP/Cappitech/TRAX upload/response handling.
 - No production deployment to `main.regtech`.
@@ -62,6 +65,7 @@ This document tracks known or intentional differences for the currently implemen
 - `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` remain gated until row-count/schema parity determines whether prefixed snapshots should be materialized from certified gold or recreated from SSIS-compatible logic.
 - `Reg_Ext_Trade_InstrumentMetaData` remains gated until its source schema is confirmed; this continues to block `InstrumentMetaData_SpecialChar_Conversion` population.
 - Step 6 enrichment for `Reg_Regulation_Movments_Positions` remains gated until split-price parity (`Reg_Ext_CurrencyPriceMaxDateWithSplit`) is resolved.
+- Step 7 `Reg_LiquidtyAcount_SCD` activation remains gated until seed/cutover strategy is explicitly approved.
 
 ## Step 5B1 implementation differences and cautions
 
@@ -85,6 +89,17 @@ This document tracks known or intentional differences for the currently implemen
 - `databricks/sql/04_regulation_movements/03_regulation_movments_validation.sql` defines movement validation templates for later execution.
 - SQL Server support-copy object `RegSupportDB.dbo.Ext_MigrationInOut_Population` is represented as non-persistent temporary logic in Databricks Step 6 flow.
 - Legacy spelling `Movments` is preserved intentionally in target object naming for parity.
+
+## Step 7 implementation differences and cautions
+
+- `databricks/sql/05_hedge_liquidity/01_hedge_liquidity_source_profiling.sql` profiles source visibility, required columns, row counts, and freshness-support columns before Step 7 staging activation.
+- `databricks/sql/05_hedge_liquidity/02_liquidity_ext_staging.sql` contains gated/commented Delta staging templates only; no active Step 7 staging DDL is enabled until profiling gates pass.
+- `databricks/sql/05_hedge_liquidity/03_reg_liquidtyacount_scd.sql` contains gated SCD templates only and avoids unconditional `CREATE OR REPLACE TABLE` runtime behavior.
+- `databricks/sql/05_hedge_liquidity/04_hedge_liquidity_validation.sql` defines Step 7 validation templates for duplicates, LEI coverage, SCD consistency, and source-to-stage parity checks.
+- Sensitive source fields from `Trade.LiquidityAccounts` (`Username`, `Password`, `SettingsXML`) are intentionally excluded from normal phase-1 `Reg_LiquidtyAcount_Ext` staging to avoid secrets exposure.
+- If compatibility shape later requires legacy sensitive columns, only masked/null placeholders should be exposed in a dedicated compatibility object.
+- SQL Server removed-account SCD behavior (does not explicitly set `IsLast = 0`) is preserved by default in the Step 7 gated template and is not silently corrected.
+- Legacy spellings `Liquidty` / `Acount` are preserved intentionally in Step 7 target object naming for parity.
 
 ## Reference-only policy
 
