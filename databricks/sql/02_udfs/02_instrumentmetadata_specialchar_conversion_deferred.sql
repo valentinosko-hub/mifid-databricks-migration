@@ -1,0 +1,11 @@
+-- Deferred in this module by design.
+--
+-- InstrumentMetaData_SpecialChar_Conversion population is NOT implemented here.
+-- Dependency:
+--   main.regtech_ops_stg.bi_output_regtechops_reg_ext_trade_instrumentmetadata
+-- which is produced by the Pre_Regulation_Ext staging module.
+--
+-- Safe-module boundary:
+-- - Implemented now: ReplaceChar UDF + static reference compatibility.
+-- - Deferred: conversion table population until Pre_Regulation_Ext is implemented.
+

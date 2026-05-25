@@ -1,0 +1,20 @@
+# Ignore heavy/reference-only material for Cursor indexing
+reference/mifid_databricks_migration_context/08_reference_only_old_databricks_attempt/
+reference/mifid_databricks_migration_context/09_reference_only_noc_not_implemented/
+reference/mifid_databricks_migration_context/10_validation_baselines/
+
+# Ignore archives / binary packages
+**/*.zip
+**/*.7z
+**/*.rar
+**/*.tar
+**/*.gz
+**/*.ispac
+
+# Ignore editor/temp/private files
+.vscode/
+.idea/
+tmp/
+temp/
+private_exports/
+local_exports/

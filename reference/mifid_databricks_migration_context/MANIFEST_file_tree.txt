@@ -1,0 +1,107 @@
+./00_context/README_FOR_CURSOR.md
+./00_context/batch_2_ingestion_notes.md
+./00_context/batch_3_ingestion_notes.md
+./00_context/batch_5_ssis_added.md
+./00_context/current_environment_and_naming.md
+./00_context/current_scope_and_cutover.md
+./00_context/latest_relevance_and_missing_summary.md
+./01_sql_server_stored_procedures/asic2/SP_ASIC2_Instrument_Automation.sql
+./01_sql_server_stored_procedures/asic2/SP_ASIC2_PositionReport.sql
+./01_sql_server_stored_procedures/asic2/SP_ASIC2_PositionReport_Agg.sql
+./01_sql_server_stored_procedures/asic2/SP_ASIC2_TransactionsReport.sql
+./01_sql_server_stored_procedures/core_mifid/README_expected_core_mifid_sps.md
+./01_sql_server_stored_procedures/core_mifid/SP_MIFID2_NPD_TRAX.sql
+./01_sql_server_stored_procedures/core_mifid/SP_MIFID_Customer.sql
+./01_sql_server_stored_procedures/core_mifid/SP_MIFID_ETORO_Report.sql
+./01_sql_server_stored_procedures/core_mifid/SP_MIFID_HedgeEU_Report.sql
+./01_sql_server_stored_procedures/core_mifid/SP_MIFID_HedgeUK_Report.sql
+./01_sql_server_stored_procedures/core_mifid/SP_MIFID_RegChange_Customer.sql
+./01_sql_server_stored_procedures/core_mifid/SP_MIFID_Report.sql
+./01_sql_server_stored_procedures/supporting/SP_InstrumentMetaData_SpecialChar_Conversion.sql
+./01_sql_server_stored_procedures/supporting/SP_RegInRegOutPopulation.sql
+./01_sql_server_stored_procedures/supporting/SP_Reg_Instruments_SCD.sql
+./01_sql_server_stored_procedures/supporting/SP_Reg_LiquidtyAcount_SCD.sql
+./02_sql_server_ddls/asic2_tables/ASIC2_Customer_PositionReport.sql
+./02_sql_server_ddls/asic2_tables/ASIC2_InstrumentMetaData.sql
+./02_sql_server_ddls/asic2_tables/ASIC2_Positions.sql
+./02_sql_server_ddls/asic2_tables/ASIC2_Removed_OP_Partials.sql
+./02_sql_server_ddls/asic2_tables/ASIC2_Transactions.sql
+./02_sql_server_ddls/asic2_tables/ASIC2_ext_OpenPositions_PositionsReport.sql
+./02_sql_server_ddls/asic2_tables/ASIC2_ext_PositionChangeLog.sql
+./02_sql_server_ddls/external_synapse_tables/Dealing_staging.LP_EdnF_CoreTrades.sql
+./02_sql_server_ddls/external_synapse_tables/Dealing_staging.LP_IB_U1059976_Open_Positions_All.sql
+./02_sql_server_ddls/external_synapse_tables/LP_IB_U1059976_Open_Positions_All.sql
+./02_sql_server_ddls/legacy_asic_reference_only/ASIC_ext_OpenPositions_PositionsReport.sql
+./02_sql_server_ddls/legacy_asic_reference_only/ASIC_ext_PositionChangeLog.sql
+./02_sql_server_ddls/legacy_asic_reference_only/README.md
+./02_sql_server_ddls/source_reference_tables/Dictionary_Ext_SpecialChar.sql
+./02_sql_server_ddls/source_reference_tables/Ext_Country.sql
+./02_sql_server_ddls/source_reference_tables/Ext_TradeFund.sql
+./02_sql_server_ddls/source_reference_tables/ISO_Currencies_Static.sql
+./02_sql_server_ddls/source_reference_tables/InternalAccounts.sql
+./02_sql_server_ddls/source_reference_tables/MIFID2_Instruments_To_Exclude.sql
+./02_sql_server_ddls/source_reference_tables/Reg_Ext_HedgeOrderLog.sql
+./02_sql_server_ddls/source_reference_tables/Reg_Ext_HistorySplitRatio.sql
+./02_sql_server_ddls/source_reference_tables/Reg_Ext_Trade_GetInstrument.sql
+./02_sql_server_ddls/source_reference_tables/Reg_Ext_Trade_InstrumentMetaData.sql
+./02_sql_server_ddls/source_reference_tables/dbo.Reg_Ext_HedgeHBCOrderLog.sql
+./02_sql_server_ddls/source_reference_tables/synapse_source_tables/LP_IB_U1059976_Open_Positions_All.sql
+./02_sql_server_ddls/ssis_created_staging_tables/InstrumentMetaData_SpecialChar_Conversion.sql
+./02_sql_server_ddls/ssis_created_staging_tables/MIFID2_Failed_TRAX.sql
+./02_sql_server_ddls/ssis_created_staging_tables/Reg_Instruments_ext.sql
+./02_sql_server_ddls/target_output_tables/MIFID2_Customer.sql
+./02_sql_server_ddls/target_output_tables/MIFID2_ETORO_Report.sql
+./02_sql_server_ddls/target_output_tables/MIFID2_Hedge_Report.sql
+./02_sql_server_ddls/target_output_tables/MIFID2_ME_Report.sql
+./02_sql_server_ddls/target_output_tables/MIFID2_RegChange_Customer.sql
+./02_sql_server_ddls/target_output_tables/MIFID2_Removed_OP_Partials.sql
+./02_sql_server_ddls/target_output_tables/MIFID2_Report.sql
+./02_sql_server_ddls/target_output_tables/README_expected_target_ddls.md
+./02_sql_server_ddls/target_output_tables/dbo.MIFID2_NPD_TRAX.sql
+./03_sql_server_functions/replace_char_mapping.md
+./04_sql_agent_jobs/PROD - Regulation HedgeServerToLiquidity_Mapping.sql
+./04_sql_agent_jobs/PROD - Regulations - ALL_NEW.sql
+./04_sql_agent_jobs/PROD - Regulations - ASIC2.sql
+./04_sql_agent_jobs/PROD - Regulations - MIFID2 TRAX.sql
+./04_sql_agent_jobs/PROD - Regulations - MIFID2.sql
+./04_sql_agent_jobs/PROD - Regulations - Movments Report.sql
+./04_sql_agent_jobs/PROD - Regulations - Reg Instrument SCD.sql
+./04_sql_agent_jobs/PROD - Regulations - Reg_Every_30_Minutes.sql
+./04_sql_agent_jobs/PROD - Regulations - Reg_Instruements_Operation.sql
+./04_sql_agent_jobs/README_expected_jobs.md
+./04_sql_agent_jobs/Reports_Control.csv
+./04_sql_agent_jobs/job_schedules.csv
+./04_sql_agent_jobs/job_steps.csv
+./05_ssis/README_SSIS_INCLUDED.md
+./05_ssis/full_project_archive/README_expected_ispac.md
+./05_ssis/full_project_archive/eToro_RegulatoryReports_PROD.ispac
+./05_ssis/metadata/README_expected_ssis_metadata.md
+./05_ssis/metadata/ssis_environment_references.csv
+./05_ssis/metadata/ssis_environment_variables_masked.csv
+./05_ssis/metadata/ssis_parameters.csv
+./05_ssis/selected_packages/ASIC2.dtsx
+./05_ssis/selected_packages/HedgeServerToLiquidity_Mapping.dtsx
+./05_ssis/selected_packages/MIFID2 TRAX.dtsx
+./05_ssis/selected_packages/MIFID2.dtsx
+./05_ssis/selected_packages/Pre_Regulation_Ext.dtsx
+./05_ssis/selected_packages/Project.params
+./05_ssis/selected_packages/README_expected_dtsx.md
+./05_ssis/selected_packages/Reg_Instrument_Operation.dtsx
+./05_ssis/selected_packages/Regulation_Movments_Report.dtsx
+./05_ssis/selected_packages/optional_reference/BestEX_Daily.dtsx
+./05_ssis/selected_packages/optional_reference/MIFID2_TRAX_BACKREP2025.dtsx
+./06_mappings/firds_lineage_mapping.md
+./06_mappings/gsheet_excel_fivetran_mapping.md
+./06_mappings/source_to_datalake_mapping.md
+./06_mappings/static_tables_created_in_regtech_ops_stg.md
+./07_reference_data/Dictionary_Ext_SpecialChar.csv
+./07_reference_data/dictionary_ext_specialchar_notes.md
+./08_disregarded_not_included/README.md
+./08_reference_only_old_databricks_attempt/DO_NOT_USE_AS_AUTHORITY.md
+./09_reference_only_noc_not_implemented/NOC_NOT_IMPLEMENTED.md
+./10_validation_baselines/README.md
+./11_open_questions/coverage_matrix_instruction.md
+./11_open_questions/open_questions_and_decisions.md
+./INGESTED_UPLOADED_FILES.md
+./MANIFEST_file_tree.txt
+./cursor_master_prompt.md

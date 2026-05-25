@@ -1,0 +1,91 @@
+﻿eToro_RegulatoryReports,RegAml_PROD,AML_Files_ENV,String,0,Prod\
+eToro_RegulatoryReports,RegAml_PROD,azr-we-dwh-01_DWH,String,0,Data Source=AZR-WE-DWH-01;Initial Catalog=DWH;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;
+eToro_RegulatoryReports,RegAml_PROD,azr-we-dwh-01_eMoney,String,0,Data Source=AZR-WE-DWH-01;Initial Catalog=eMoney;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;
+eToro_RegulatoryReports,RegAml_PROD,azr-we-dwh-01_EXW,String,0,Data Source=AZR-WE-DWH-01;Initial Catalog=EXW;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;
+eToro_RegulatoryReports,RegAml_PROD,BIReader_Password,String,1,<MASKED>
+eToro_RegulatoryReports,RegAml_PROD,BlobAccountName,String,0,datasolutionsetoro
+eToro_RegulatoryReports,RegAml_PROD,BlobKey,String,1,<MASKED>
+eToro_RegulatoryReports,RegAml_PROD,DB_etoro,String,0,Data Source=AZR-W-DBLS-23.prod.local;User ID=BIReader;Initial Catalog=etoro;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegAml_PROD,DB_RegReportDB,String,0,Data Source=AO-REGREP-DB-LSN.trad.local;Initial Catalog=RegReportDB_Prod;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;
+eToro_RegulatoryReports,RegAml_PROD,EmoneyDB_new,String,0,Data Source=banking-ne.database.windows.net;User ID=BIReader1;Initial Catalog=FiatDwhDB;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegAml_PROD,EmoneyDB_new_Password,String,1,<MASKED>
+eToro_RegulatoryReports,RegAml_PROD,eToro_RegSupportDB,String,0,Data Source=AZR-W-DBLS-23.prod.local;User ID=BIReader;Initial Catalog=RegSupportDB;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegAml_PROD,SMTPConnection,String,0,SmtpServer=smtp-relay.gmail.com;UseWindowsAuthentication=False;EnableSsl=False;
+eToro_RegulatoryReports,RegAml_PROD,Wallaet_New_Password,String,1,<MASKED>
+eToro_RegulatoryReports,RegAml_PROD,Wallet_New,String,0,Data Source=wallet-server-west.database.windows.net;User ID=WalletUser;Initial Catalog=WalletBalancesReportDB;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,Actimize_Export_Fol,String,0,Daily_Data\
+eToro_RegulatoryReports,RegReports_PROD,Actimize_SFTP_exe,String,0,C:\Program Files (x86)\WinSCP\winscp.com
+eToro_RegulatoryReports,RegReports_PROD,Actimize_SFTP_Fol,String,0,/actimize-msc-prod-euw1/etoro/
+eToro_RegulatoryReports,RegReports_PROD,Actimize_SFTP_Host,String,0,sftp://etoro_sftp@sftp-euw1.surveil-x.com/
+eToro_RegulatoryReports,RegReports_PROD,Actimize_SFTP_hostkey,String,0,ssh-rsa 2048 JGUsQE1EL++u3nsig81hZYHwa4o6kthZcaE/8rj7kU8=
+eToro_RegulatoryReports,RegReports_PROD,Actimize_SFTP_Log_arg,String,0,
+eToro_RegulatoryReports,RegReports_PROD,Actimize_SFTP_privatekey_location,String,0,\\regulations.file.core.windows.net\regulations\ACTIMIZE\SSH\transfer-key.ppk
+eToro_RegulatoryReports,RegReports_PROD,Actimize_SFTP_put_switch,String,0,-nopreservetime -nopermissions -resumesupport=off
+eToro_RegulatoryReports,RegReports_PROD,Actimize_SFTP_raw_switch,String,0,-rawsettings AgentFwd=1 ConsiderDST=0
+eToro_RegulatoryReports,RegReports_PROD,BIReader_Password,String,1,<MASKED>
+eToro_RegulatoryReports,RegReports_PROD,BlobAccountName,String,0,datasolutionsetoro
+eToro_RegulatoryReports,RegReports_PROD,BlobKey,String,1,<MASKED>
+eToro_RegulatoryReports,RegReports_PROD,Cappitech_SFTP_Fol,String,0,/Inbound
+eToro_RegulatoryReports,RegReports_PROD,Cappitech_SFTP_Host,String,0,sftp://etoro@sftp-prod.cappitech.com/
+eToro_RegulatoryReports,RegReports_PROD,Cappitech_SFTP_hostkey,String,0,ssh-rsa 2048 Dul7Ecp2YRARyNB//uuPy3QmBLwVq87XDpbvnbfg8cc=
+eToro_RegulatoryReports,RegReports_PROD,Cappitech_SFTP_log_arg,String,0,
+eToro_RegulatoryReports,RegReports_PROD,Cappitech_SFTP_privatekey_location,String,0,\\regulations.file.core.windows.net\regulations\Cappitech\SSH\Cappitech SSH Private Key.ppk
+eToro_RegulatoryReports,RegReports_PROD,Cappitech_SFTP_privatekey_locationUAT,String,0,\\regulations.file.core.windows.net\regulations\Cappitech\SSH\Cappitech SSH Private Key.ppk
+eToro_RegulatoryReports,RegReports_PROD,Cappitech_SFTP_put_switch,String,0,-nopreservetime -nopermissions -resumesupport=off
+eToro_RegulatoryReports,RegReports_PROD,Cappitech_SFTP_raw_switch,String,0,-rawsettings AgentFwd=1 ConsiderDST=0
+eToro_RegulatoryReports,RegReports_PROD,Cappitech_SFTP_SubDir_Asic,String,0,/Asic
+eToro_RegulatoryReports,RegReports_PROD,DB_Candles,String,0,Data Source=AZR-N-PRICEDB-4.prod.local;User ID=BIReader;Initial Catalog=Candles;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,DB_DBLS_master,String,0,Data Source=AZR-W-DBLS-23.prod.local;User ID=BIReader;Initial Catalog=master;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,DB_etoro,String,0,Data Source=AZR-W-DBLS-23.prod.local;User ID=BIReader;Initial Catalog=etoro;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,DB_etoro_AO,String,0,Data Source=AZR-W-DAGREAL-1.prod.local;User ID=BIReader;Initial Catalog=etoro;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,DB_Price,String,0,Data Source=AZR-N-PRICEDB-4.prod.local;User ID=BIReader;Initial Catalog=Price;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,DB_PriceLog,String,0,Data Source=AZR-W-DBLS-23.prod.local;User ID=BIReader;Initial Catalog=PriceLog;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,DB_RegReportDB,String,0,Data Source=AO-REGREP-DB-LSN.trad.local;Initial Catalog=RegReportDB_Prod;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,DB_RegSupportDB,String,0,Data Source=AZR-W-DBLS-23.prod.local;User ID=BIReader;Initial Catalog=RegSupportDB;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,DB_UserApiDB,String,0,Data Source=AZR-W-DBLS-23.prod.local;User ID=BIReader;Initial Catalog=UserApiDB;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,eToroLogs_Real,String,0,Data Source=etorolog-fg.secondary.database.windows.net;User ID=BI_Reader;Initial Catalog=eToroLogs_Real;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,eToroLogs_Real_Pass,String,1,<MASKED>
+eToro_RegulatoryReports,RegReports_PROD,SMTPConnection,String,0,SmtpServer=smtp-relay.gmail.com;UseWindowsAuthentication=False;EnableSsl=False;
+eToro_RegulatoryReports,RegReports_PROD,Solidus_SFTP_Fol,String,0,/Inbound
+eToro_RegulatoryReports,RegReports_PROD,Solidus_SFTP_Host,String,0,sftp://etoro@sftp.prod-eu-central-1.soliduslabs.app
+eToro_RegulatoryReports,RegReports_PROD,Solidus_SFTP_hostkey,String,0,ssh-rsa 4096 VEsQuXLDFzEXLrwoczY2dxO4qYVUC5arztvbNvTO10g
+eToro_RegulatoryReports,RegReports_PROD,Solidus_SFTP_Log_arg,String,0,
+eToro_RegulatoryReports,RegReports_PROD,Solidus_SFTP_privatekey_location,String,0,\\regulations.file.core.windows.net\regulations\Solidus\Solidus_etr_priv.ppk
+eToro_RegulatoryReports,RegReports_PROD,Solidus_SFTP_put_switch,String,0,-nopreservetime -nopermissions -resumesupport=off
+eToro_RegulatoryReports,RegReports_PROD,Solidus_SFTP_raw_switch,String,0,-rawsettings AgentFwd=1 ConsiderDST=0
+eToro_RegulatoryReports,RegReports_PROD,Solidus_US_Host_key,String,0,"ssh-rsa 4096 pWIwzB1l0qjPsKF80crveWvIMKJhWVhUq1fnJIjuNsE "
+eToro_RegulatoryReports,RegReports_PROD,Solidus_US_SFTP_Fol,String,0,/Inbound
+eToro_RegulatoryReports,RegReports_PROD,Solidus_US_SFTP_Host,String,0,sftp://etoro-us@sftp.prod-us-east-1.soliduslabs.app
+eToro_RegulatoryReports,RegReports_PROD,SynapseDB,String,0,Data Source=prod-synapse-dataplatform-we.sql.azuresynapse.net;User ID=RegulationSSISUser;Initial Catalog=sql_dp_prod_we;Provider=SQLNCLI11.1;Auto Translate=False;
+eToro_RegulatoryReports,RegReports_PROD,SynapseDB_Pass,String,1,<MASKED>
+eToro_RegulatoryReports,RegReports_PROD,TRAX_EU_Pass,String,0,A5uF7KtsGzp3tfgf
+eToro_RegulatoryReports,RegReports_PROD,TRAX_EU_Pass_UAT,String,0,KjF7AMSKZ4kTttan
+eToro_RegulatoryReports,RegReports_PROD,TRAX_UK_Pass,String,0,pznHjFrSzZf5bDbW
+eToro_RegulatoryReports,RegReports_PROD,TRAX_UK_Pass_UAT,String,0,XpQnYVrwGZz49aw2
+eToro_RegulatoryReports,S3_US_PROD,BlobAccountName,String,0,datasolutionsetoro
+eToro_RegulatoryReports,S3_US_PROD,BlobKey,String,1,<MASKED>
+eToro_RegulatoryReports,S3_US_PROD,DB_Logs,String,0,Data Source=AZR-W-DAGREAL-1.prod.local;User ID=BIReader;Initial Catalog=DB_Logs;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,S3_US_PROD,etoroDB,String,0,Data Source=AZR-W-DAGREAL-1.prod.local;User ID=BIReader;Initial Catalog=etoro;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,S3_US_PROD,eToroLogs_Real,String,0,Data Source=etorolog-fg.secondary.database.windows.net;User ID=BI_Reader;Initial Catalog=eToroLogs_Real;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,S3_US_PROD,eToroLogs_Real_Pass,String,1,<MASKED>
+eToro_RegulatoryReports,S3_US_PROD,passNearRealSrv,String,1,<MASKED>
+eToro_RegulatoryReports,S3_US_PROD,passUSABroker,String,1,<MASKED>
+eToro_RegulatoryReports,S3_US_PROD,PositionFailReal,String,0,Data Source=positionfailreal-fg.secondary.database.windows.net;User ID=BIReader;Initial Catalog=PositionFailReal;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,S3_US_PROD,PositionFailReal_Pass,String,1,<MASKED>
+eToro_RegulatoryReports,S3_US_PROD,RegReportDB,String,0,Data Source=AO-REGREP-DB-LSN.trad.local;Initial Catalog=RegReportDB_Prod;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;
+eToro_RegulatoryReports,S3_US_PROD,S3_SFTP_Fol,String,0,/inbound/
+eToro_RegulatoryReports,S3_US_PROD,S3_SFTP_Host,String,0,transfer.s3.com
+eToro_RegulatoryReports,S3_US_PROD,S3_SFTP_hostkey,String,0,ssh-rsa 2048 IH63e9bKddMEA9/SXCJt8ADBOkVLjf4OEcaUz4Hk/EM=
+eToro_RegulatoryReports,S3_US_PROD,S3_SFTP_privatekey_location,String,0,\\regulations.file.core.windows.net\regulations\US_S3\SSH\S3_ETOR_keyPair_20210920_v2.ppk
+eToro_RegulatoryReports,S3_US_PROD,S3_SFTP_put_switch,String,0,-nopreservetime -nopermissions -resumesupport=off
+eToro_RegulatoryReports,S3_US_PROD,S3_SFTP_raw_switch,String,0,-rawsettings AgentFwd=1 ConsiderDST=0
+eToro_RegulatoryReports,S3_US_PROD,S3_SFTP_User,String,0,etor
+eToro_RegulatoryReports,S3_US_PROD,SMTPConnection,String,0,SmtpServer=smtp-relay.gmail.com;UseWindowsAuthentication=False;EnableSsl=False;
+eToro_RegulatoryReports,S3_US_PROD,USABroker,String,0,Data Source=usabroker-fg.secondary.database.windows.net;User ID=BIReader;Initial Catalog=USABroker;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;
+eToro_RegulatoryReports,TS_PROD,BIReader_Password,String,1,<MASKED>
+eToro_RegulatoryReports,TS_PROD,BlobAccountKeyDev,String,1,<MASKED>
+eToro_RegulatoryReports,TS_PROD,BlobAccountKeyProd,String,1,<MASKED>
+eToro_RegulatoryReports,TS_PROD,DB_BI,String,0,Data Source=AZR-WE-DWH-01;Initial Catalog=BI_DB;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;
+eToro_RegulatoryReports,TS_PROD,DB_DWH,String,0,Data Source=AZR-WE-DWH-01;Initial Catalog=DWH;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;
+eToro_RegulatoryReports,TS_PROD,DB_RegReportDB,String,0,Data Source=AO-REGREP-DB-LSN.trad.local;Initial Catalog=RegReportDB_Prod;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;
+eToro_RegulatoryReports,TS_PROD,etoro_snapshot,String,0,Data Source=AZR-W-DBLS-23.prod.local;User ID=BIReader;Initial Catalog=etoro;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;

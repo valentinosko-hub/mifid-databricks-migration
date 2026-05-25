@@ -1,0 +1,1251 @@
+<?xml version="1.0"?>
+<DTS:Executable xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:refId="Package"
+  DTS:CreationDate="9/14/2021 12:13:06 PM"
+  DTS:CreationName="Microsoft.Package"
+  DTS:CreatorComputerName="AZR-WE-REGDEV-1"
+  DTS:CreatorName="TRAD\Yoavgr"
+  DTS:DTSID="{D625D0D5-F9E8-4299-BE7C-EA7A3C3F8BE3}"
+  DTS:ExecutableType="Microsoft.Package"
+  DTS:LastModifiedProductVersion="16.0.5685.2"
+  DTS:LocaleID="1033"
+  DTS:ObjectName="Reg_Instrument_Operation"
+  DTS:PackageType="5"
+  DTS:ProtectionLevel="1"
+  DTS:VersionBuild="19"
+  DTS:VersionGUID="{B437F896-2CC7-4DFA-B4F2-BB7DC41CBB9E}">
+  <DTS:Property
+    DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[etoroDB_AO]"
+      DTS:CreationName="OLEDB"
+      DTS:DelayValidation="True"
+      DTS:DTSID="{A05CC8A0-24AF-4073-9F6C-B0DD249FF883}"
+      DTS:ObjectName="etoroDB_AO">
+      <DTS:PropertyExpression
+        DTS:Name="ConnectionString">@[$Project::DB_etoro_AO]</DTS:PropertyExpression>
+      <DTS:PropertyExpression
+        DTS:Name="Password">@[$Project::BIReader_Password]</DTS:PropertyExpression>
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectRetryCount="1"
+          DTS:ConnectRetryInterval="5"
+          DTS:ConnectionString="Data Source=PROD-DB-CLS-W3.prod.local;User ID=BIReader;Initial Catalog=etoro;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;">
+          <DTS:Password
+            DTS:Name="Password"
+            Sensitive="1"
+            Encrypted="1">AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAbESJ6ILjx0GC7SVtm6RPkAAAAAACAAAAAAAQZgAAAAEAACAAAABB/h2oi3s+Pm2Kwu+azbIB16nrV1SxaHmWrimaxi/6+AAAAAAOgAAAAAIAACAAAABIsqpko6eDfehAgbFV0A/zsipnQkKxg0zAUlguiO52qiAAAAC/0Gkms63WW6hBV8kSFteDWk5A95ThKZrWp8685bEQvUAAAADtRi3IzhednWfyPbMYGWCPdgyEoICAIkssTmk4IElQDJDNAKOZynNGq2KtuLfk2WgFGIevi4FMJEeMzFiBs6s4</DTS:Password>
+        </DTS:ConnectionManager>
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[RegReportDB]"
+      DTS:CreationName="OLEDB"
+      DTS:DelayValidation="True"
+      DTS:DTSID="{84BE269E-DF52-4F0E-8645-39996558119C}"
+      DTS:ObjectName="RegReportDB">
+      <DTS:PropertyExpression
+        DTS:Name="ConnectionString">@[$Project::DB_RegReportDB]</DTS:PropertyExpression>
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectRetryCount="1"
+          DTS:ConnectRetryInterval="5"
+          DTS:ConnectionString="Data Source=AO-REGREP-DB-LSN.trad.local;Initial Catalog=RegReportDB_Prod;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[SMTP Connection Manager]"
+      DTS:CreationName="SMTP"
+      DTS:DTSID="{FDC55F79-7D2D-4AA5-98E8-98296ADADCC1}"
+      DTS:ObjectName="SMTP Connection Manager">
+      <DTS:PropertyExpression
+        DTS:Name="ConnectionString">@[$Project::SMTPConnection]</DTS:PropertyExpression>
+      <DTS:ObjectData>
+        <SmtpConnectionManager
+          ConnectionString="SmtpServer=smtp-relay.gmail.com;UseWindowsAuthentication=False;EnableSsl=False;"
+          ConnectByProxy="False" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
+  <DTS:Variables>
+    <DTS:Variable
+      DTS:CreationName=""
+      DTS:DTSID="{F9ACEB14-292A-4729-9E7F-EB18655A61EF}"
+      DTS:EvaluateAsExpression="True"
+      DTS:Expression="GETUTCDATE()"
+      DTS:IncludeInDebugDump="2345"
+      DTS:Namespace="User"
+      DTS:ObjectName="StartDate">
+      <DTS:VariableValue
+        DTS:DataType="7">2/11/2026 12:37:38 PM</DTS:VariableValue>
+    </DTS:Variable>
+  </DTS:Variables>
+  <DTS:Executables>
+    <DTS:Executable
+      DTS:refId="Package\Reg_SSIS_Log Completed"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{494B09B7-270C-4F0E-A40C-3EEA3D5B4831}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Reg_SSIS_Log Completed"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{84BE269E-DF52-4F0E-8645-39996558119C}"
+          SQLTask:SqlStatementSource="SP_Reg_SSIS_Log 'Completed',?,?,''" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::StartDate"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="7"
+            SQLTask:ParameterSize="-1" />
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="1"
+            SQLTask:DtsVariableName="System::PackageName"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="-1" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Reg_SSIS_Log Start"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{0705B09A-8D5F-40FD-9A3B-E198F90F5C35}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Reg_SSIS_Log Start"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{84BE269E-DF52-4F0E-8645-39996558119C}"
+          SQLTask:SqlStatementSource="SP_Reg_SSIS_Log 'Start',?,?,''" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::StartDate"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="7"
+            SQLTask:ParameterSize="-1" />
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="1"
+            SQLTask:DtsVariableName="System::PackageName"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="-1" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Sequence Container"
+      DTS:CreationName="STOCK:SEQUENCE"
+      DTS:Description="Sequence Container"
+      DTS:DTSID="{BFA4AEDE-FB83-4D7D-9C29-7C75DA7B8225}"
+      DTS:ExecutableType="STOCK:SEQUENCE"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Sequence Container">
+      <DTS:Variables />
+      <DTS:Executables>
+        <DTS:Executable
+          DTS:refId="Package\Sequence Container\Reg_Instruments_Operation"
+          DTS:CreationName="Microsoft.Pipeline"
+          DTS:Description="Data Flow Task"
+          DTS:DTSID="{1C693057-FEE3-4366-A2AD-3E32F28A9C68}"
+          DTS:ExecutableType="Microsoft.Pipeline"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Reg_Instruments_Operation"
+          DTS:TaskContact="Performs high-performance data extraction, transformation and loading;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <pipeline
+              version="1">
+              <components>
+                <component
+                  refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination"
+                  componentClassID="Microsoft.OLEDBDestination"
+                  contactInfo="OLE DB Destination;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved; http://www.microsoft.com/sql/support;4"
+                  description="OLE DB Destination"
+                  name="OLE DB Destination"
+                  usesDispositions="true"
+                  version="4">
+                  <properties>
+                    <property
+                      dataType="System.Int32"
+                      description="The number of seconds before a command times out.  A value of 0 indicates an infinite time-out."
+                      name="CommandTimeout">0</property>
+                    <property
+                      dataType="System.String"
+                      description="Specifies the name of the database object used to open a rowset."
+                      name="OpenRowset">[dbo].[Reg_Instruments_Operation]</property>
+                    <property
+                      dataType="System.String"
+                      description="Specifies the variable that contains the name of the database object used to open a rowset."
+                      name="OpenRowsetVariable"></property>
+                    <property
+                      dataType="System.String"
+                      description="The SQL command to be executed."
+                      name="SqlCommand"
+                      UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor"></property>
+                    <property
+                      dataType="System.Int32"
+                      description="Specifies the column code page to use when code page information is unavailable from the data source."
+                      name="DefaultCodePage">1252</property>
+                    <property
+                      dataType="System.Boolean"
+                      description="Forces the use of the DefaultCodePage property value when describing character data."
+                      name="AlwaysUseDefaultCodePage">false</property>
+                    <property
+                      dataType="System.Int32"
+                      description="Specifies the mode used to access the database."
+                      name="AccessMode"
+                      typeConverter="AccessMode">3</property>
+                    <property
+                      dataType="System.Boolean"
+                      description="Indicates whether the values supplied for identity columns will be copied to the destination. If false, values for identity columns will be auto-generated at the destination. Applies only if fast load is turned on."
+                      name="FastLoadKeepIdentity">false</property>
+                    <property
+                      dataType="System.Boolean"
+                      description="Indicates whether the columns containing null will have null inserted in the destination. If false, columns containing null will have their default values inserted at the destination. Applies only if fast load is turned on."
+                      name="FastLoadKeepNulls">false</property>
+                    <property
+                      dataType="System.String"
+                      description="Specifies options to be used with fast load.  Applies only if fast load is turned on."
+                      name="FastLoadOptions">TABLOCK,CHECK_CONSTRAINTS</property>
+                    <property
+                      dataType="System.Int32"
+                      description="Specifies when commits are issued during data insertion.  A value of 0 specifies that one commit will be issued at the end of data insertion.  Applies only if fast load is turned on."
+                      name="FastLoadMaxInsertCommitSize">2147483647</property>
+                  </properties>
+                  <connections>
+                    <connection
+                      refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Connections[OleDbConnection]"
+                      connectionManagerID="Package.ConnectionManagers[RegReportDB]"
+                      connectionManagerRefId="Package.ConnectionManagers[RegReportDB]"
+                      description="The OLE DB runtime connection used to access the database."
+                      name="OleDbConnection" />
+                  </connections>
+                  <inputs>
+                    <input
+                      refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input]"
+                      errorOrTruncationOperation="Insert"
+                      errorRowDisposition="FailComponent"
+                      hasSideEffects="true"
+                      name="OLE DB Destination Input">
+                      <inputColumns>
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[InstrumentID]"
+                          cachedDataType="i4"
+                          cachedName="InstrumentID"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[InstrumentID]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentID]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[InstrumentTypeID]"
+                          cachedDataType="i4"
+                          cachedName="InstrumentTypeID"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[InstrumentTypeID]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentTypeID]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[InstrumentDisplayName]"
+                          cachedCodepage="1252"
+                          cachedDataType="str"
+                          cachedLength="100"
+                          cachedName="InstrumentDisplayName"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[InstrumentDisplayName]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentDisplayName]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[Symbol]"
+                          cachedCodepage="1252"
+                          cachedDataType="str"
+                          cachedLength="100"
+                          cachedName="Symbol"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[Symbol]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[Symbol]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[SymbolFull]"
+                          cachedCodepage="1252"
+                          cachedDataType="str"
+                          cachedLength="100"
+                          cachedName="SymbolFull"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SymbolFull]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[SymbolFull]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[Tradable]"
+                          cachedDataType="bool"
+                          cachedName="Tradable"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[Tradable]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[Tradable]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ISINCode]"
+                          cachedCodepage="1252"
+                          cachedDataType="str"
+                          cachedLength="30"
+                          cachedName="ISINCode"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ISINCode]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[ISINCode]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[InstrumentVisible]"
+                          cachedDataType="i4"
+                          cachedName="InstrumentVisible"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[InstrumentVisible]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentVisible]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[BuyCurrencyID]"
+                          cachedDataType="i4"
+                          cachedName="BuyCurrencyID"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[BuyCurrencyID]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[BuyCurrencyID]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[SellCurrencyID]"
+                          cachedDataType="i4"
+                          cachedName="SellCurrencyID"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SellCurrencyID]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[SellCurrencyID]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[UpdateDate]"
+                          cachedDataType="dbTimeStamp"
+                          cachedName="UpdateDate"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[UpdateDate]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[UpdateDate]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ContractExpire]"
+                          cachedDataType="bool"
+                          cachedName="ContractExpire"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ContractExpire]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[ContractExpire]" />
+                        <inputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[ExchangeID]"
+                          cachedDataType="i4"
+                          cachedName="ExchangeID"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ExchangeID]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[ExchangeID]" />
+                      </inputColumns>
+                      <externalMetadataColumns
+                        isUsed="True">
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[InstrumentID]"
+                          dataType="i4"
+                          name="InstrumentID" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[InstrumentTypeID]"
+                          dataType="i4"
+                          name="InstrumentTypeID" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[InstrumentDisplayName]"
+                          codePage="1252"
+                          dataType="str"
+                          length="100"
+                          name="InstrumentDisplayName" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[Symbol]"
+                          codePage="1252"
+                          dataType="str"
+                          length="100"
+                          name="Symbol" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SymbolFull]"
+                          codePage="1252"
+                          dataType="str"
+                          length="100"
+                          name="SymbolFull" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[Tradable]"
+                          dataType="bool"
+                          name="Tradable" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ISINCode]"
+                          codePage="1252"
+                          dataType="str"
+                          length="30"
+                          name="ISINCode" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[InstrumentVisible]"
+                          dataType="i4"
+                          name="InstrumentVisible" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[BuyCurrencyID]"
+                          dataType="i4"
+                          name="BuyCurrencyID" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[SellCurrencyID]"
+                          dataType="i4"
+                          name="SellCurrencyID" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ContractExpire]"
+                          dataType="i4"
+                          name="ContractExpire" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[ExchangeID]"
+                          dataType="i4"
+                          name="ExchangeID" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input].ExternalColumns[UpdateDate]"
+                          dataType="dbTimeStamp"
+                          name="UpdateDate" />
+                      </externalMetadataColumns>
+                    </input>
+                  </inputs>
+                  <outputs>
+                    <output
+                      refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Outputs[OLE DB Destination Error Output]"
+                      exclusionGroup="1"
+                      isErrorOut="true"
+                      name="OLE DB Destination Error Output"
+                      synchronousInputId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input]">
+                      <outputColumns>
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorCode]"
+                          dataType="i4"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorCode]"
+                          name="ErrorCode"
+                          specialFlags="1" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorColumn]"
+                          dataType="i4"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Outputs[OLE DB Destination Error Output].Columns[ErrorColumn]"
+                          name="ErrorColumn"
+                          specialFlags="2" />
+                      </outputColumns>
+                      <externalMetadataColumns />
+                    </output>
+                  </outputs>
+                </component>
+                <component
+                  refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source"
+                  componentClassID="Microsoft.OLEDBSource"
+                  contactInfo="OLE DB Source;Microsoft Corporation; Microsoft SQL Server; (C) Microsoft Corporation; All Rights Reserved; http://www.microsoft.com/sql/support;7"
+                  description="OLE DB Source"
+                  name="OLE DB Source"
+                  usesDispositions="true"
+                  version="7">
+                  <properties>
+                    <property
+                      dataType="System.Int32"
+                      description="The number of seconds before a command times out.  A value of 0 indicates an infinite time-out."
+                      name="CommandTimeout">0</property>
+                    <property
+                      dataType="System.String"
+                      description="Specifies the name of the database object used to open a rowset."
+                      name="OpenRowset"></property>
+                    <property
+                      dataType="System.String"
+                      description="Specifies the variable that contains the name of the database object used to open a rowset."
+                      name="OpenRowsetVariable"></property>
+                    <property
+                      dataType="System.String"
+                      description="The SQL command to be executed."
+                      name="SqlCommand"
+                      UITypeEditor="Microsoft.DataTransformationServices.Controls.ModalMultilineStringEditor">select 
+TI.InstrumentID,
+TI.InstrumentTypeID,
+TI.InstrumentDisplayName,
+TI.Symbol,
+TI.SymbolFull,
+TI.Tradable,
+TI.ISINCode,
+TI.InstrumentVisible,
+TGI.BuyCurrencyID,
+TGI.SellCurrencyID,
+TI.ContractExpire,
+TI.ExchangeID,
+GetDate() UpdateDate 
+ from [Trade].[InstrumentMetaData] TI WITH(NOLOCK)
+JOIN [Trade].[GetInstrument] TGI WITH (NOLOCK)
+ON TGI.InstrumentID = TI.InstrumentID</property>
+                    <property
+                      dataType="System.String"
+                      description="The variable that contains the SQL command to be executed."
+                      name="SqlCommandVariable"></property>
+                    <property
+                      dataType="System.Int32"
+                      description="Specifies the column code page to use when code page information is unavailable from the data source."
+                      name="DefaultCodePage">1252</property>
+                    <property
+                      dataType="System.Boolean"
+                      description="Forces the use of the DefaultCodePage property value when describing character data."
+                      name="AlwaysUseDefaultCodePage">false</property>
+                    <property
+                      dataType="System.Int32"
+                      description="Specifies the mode used to access the database."
+                      name="AccessMode"
+                      typeConverter="AccessMode">2</property>
+                    <property
+                      dataType="System.String"
+                      description="The mappings between the parameters in the SQL command and variables."
+                      name="ParameterMapping"></property>
+                  </properties>
+                  <connections>
+                    <connection
+                      refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Connections[OleDbConnection]"
+                      connectionManagerID="Package.ConnectionManagers[etoroDB_AO]"
+                      connectionManagerRefId="Package.ConnectionManagers[etoroDB_AO]"
+                      description="The OLE DB runtime connection used to access the database."
+                      name="OleDbConnection" />
+                  </connections>
+                  <outputs>
+                    <output
+                      refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output]"
+                      name="OLE DB Source Output">
+                      <outputColumns>
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentID]"
+                          dataType="i4"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[InstrumentID]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentID]"
+                          name="InstrumentID"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentTypeID]"
+                          dataType="i4"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[InstrumentTypeID]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentTypeID]"
+                          name="InstrumentTypeID"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentDisplayName]"
+                          codePage="1252"
+                          dataType="str"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[InstrumentDisplayName]"
+                          length="100"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentDisplayName]"
+                          name="InstrumentDisplayName"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[Symbol]"
+                          codePage="1252"
+                          dataType="str"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[Symbol]"
+                          length="100"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[Symbol]"
+                          name="Symbol"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[SymbolFull]"
+                          codePage="1252"
+                          dataType="str"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SymbolFull]"
+                          length="100"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[SymbolFull]"
+                          name="SymbolFull"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[Tradable]"
+                          dataType="bool"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[Tradable]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[Tradable]"
+                          name="Tradable"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[ISINCode]"
+                          codePage="1252"
+                          dataType="str"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ISINCode]"
+                          length="30"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[ISINCode]"
+                          name="ISINCode"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentVisible]"
+                          dataType="i4"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[InstrumentVisible]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[InstrumentVisible]"
+                          name="InstrumentVisible"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[BuyCurrencyID]"
+                          dataType="i4"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[BuyCurrencyID]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[BuyCurrencyID]"
+                          name="BuyCurrencyID"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[SellCurrencyID]"
+                          dataType="i4"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SellCurrencyID]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[SellCurrencyID]"
+                          name="SellCurrencyID"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[UpdateDate]"
+                          dataType="dbTimeStamp"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[UpdateDate]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[UpdateDate]"
+                          name="UpdateDate"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[ContractExpire]"
+                          dataType="bool"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ContractExpire]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[ContractExpire]"
+                          name="ContractExpire"
+                          truncationRowDisposition="FailComponent" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[ExchangeID]"
+                          dataType="i4"
+                          errorOrTruncationOperation="Conversion"
+                          errorRowDisposition="FailComponent"
+                          externalMetadataColumnId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ExchangeID]"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].Columns[ExchangeID]"
+                          name="ExchangeID"
+                          truncationRowDisposition="FailComponent" />
+                      </outputColumns>
+                      <externalMetadataColumns
+                        isUsed="True">
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[InstrumentID]"
+                          dataType="i4"
+                          name="InstrumentID" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[InstrumentTypeID]"
+                          dataType="i4"
+                          name="InstrumentTypeID" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[InstrumentDisplayName]"
+                          codePage="1252"
+                          dataType="str"
+                          length="100"
+                          name="InstrumentDisplayName" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[Symbol]"
+                          codePage="1252"
+                          dataType="str"
+                          length="100"
+                          name="Symbol" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SymbolFull]"
+                          codePage="1252"
+                          dataType="str"
+                          length="100"
+                          name="SymbolFull" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[Tradable]"
+                          dataType="bool"
+                          name="Tradable" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ISINCode]"
+                          codePage="1252"
+                          dataType="str"
+                          length="30"
+                          name="ISINCode" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[InstrumentVisible]"
+                          dataType="i4"
+                          name="InstrumentVisible" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[BuyCurrencyID]"
+                          dataType="i4"
+                          name="BuyCurrencyID" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[SellCurrencyID]"
+                          dataType="i4"
+                          name="SellCurrencyID" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[UpdateDate]"
+                          dataType="dbTimeStamp"
+                          name="UpdateDate" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ContractExpire]"
+                          dataType="bool"
+                          name="ContractExpire" />
+                        <externalMetadataColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output].ExternalColumns[ExchangeID]"
+                          dataType="i4"
+                          name="ExchangeID" />
+                      </externalMetadataColumns>
+                    </output>
+                    <output
+                      refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output]"
+                      isErrorOut="true"
+                      name="OLE DB Source Error Output">
+                      <outputColumns>
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[InstrumentID]"
+                          dataType="i4"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[InstrumentID]"
+                          name="InstrumentID" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[InstrumentTypeID]"
+                          dataType="i4"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[InstrumentTypeID]"
+                          name="InstrumentTypeID" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[InstrumentDisplayName]"
+                          codePage="1252"
+                          dataType="str"
+                          length="100"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[InstrumentDisplayName]"
+                          name="InstrumentDisplayName" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[Symbol]"
+                          codePage="1252"
+                          dataType="str"
+                          length="100"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[Symbol]"
+                          name="Symbol" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SymbolFull]"
+                          codePage="1252"
+                          dataType="str"
+                          length="100"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SymbolFull]"
+                          name="SymbolFull" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[Tradable]"
+                          dataType="bool"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[Tradable]"
+                          name="Tradable" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ISINCode]"
+                          codePage="1252"
+                          dataType="str"
+                          length="30"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ISINCode]"
+                          name="ISINCode" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[InstrumentVisible]"
+                          dataType="i4"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[InstrumentVisible]"
+                          name="InstrumentVisible" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[BuyCurrencyID]"
+                          dataType="i4"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[BuyCurrencyID]"
+                          name="BuyCurrencyID" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SellCurrencyID]"
+                          dataType="i4"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[SellCurrencyID]"
+                          name="SellCurrencyID" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ContractExpire]"
+                          dataType="bool"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ContractExpire]"
+                          name="ContractExpire" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ExchangeID]"
+                          dataType="i4"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ExchangeID]"
+                          name="ExchangeID" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[UpdateDate]"
+                          dataType="dbTimeStamp"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[UpdateDate]"
+                          name="UpdateDate" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorCode]"
+                          dataType="i4"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorCode]"
+                          name="ErrorCode"
+                          specialFlags="1" />
+                        <outputColumn
+                          refId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorColumn]"
+                          dataType="i4"
+                          lineageId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Error Output].Columns[ErrorColumn]"
+                          name="ErrorColumn"
+                          specialFlags="2" />
+                      </outputColumns>
+                      <externalMetadataColumns />
+                    </output>
+                  </outputs>
+                </component>
+              </components>
+              <paths>
+                <path
+                  refId="Package\Sequence Container\Reg_Instruments_Operation.Paths[OLE DB Source Output]"
+                  endId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination.Inputs[OLE DB Destination Input]"
+                  name="OLE DB Source Output"
+                  startId="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source.Outputs[OLE DB Source Output]" />
+              </paths>
+            </pipeline>
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package\Sequence Container\Truncate Reg_Instruments_Operation"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{E8E7453D-BCFA-4D31-97E3-A4437C32D703}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Truncate Reg_Instruments_Operation"
+          DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2019; © 2019 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+          DTS:ThreadHint="0">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{84BE269E-DF52-4F0E-8645-39996558119C}"
+              SQLTask:SqlStatementSource="Truncate table Reg_Instruments_Operation" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+      </DTS:Executables>
+      <DTS:PrecedenceConstraints>
+        <DTS:PrecedenceConstraint
+          DTS:refId="Package\Sequence Container.PrecedenceConstraints[Constraint 4]"
+          DTS:CreationName=""
+          DTS:DTSID="{C7A1AF3E-5DCE-4F48-ACAA-7AFD00B0571F}"
+          DTS:From="Package\Sequence Container\Truncate Reg_Instruments_Operation"
+          DTS:LogicalAnd="True"
+          DTS:ObjectName="Constraint 4"
+          DTS:To="Package\Sequence Container\Reg_Instruments_Operation" />
+      </DTS:PrecedenceConstraints>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\SP_RegReportsLog - Completed Ins SCD"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{D73C843E-0CDA-478F-8F15-39B5485CF7DA}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="SP_RegReportsLog - Completed Ins SCD"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{84BE269E-DF52-4F0E-8645-39996558119C}"
+          SQLTask:SqlStatementSource="exec [SP_RegReportsLog] 'Completed',&#xA;?,&#xA;?,&#xA;'Reg_Instruments_Operation',&#xA;'',&#xA;'Reg_Instruments_Operation',&#xA;''&#xA;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::StartDate"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="7"
+            SQLTask:ParameterSize="-1" />
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="1"
+            SQLTask:DtsVariableName="System::PackageName"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="-1" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\SP_RegReportsLog - Start Ins SCD"
+      DTS:CreationName="Microsoft.ExecuteSQLTask"
+      DTS:Description="Execute SQL Task"
+      DTS:DTSID="{54D9DE87-BB99-4A42-A1D8-DEED411853E7}"
+      DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="SP_RegReportsLog - Start Ins SCD"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <SQLTask:SqlTaskData
+          SQLTask:Connection="{84BE269E-DF52-4F0E-8645-39996558119C}"
+          SQLTask:SqlStatementSource="exec [SP_RegReportsLog] 'Start',&#xA;?,&#xA;?,&#xA;'Reg_Instruments_Operation',&#xA;'',&#xA;'Reg_Instruments_Operation',&#xA;''" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::StartDate"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="7"
+            SQLTask:ParameterSize="-1" />
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="1"
+            SQLTask:DtsVariableName="System::PackageName"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="-1" />
+        </SQLTask:SqlTaskData>
+      </DTS:ObjectData>
+    </DTS:Executable>
+  </DTS:Executables>
+  <DTS:PrecedenceConstraints>
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint]"
+      DTS:CreationName=""
+      DTS:DTSID="{BA8889B0-DDFD-4FBB-AFBE-E16FB3BE76E7}"
+      DTS:From="Package\SP_RegReportsLog - Start Ins SCD"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint"
+      DTS:To="Package\Sequence Container" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 1]"
+      DTS:CreationName=""
+      DTS:DTSID="{EE7F78DD-F255-438F-84A3-076AC2C66C31}"
+      DTS:From="Package\Sequence Container"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 1"
+      DTS:To="Package\SP_RegReportsLog - Completed Ins SCD" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 2]"
+      DTS:CreationName=""
+      DTS:DTSID="{6445FCAE-7C57-4287-92DB-C389E6E9AB74}"
+      DTS:From="Package\Reg_SSIS_Log Start"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 2"
+      DTS:To="Package\SP_RegReportsLog - Start Ins SCD" />
+    <DTS:PrecedenceConstraint
+      DTS:refId="Package.PrecedenceConstraints[Constraint 3]"
+      DTS:CreationName=""
+      DTS:DTSID="{9ADB9098-D2B9-4643-B91A-8943A6390E48}"
+      DTS:From="Package\SP_RegReportsLog - Completed Ins SCD"
+      DTS:LogicalAnd="True"
+      DTS:ObjectName="Constraint 3"
+      DTS:To="Package\Reg_SSIS_Log Completed" />
+  </DTS:PrecedenceConstraints>
+  <DTS:EventHandlers>
+    <DTS:EventHandler
+      DTS:refId="Package.EventHandlers[OnError]"
+      DTS:CreationName="OnError"
+      DTS:DTSID="{E4D06AC0-17A7-4854-8A8C-4337C66FE84B}"
+      DTS:EventID="1883046716"
+      DTS:EventName="OnError"
+      DTS:LocaleID="-1">
+      <DTS:Variables>
+        <DTS:Variable
+          DTS:CreationName=""
+          DTS:Description="The propagate property of the event"
+          DTS:DTSID="{9F06F6F3-D2C8-4E0E-982A-7B9D603AE278}"
+          DTS:IncludeInDebugDump="6789"
+          DTS:Namespace="System"
+          DTS:ObjectName="Propagate">
+          <DTS:VariableValue
+            DTS:DataType="11">-1</DTS:VariableValue>
+        </DTS:Variable>
+      </DTS:Variables>
+      <DTS:Executables>
+        <DTS:Executable
+          DTS:refId="Package.EventHandlers[OnError]\Send Reports"
+          DTS:CreationName="Microsoft.SendMailTask"
+          DTS:DelayValidation="True"
+          DTS:Description="Send Mail Task"
+          DTS:DTSID="{318AB428-2C5F-4D70-AC34-D3BC88D7F356}"
+          DTS:ExecutableType="Microsoft.SendMailTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="Send Reports">
+          <DTS:Variables />
+          <DTS:PropertyExpression
+            DTS:Name="MessageSource">"Error Message: " + @[System::ErrorDescription]</DTS:PropertyExpression>
+          <DTS:PropertyExpression
+            DTS:Name="Subject">@[System::PackageName] + " For "+ (DT_WSTR,4)DATEPART("yyyy", (DT_DBDATE) @[User::StartDate] ) +"-"+ 
+RIGHT("0" + (DT_WSTR,2)DATEPART("mm", (DT_DBDATE) @[User::StartDate] ) ,2) +"-"+ 
+RIGHT("0" + (DT_WSTR,2)DATEPART("dd", (DT_DBDATE) @[User::StartDate] ),2)</DTS:PropertyExpression>
+          <DTS:EventHandlers>
+            <DTS:EventHandler
+              DTS:refId="Package.EventHandlers[OnError]\Send Reports.EventHandlers[OnError]"
+              DTS:CreationName="OnError"
+              DTS:DTSID="{C336CA31-A957-4BA9-B19D-DC42CB9DD874}"
+              DTS:EventID="0"
+              DTS:EventName="OnError"
+              DTS:LocaleID="-1">
+              <DTS:Variables>
+                <DTS:Variable
+                  DTS:CreationName=""
+                  DTS:Description="The propagate property of the event"
+                  DTS:DTSID="{6CF26BD8-5CD2-44F7-8315-1DE4A2C558B3}"
+                  DTS:IncludeInDebugDump="6789"
+                  DTS:Namespace="System"
+                  DTS:ObjectName="Propagate">
+                  <DTS:VariableValue
+                    DTS:DataType="11">-1</DTS:VariableValue>
+                </DTS:Variable>
+              </DTS:Variables>
+              <DTS:Executables />
+            </DTS:EventHandler>
+          </DTS:EventHandlers>
+          <DTS:ObjectData>
+            <SendMailTask:SendMailTaskData
+              SendMailTask:SMTPServer="{FDC55F79-7D2D-4AA5-98E8-98296ADADCC1}"
+              SendMailTask:From="AZR-WE-BI-01@etoro.com"
+              SendMailTask:To="bi-datasolutions@etoro.com"
+              SendMailTask:Subject="Reg_Instrument_Operation For 2026-02-11"
+              SendMailTask:MessageSource="Error Message: " xmlns:SendMailTask="www.microsoft.com/sqlserver/dts/tasks/sendmailtask" />
+          </DTS:ObjectData>
+        </DTS:Executable>
+        <DTS:Executable
+          DTS:refId="Package.EventHandlers[OnError]\SP_SSIS_Log Failed"
+          DTS:CreationName="Microsoft.ExecuteSQLTask"
+          DTS:Description="Execute SQL Task"
+          DTS:DTSID="{8B082C36-DF1C-450D-8FD3-C3F9DC532AEF}"
+          DTS:ExecutableType="Microsoft.ExecuteSQLTask"
+          DTS:LocaleID="-1"
+          DTS:ObjectName="SP_SSIS_Log Failed">
+          <DTS:Variables />
+          <DTS:ObjectData>
+            <SQLTask:SqlTaskData
+              SQLTask:Connection="{84BE269E-DF52-4F0E-8645-39996558119C}"
+              SQLTask:SqlStatementSource="EXEC SP_Reg_SSIS_Log 'Failed',?,?,?" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+              <SQLTask:ParameterBinding
+                SQLTask:ParameterName="0"
+                SQLTask:DtsVariableName="User::StartDate"
+                SQLTask:ParameterDirection="Input"
+                SQLTask:DataType="7"
+                SQLTask:ParameterSize="-1" />
+              <SQLTask:ParameterBinding
+                SQLTask:ParameterName="1"
+                SQLTask:DtsVariableName="System::PackageName"
+                SQLTask:ParameterDirection="Input"
+                SQLTask:DataType="129"
+                SQLTask:ParameterSize="-1" />
+              <SQLTask:ParameterBinding
+                SQLTask:ParameterName="2"
+                SQLTask:DtsVariableName="System::ErrorDescription"
+                SQLTask:ParameterDirection="Input"
+                SQLTask:DataType="129"
+                SQLTask:ParameterSize="-1" />
+            </SQLTask:SqlTaskData>
+          </DTS:ObjectData>
+        </DTS:Executable>
+      </DTS:Executables>
+    </DTS:EventHandler>
+  </DTS:EventHandlers>
+  <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
+<!--This CDATA section contains the layout information of the package. The section includes information such as (x,y) coordinates, width, and height.-->
+<!--If you manually edit this section and make a mistake, you can delete it. -->
+<!--The package will still be able to load normally but the previous layout information will be lost and the designer will automatically re-arrange the elements on the design surface.-->
+<Objects
+  Version="8">
+  <!--Each node below will contain properties that do not affect runtime behavior.-->
+  <Package
+    design-time-name="Package">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="16" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
+        <NodeLayout
+          Size="201,42"
+          Id="Package\Reg_SSIS_Log Completed"
+          TopLeft="948.25,628.25" />
+        <NodeLayout
+          Size="173,42"
+          Id="Package\Reg_SSIS_Log Start"
+          TopLeft="962.25,14.25" />
+        <NodeLayout
+          Size="212,42"
+          Id="Package\Sequence Container\Reg_Instruments_Operation"
+          TopLeft="12,107.5" />
+        <NodeLayout
+          Size="225,42"
+          Id="Package\Sequence Container\Truncate Reg_Instruments_Operation"
+          TopLeft="5.50000000000001,5.5" />
+        <EdgeLayout
+          Id="Package\Sequence Container.PrecedenceConstraints[Constraint 4]"
+          TopLeft="118,47.5">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,60"
+              Start="0,0"
+              End="0,52.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,52.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <ContainerLayout
+          HeaderHeight="43"
+          IsExpanded="True"
+          PanelSize="236,205"
+          Size="236,248"
+          Id="Package\Sequence Container"
+          TopLeft="930.75,218.25" />
+        <NodeLayout
+          Size="269,42"
+          Id="Package\SP_RegReportsLog - Completed Ins SCD"
+          TopLeft="914.25,526.25" />
+        <NodeLayout
+          Size="242,42"
+          Id="Package\SP_RegReportsLog - Start Ins SCD"
+          TopLeft="927.75,116.25" />
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint]"
+          TopLeft="1048.75,158.25">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,60"
+              Start="0,0"
+              End="0,52.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,52.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 1]"
+          TopLeft="1048.75,466.25">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,60"
+              Start="0,0"
+              End="0,52.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,52.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 2]"
+          TopLeft="1048.75,56.25">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,60"
+              Start="0,0"
+              End="0,52.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,52.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 3]"
+          TopLeft="1048.75,568.25">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,60"
+              Start="0,0"
+              End="0,52.5">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,52.5" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <EdgeLabelCollection />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+      </GraphLayout>
+    </LayoutInfo>
+  </Package>
+  <DtsEventHandler
+    design-time-name="Package.EventHandlers[OnError]">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph">
+        <NodeLayout
+          Size="142,42"
+          Id="Package.EventHandlers[OnError]\Send Reports"
+          TopLeft="640,96" />
+        <NodeLayout
+          Size="172,42"
+          Id="Package.EventHandlers[OnError]\SP_SSIS_Log Failed"
+          TopLeft="293,82" />
+      </GraphLayout>
+    </LayoutInfo>
+  </DtsEventHandler>
+  <TaskHost
+    design-time-name="Package\Sequence Container\Reg_Instruments_Operation">
+    <LayoutInfo>
+      <GraphLayout
+        Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mssgm="clr-namespace:Microsoft.SqlServer.Graph.Model;assembly=Microsoft.SqlServer.Graph">
+        <NodeLayout
+          Size="150,42"
+          Id="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source"
+          TopLeft="231,156" />
+        <NodeLayout
+          Size="170,42"
+          Id="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination"
+          TopLeft="223.571432378827,374.70588760805" />
+        <EdgeLayout
+          Id="Package\Sequence Container\Reg_Instruments_Operation.Paths[OLE DB Source Output]"
+          TopLeft="307.285716189414,197.6">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,177.10588760805"
+              Start="0,0"
+              End="0,169.60588760805">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,169.60588760805" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <mssgm:EdgeLabel
+              BoundingBox="0,0,0,0"
+              RelativePosition="Any" />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+      </GraphLayout>
+    </LayoutInfo>
+  </TaskHost>
+  <PipelineComponentMetadata
+    design-time-name="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Destination">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+      <Property>
+        <Name>TableInfoObjectType</Name>
+        <Value
+          type="q2:string">Table</Value>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
+  <PipelineComponentMetadata
+    design-time-name="Package\Sequence Container\Reg_Instruments_Operation\OLE DB Source">
+    <Properties>
+      <Property>
+        <Name>DataSourceViewID</Name>
+      </Property>
+    </Properties>
+  </PipelineComponentMetadata>
+</Objects>]]></DTS:DesignTimeProperties>
+</DTS:Executable>

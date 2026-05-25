@@ -1,0 +1,6 @@
+﻿3,41,Traction (ASIC) Positions,1,0,2026-04-17,2026-04-18,\\regulations.file.core.windows.net\regulations\ASIC_Traction,ETR_,NULL,RegtechDev@etoro.com;bi-datasolutions@etoro.com,1,2026-05-15
+4,2,MIFID2,1,0,2026-04-17,2026-04-18,\\regulations.file.core.windows.net\regulations\MIFID2,M2_,_0001,RegtechDev@etoro.com;bi-datasolutions@etoro.com,1,NULL
+13,99,PreRegulation_Ext,1,0,2026-04-17,2026-04-18,NULL,NULL,NULL,RegtechDev@etoro.com;bi-datasolutions@etoro.com,1,NULL
+19,22,MIFID2 Trax,1,0,2026-04-17,2026-04-18,,,,RegtechDev@etoro.com,1,NULL
+20,13,Regulation_Movments_Report,1,0,2026-04-17,2026-04-18,NULL,NULL,NULL,RegtechDev@etoro.com;bi-datasolutions@etoro.com,NULL,NULL
+22,44,ASIC2,1,0,2026-04-17,2026-04-18,\\regulations.file.core.windows.net\regulations\ASIC2,ASIC2_,NULL,Regtech@etoro.com,1,2026-05-15

@@ -1,0 +1,519 @@
+﻿eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Actimize_Export_Fol,String,0,0,Daily_Data\,NULL,R,Actimize_Export_Fol
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Actimize_SFTP_Fol,String,0,0,/,NULL,R,Actimize_SFTP_Fol
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Actimize_SFTP_Host,String,0,0,sftp://etoro_sftp@sftp-uat-euw1.surveil-x.com/,NULL,R,Actimize_SFTP_Host
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Actimize_SFTP_hostkey,String,0,0,ssh-rsa 2048 Mf4puViobaSRvxbJ+wKGgcH7POCUVPrLcpf5MN0j+MI=,NULL,R,Actimize_SFTP_hostkey
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Actimize_SFTP_Log_arg,String,0,0,,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Actimize_SFTP_privatekey_location,String,0,0,T:\Regulations\SSH_Keys\ACTIMIZE\transfer-key.ppk,NULL,R,Actimize_SFTP_privatekey_location
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Actimize_SFTP_put_switch,String,0,0,-nopreservetime -nopermissions -resumesupport=off,NULL,R,Actimize_SFTP_put_switch
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Actimize_SFTP_raw_switch,String,0,0,-rawsettings AgentFwd=1 ConsiderDST=0,NULL,R,Actimize_SFTP_raw_switch
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,ActimizeUserName,String,0,0,etoro_sftp,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,BestEX_Cappitech_Directory,String,0,0,/data/BestExecution,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,BestEX_Export_Fol,String,0,0,Daily_Data\,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,BIReader_Password,String,0,1,<MASKED>,<MASKED>,R,BIReader_Password
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,BlobAccountName,String,0,0,datasolutionsetoro,NULL,R,BlobAccountName
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,BlobKey,String,0,1,<MASKED>,<MASKED>,R,BlobKey
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_ConnectionString,String,0,0,ec2-52-48-27-120.eu-west-1.compute.amazonaws.com,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_Directory,String,0,0,/data/Test_files,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_Password,String,0,0,6hC06kAq,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_Fol,String,0,0,/Inbound,NULL,R,Cappitech_SFTP_Fol
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_Host,String,0,0,sftp://etoro-uat@sftp-uat.cappitech.com/,NULL,R,Cappitech_SFTP_Host
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_Host_UAT,String,0,0,sftp://etoro-uat@sftp-uat.cappitech.com/,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_hostkey,String,0,0,ssh-rsa 2048 +3mZsjs+8+yMEHqKlS9mXH7GHdd4fdXEtZBsXPWQuA0=,NULL,R,Cappitech_SFTP_hostkey
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_hostkey_UAT,String,0,0,ssh-rsa 2048 +3mZsjs+8+yMEHqKlS9mXH7GHdd4fdXEtZBsXPWQuA0=,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_Log_arg,String,0,0,\T:\Regulations\Solidus,NULL,R,Cappitech_SFTP_log_arg
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_privatekey_location,String,0,0,C:\Users\arielka\Desktop\Cappitech_SSH\Cappitech SSH Private Key.ppk,NULL,R,Cappitech_SFTP_privatekey_location
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_privatekey_location_UAT,String,0,0,T:\Regulations\SSH_Keys\Cappitech\Cappitech SSH Private Key.ppk,NULL,R,Cappitech_SFTP_privatekey_locationUAT
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_put_switch,String,0,0,-nopreservetime -nopermissions -resumesupport=off,NULL,R,Cappitech_SFTP_put_switch
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_raw_switch,String,0,0,-rawsettings AgentFwd=1 ConsiderDST=0,NULL,R,Cappitech_SFTP_raw_switch
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_SubDir_Asic,String,0,0,/Asic,NULL,R,Cappitech_SFTP_SubDir_Asic
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_SubDir_BestEx,String,0,0,/BestEx,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_SubDir_Emir,String,0,0,/Emir2,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Cappitech_SFTP_SubDir_Mifid,String,0,0,/Mifid2,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,DB_Candles,String,0,0,Data Source=AZR-W-PRICEDB-2.prod.local;User ID=BIReader;Initial Catalog=Candles;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;,NULL,R,DB_Candles
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,DB_DBLS_master,String,0,0,Data Source=AZR-W-DBLS-3.prod.local;User ID=BIReader;Initial Catalog=master;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;,NULL,R,DB_DBLS_master
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,DB_DWH,String,0,0,Data Source=AZR-WE-DWH-01;Initial Catalog=DWH;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,DB_etoro,String,0,0,Data Source=azr-w-data-tst.prod.local;User ID=BIReader;Initial Catalog=etoro;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;,NULL,R,DB_etoro
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,DB_etoro_AO,String,0,0,Data Source=PROD-DB-CLS-W3.prod.local;User ID=BIReader;Initial Catalog=etoro;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;,NULL,R,DB_etoro_AO
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,DB_Price,String,0,0,Data Source=AZR-W-PRICEDB-2.prod.local;User ID=BIReader;Initial Catalog=Price;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;,NULL,R,DB_Price
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,DB_PriceLog,String,0,0,Data Source=AZR-W-DBLS-3.prod.local;User ID=BIReader;Initial Catalog=PriceLog;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;,NULL,R,DB_PriceLog
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,DB_RegReportDB,String,0,0,Data Source=AO-REGREP-DB-LSN.trad.local;Initial Catalog=RegReportDB_Prod;Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False;,NULL,R,DB_RegReportDB
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,DB_RegSupportDB,String,0,0,Data Source=AZR-W-DBLS-3.prod.local;User ID=BIReader;Initial Catalog=RegSupportDB;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;,NULL,R,DB_RegSupportDB
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,DB_UserApiDB,String,0,0,Data Source=azr-w-data-tst.prod.local;User ID=BIReader;Initial Catalog=UserApiDB;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;,NULL,R,DB_UserApiDB
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,eToroLogs_Real,String,0,0,Data Source=etorolog-fg.secondary.database.windows.net;User ID=BI_Reader;Initial Catalog=eToroLogs_Real;Provider=SQLNCLI11.1;Persist Security Info=True;Auto Translate=False;,NULL,R,eToroLogs_Real
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,eToroLogs_Real_Pass,String,0,1,<MASKED>,<MASKED>,R,eToroLogs_Real_Pass
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,SMTPConnection,String,0,0,SmtpServer=smtp-relay.gmail.com;UseWindowsAuthentication=False;EnableSsl=False;,NULL,R,SMTPConnection
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Solidus_SFTP_Fol,String,0,0,/Inbound,NULL,R,Solidus_SFTP_Fol
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Solidus_SFTP_Host,String,0,0,sftp://etoro@sftp.uat-eu-central-1.soliduslabs.app,NULL,R,Solidus_SFTP_Host
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Solidus_SFTP_hostkey,String,0,0,ssh-rsa 4096 VEsQuXLDFzEXLrwoczY2dxO4qYVUC5arztvbNvTO10g,NULL,R,Solidus_SFTP_hostkey
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Solidus_SFTP_Log_arg,String,0,0,"/log=""T:\Regulations\Solidus\WSCP.log"" /loglevel=2 /ini=nul",NULL,R,Solidus_SFTP_Log_arg
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Solidus_SFTP_privatekey_location,String,0,0,T:\Regulations\SSH_Keys\Solidus\Solidus_etr_priv.ppk,NULL,R,Solidus_SFTP_privatekey_location
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Solidus_SFTP_put_switch,String,0,0,-nopreservetime -nopermissions -resumesupport=off,NULL,R,Solidus_SFTP_put_switch
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Solidus_SFTP_raw_switch,String,0,0,-rawsettings AgentFwd=1 ConsiderDST=0,NULL,R,Solidus_SFTP_raw_switch
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Solidus_US_Host_key,String,0,0,ssh-rsa 4096 pWIwzB1l0qjPsKF80crveWvIMKJhWVhUq1fnJIjuNsE,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Solidus_US_SFTP_Fol,String,0,0,/Inbound,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,Solidus_US_SFTP_Host,String,0,0,sftp://etoro-us@sftp.prod-us-east-1.soliduslabs.app,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,SolidusUserName,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,SynapseDB,String,0,0,Data Source=prod-synapse-dataplatform-  ID=RegulationSSISUser;Initial Catalog=sql_dp_prod_we;Provider=SQLNCLI11.1;Auto Translate=False;,NULL,R,SynapseDB
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,SynapseDB_Pass,String,0,1,<MASKED>,<MASKED>,R,SynapseDB_Pass
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,TRAX_ConnectionString,String,0,0,edsftp.traxinsight.com:22,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,TRAX_ConnectionString_UAT,String,0,0,edsftp-test.traxinsight.com:22,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,TRAX_Directory,String,0,0,/inbound,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,TRAX_EU_Pass,String,0,0,A5uF7KtsGzp3tfgf,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,TRAX_EU_Pass_UAT,String,0,0,KjF7AMSKZ4kTttan,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,TRAX_UK_Pass,String,0,0,pznHjFrSzZf5bDbW,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,TRAX_UK_Pass_UAT,String,0,0,XpQnYVrwGZz49aw2,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,20,eToro_RegulatoryReports_PROD,WIN_Scp_exe,String,0,0,C:\Program Files (x86)\WinSCP\winscp.com,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.Daily_Data.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.AuthType,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.ConnectionString,String,0,0,AccountName=datasolutionsetoro;DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.EndpointSuffix,String,0,0,core.windows.net,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.SasToken,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.ServicePrincipalId,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.ServicePrincipalKey,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.ServiceType,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.TargetServerVersion,Int32,0,0,160,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.TenantId,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.datasolutionsetoro.UseHttps,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_CL.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_CL.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_CL.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_CL.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_CL.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_CL.RetainSameConnection,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_CL.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_CL.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_HD.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_HD.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_HD.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_HD.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_HD.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_HD.RetainSameConnection,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_HD.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.etoro_for_BestEX_HD.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.CodePage,Int32,0,0,1252,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.ColumnNamesInFirstDataRow,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX.Unicode,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.CodePage,Int32,0,0,1252,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.ColumnNamesInFirstDataRow,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_AU.Unicode,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.CodePage,Int32,0,0,1252,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.ColumnNamesInFirstDataRow,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_EU.Unicode,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.CodePage,Int32,0,0,1252,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.ColumnNamesInFirstDataRow,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_GB.Unicode,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.CodePage,Int32,0,0,1252,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.ColumnNamesInFirstDataRow,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.FF_BestEX_US.Unicode,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB.InitialCatalog,String,0,0,RegReportDB_Prod,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB.Password,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB.ServerName,String,0,0,AO-REGREP-DB-LSN.trad.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB.UserName,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB_withRetain.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB_withRetain.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB_withRetain.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB_withRetain.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB_withRetain.InitialCatalog,String,0,0,RegReportDB_Prod,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB_withRetain.Password,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB_withRetain.RetainSameConnection,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB_withRetain.ServerName,String,0,0,AO-REGREP-DB-LSN.trad.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.RegReportDB_withRetain.UserName,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.SMTP Connection Manager.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.SMTP Connection Manager.EnableSsl,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.SMTP Connection Manager.SmtpServer,String,0,0,smtp-relay.gmail.com,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.SMTP Connection Manager.TargetServerVersion,Int32,0,0,160,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,BestEX_Daily.dtsx,CM.SMTP Connection Manager.UseWindowsAuthentication,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.etoroDB_AO.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.etoroDB_AO.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.etoroDB_AO.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.etoroDB_AO.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.etoroDB_AO.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.etoroDB_AO.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.etoroDB_AO.ServerName,String,0,0,PROD-DB-CLS-W3.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.etoroDB_AO.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.RegReportDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.RegReportDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.RegReportDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.RegReportDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.RegReportDB.InitialCatalog,String,0,0,RegReportDB_Prod,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.RegReportDB.Password,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.RegReportDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.RegReportDB.ServerName,String,0,0,AO-REGREP-DB-LSN.trad.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.RegReportDB.UserName,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.SMTP Connection Manager.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.SMTP Connection Manager.EnableSsl,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.SMTP Connection Manager.SmtpServer,String,0,0,smtp-relay.gmail.com,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.SMTP Connection Manager.TargetServerVersion,Int32,0,0,160,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,HedgeServerToLiquidity_Mapping.dtsx,CM.SMTP Connection Manager.UseWindowsAuthentication,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.ams-real-db-01.etoro_dbss.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.ams-real-db-01.etoro_dbss.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.ams-real-db-01.etoro_dbss.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.ams-real-db-01.etoro_dbss.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.ams-real-db-01.etoro_dbss.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.ams-real-db-01.etoro_dbss.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.ams-real-db-01.etoro_dbss.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.ams-real-db-01.etoro_dbss.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.AuthType,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.ConnectionString,String,0,0,AccountName=datasolutionsetoro;DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.EndpointSuffix,String,0,0,core.windows.net,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.SasToken,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.ServicePrincipalId,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.ServicePrincipalKey,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.ServiceType,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.TargetServerVersion,Int32,0,0,160,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.TenantId,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.datasolutionsetoro.UseHttps,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.CodePage,Int32,0,0,1252,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.ColumnNamesInFirstDataRow,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.ConnectionString,String,0,0,C:\SFTPUpload\nonlatin.csv,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.Flat File Connection Manager.Unicode,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.CodePage,Int32,0,0,1252,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.ColumnNamesInFirstDataRow,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.HedgeFile.Unicode,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.CodePage,Int32,0,0,1252,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.ColumnNamesInFirstDataRow,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_CySec.Unicode,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.CodePage,Int32,0,0,1252,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.ColumnNamesInFirstDataRow,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.MIFID2_FCA.Unicode,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegReportDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegReportDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegReportDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegReportDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegReportDB.InitialCatalog,String,0,0,RegReportDB_Prod,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegReportDB.Password,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegReportDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegReportDB.ServerName,String,0,0,AO-REGREP-DB-LSN.trad.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegReportDB.UserName,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegSupportDB_DBLS.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegSupportDB_DBLS.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegSupportDB_DBLS.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegSupportDB_DBLS.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegSupportDB_DBLS.InitialCatalog,String,0,0,RegSupportDB,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegSupportDB_DBLS.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegSupportDB_DBLS.ServerName,String,0,0,AZR-W-DBLS-3.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.RegSupportDB_DBLS.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.SMTP Connection Manager.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.SMTP Connection Manager.EnableSsl,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.SMTP Connection Manager.SmtpServer,String,0,0,smtp-relay.gmail.com,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.SMTP Connection Manager.TargetServerVersion,Int32,0,0,160,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.SMTP Connection Manager.UseWindowsAuthentication,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.CodePage,Int32,0,0,1252,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.ColumnNamesInFirstDataRow,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Response.Unicode,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.AlwaysCheckForRowDelimiters,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.CodePage,Int32,0,0,65001,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.ColumnNamesInFirstDataRow,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.DataRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.Format,String,0,0,Delimited,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.HeaderRowDelimiter,String,0,0," ",NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.HeaderRowsToSkip,Int32,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.LocaleID,Int32,0,0,1033,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.RowDelimiter,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.TextQualifier,String,0,0,<none>,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.TRAX Upload File.Unicode,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.UserApiDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.UserApiDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.UserApiDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.UserApiDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.UserApiDB.InitialCatalog,String,0,0,UserApiDB,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.UserApiDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.UserApiDB.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,CM.UserApiDB.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2.dtsx,ReportType,Int32,0,0,2,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.ams-real-db-01.etoro_dbss.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.ams-real-db-01.etoro_dbss.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.ams-real-db-01.etoro_dbss.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.ams-real-db-01.etoro_dbss.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.ams-real-db-01.etoro_dbss.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.ams-real-db-01.etoro_dbss.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.ams-real-db-01.etoro_dbss.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.ams-real-db-01.etoro_dbss.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.etoroDB_With_Retain.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.etoroDB_With_Retain.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.etoroDB_With_Retain.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.etoroDB_With_Retain.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.etoroDB_With_Retain.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.etoroDB_With_Retain.RetainSameConnection,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.etoroDB_With_Retain.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.etoroDB_With_Retain.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB 1.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB 1.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB 1.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB 1.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB 1.InitialCatalog,String,0,0,RegReportDB_Prod,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB 1.Password,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB 1.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB 1.ServerName,String,0,0,AO-REGREP-DB-LSN.trad.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB 1.UserName,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB.InitialCatalog,String,0,0,RegReportDB_Prod,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB.Password,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB.ServerName,String,0,0,AO-REGREP-DB-LSN.trad.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegReportDB.UserName,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegSupportDB_DBLS.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegSupportDB_DBLS.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegSupportDB_DBLS.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegSupportDB_DBLS.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegSupportDB_DBLS.InitialCatalog,String,0,0,RegSupportDB,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegSupportDB_DBLS.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegSupportDB_DBLS.ServerName,String,0,0,AZR-W-DBLS-3.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.RegSupportDB_DBLS.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.SMTP Connection Manager.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.SMTP Connection Manager.EnableSsl,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.SMTP Connection Manager.SmtpServer,String,0,0,smtp-relay.gmail.com,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.SMTP Connection Manager.TargetServerVersion,Int32,0,0,160,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.SMTP Connection Manager.UseWindowsAuthentication,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.UserApiDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.UserApiDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.UserApiDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.UserApiDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.UserApiDB.InitialCatalog,String,0,0,UserApiDB,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.UserApiDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.UserApiDB.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,CM.UserApiDB.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,MIFID2_TRAX_BACKREP2025.dtsx,ReportType,Int32,0,0,2,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Candles.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Candles.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Candles.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Candles.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Candles.InitialCatalog,String,0,0,Candles,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Candles.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Candles.ServerName,String,0,0,AZR-W-PRICEDB-2.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Candles.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB_With_Retain.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB_With_Retain.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB_With_Retain.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB_With_Retain.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB_With_Retain.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB_With_Retain.RetainSameConnection,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB_With_Retain.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.etoroDB_With_Retain.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Price.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Price.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Price.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Price.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Price.InitialCatalog,String,0,0,Price,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Price.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Price.ServerName,String,0,0,AZR-W-PRICEDB-2.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.Price.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.RegReportDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.RegReportDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.RegReportDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.RegReportDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.RegReportDB.InitialCatalog,String,0,0,RegReportDB_Prod,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.RegReportDB.Password,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.RegReportDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.RegReportDB.ServerName,String,0,0,AO-REGREP-DB-LSN.trad.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.RegReportDB.UserName,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.SMTP Connection Manager.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.SMTP Connection Manager.EnableSsl,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.SMTP Connection Manager.SmtpServer,String,0,0,smtp-relay.gmail.com,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.SMTP Connection Manager.TargetServerVersion,Int32,0,0,160,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.SMTP Connection Manager.UseWindowsAuthentication,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.UserApi.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.UserApi.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.UserApi.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.UserApi.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.UserApi.InitialCatalog,String,0,0,UserApiDB,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.UserApi.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.UserApi.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,CM.UserApi.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Pre_Regulation_Ext.dtsx,ReportType,Int32,0,0,99,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.etoroDB_AO.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.etoroDB_AO.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.etoroDB_AO.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.etoroDB_AO.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.etoroDB_AO.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.etoroDB_AO.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.etoroDB_AO.ServerName,String,0,0,PROD-DB-CLS-W3.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.etoroDB_AO.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.RegReportDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.RegReportDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.RegReportDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.RegReportDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.RegReportDB.InitialCatalog,String,0,0,RegReportDB_Prod,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.RegReportDB.Password,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.RegReportDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.RegReportDB.ServerName,String,0,0,AO-REGREP-DB-LSN.trad.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.RegReportDB.UserName,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.SMTP Connection Manager.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.SMTP Connection Manager.EnableSsl,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.SMTP Connection Manager.SmtpServer,String,0,0,smtp-relay.gmail.com,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.SMTP Connection Manager.TargetServerVersion,Int32,0,0,160,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Reg_Instrument_Operation.dtsx,CM.SMTP Connection Manager.UseWindowsAuthentication,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Candles.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Candles.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Candles.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Candles.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Candles.InitialCatalog,String,0,0,Candles,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Candles.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Candles.ServerName,String,0,0,AZR-W-PRICEDB-2.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Candles.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB_With_Retain.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB_With_Retain.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB_With_Retain.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB_With_Retain.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB_With_Retain.InitialCatalog,String,0,0,etoro,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB_With_Retain.RetainSameConnection,Boolean,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB_With_Retain.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.etoroDB_With_Retain.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Price.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Price.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Price.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Price.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Price.InitialCatalog,String,0,0,Price,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Price.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Price.ServerName,String,0,0,AZR-W-PRICEDB-2.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.Price.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegReportDB.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegReportDB.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegReportDB.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegReportDB.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegReportDB.InitialCatalog,String,0,0,RegReportDB_Prod,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegReportDB.Password,String,0,1,<MASKED>,<MASKED>,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegReportDB.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegReportDB.ServerName,String,0,0,AO-REGREP-DB-LSN.trad.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegReportDB.UserName,String,0,0,NULL,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegSupportDB_DBLS.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegSupportDB_DBLS.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegSupportDB_DBLS.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegSupportDB_DBLS.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegSupportDB_DBLS.InitialCatalog,String,0,0,RegSupportDB,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegSupportDB_DBLS.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegSupportDB_DBLS.ServerName,String,0,0,AZR-W-DBLS-3.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.RegSupportDB_DBLS.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.SMTP Connection Manager.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.SMTP Connection Manager.EnableSsl,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.SMTP Connection Manager.SmtpServer,String,0,0,smtp-relay.gmail.com,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.SMTP Connection Manager.TargetServerVersion,Int32,0,0,160,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.SMTP Connection Manager.UseWindowsAuthentication,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.UserApi.ConnectByProxy,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.UserApi.ConnectRetryCount,Int32,0,0,1,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.UserApi.ConnectRetryInterval,Int32,0,0,5,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.UserApi.ConnectUsingManagedIdentity,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.UserApi.InitialCatalog,String,0,0,UserApiDB,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.UserApi.RetainSameConnection,Boolean,0,0,0,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.UserApi.ServerName,String,0,0,azr-w-data-tst.prod.local,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,CM.UserApi.UserName,String,0,0,BIReader,NULL,V,NULL
+eToro_RegulatoryReports,eToro_RegulatoryReports_PROD,30,Regulation_Movments_Report.dtsx,ReportType,Int32,0,0,13,NULL,V,NULL
