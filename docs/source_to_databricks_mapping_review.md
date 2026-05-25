@@ -45,11 +45,14 @@ Candidate mappings that require final selection after SSIS column-level validati
 These are valid mappings but should be used conditionally based on package logic and dependency confirmation:
 
 - `Reg_CurrencyPrice_Ext source` -> `main.trading.bronze_etoro_trade_currencyprice`  
-  Use as an SSIS-created dynamic extract input, not as a one-time static replacement.
+  Use as an SSIS-created dynamic extract input, not as a one-time static replacement.  
+  Step 5B1 status: provisional staging SQL authored; required-column parity profiling still pending.
 - `Reg_Ext_T_PriceCandle60Min source` -> `main.dealing.bronze_candles_candles_t_pricecandle60min`  
-  Conditional on exact package-side filtering/column logic.
+  Conditional on exact package-side filtering/column logic.  
+  Step 5B1 status: staging SQL authored with latest-row-per-`InstrumentID` logic; runtime source-shape check still required.
 - `History.CurrencyPriceMaxDate source` -> `main.dealing.bronze_pricelog_history_currencypricemaxdate`  
-  Conditional on the selected `Reg_Ext_CurrencyPriceMaxDateWithSplit` candidate.
+  Conditional on run-window and column-level parity to SSIS-selected fields.  
+  Step 5B1 status: provisional staging SQL authored; required-column profiling still pending.
 - `ThirdParty_Fivetran...ed_n_f_to_istrumentid_etoro` -> `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro`  
   Documented as manually uploaded static reference; keep as compatibility/static input.
 - `regtech.si_reporting_configurations` -> `main.bi_db.bronze_fivetran_regtech_si_reporting_configurations`  
@@ -57,6 +60,10 @@ These are valid mappings but should be used conditionally based on package logic
 
 Classification note:
 - `dbo.Reg_MigrationInOut_Population` and `dbo.Reg_RegulationInOutDailyData` have confirmed gold mappings, but in phase-1 dependency documentation they remain classified as SSIS-created staging dependencies (not missing raw sources) when produced/refreshed by SSIS/package logic.
+
+Step 5B1 note:
+- `Reg_CurrencyPrice_Ext`, `Reg_Ext_DailyMaxPrices`, and `Reg_Ext_T_PriceCandle60Min` are treated as SSIS-created staging outputs with materialized Delta targets in `main.regtech_ops_stg` (not replacement views).
+- `Reg_Ext_CurrencyPriceMaxDateWithSplit` remains unresolved pending candidate-comparison profiling; no silent source choice is made.
 
 ## Mappings not to use (legacy/reference-only)
 

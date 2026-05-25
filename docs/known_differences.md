@@ -1,15 +1,22 @@
-# Known Differences (Current Safe Module)
+# Known Differences (Current Safe + Step 5B1 Module)
 
-This document tracks known or intentional differences for the currently implemented safe module scope:
+This document tracks known or intentional differences for the currently implemented scope:
 
 - Environment/config/naming helpers
 - Static reference compatibility views
 - `ReplaceChar` UDF
 - Validation SQL scripts for static references and `ReplaceChar`
+- Pre_Regulation price/currency/split staging (Step 5B1 only)
 
 ## Scope and non-goals in this step
 
-- No `Pre_Regulation_Ext` staging implementation.
+- No full `Pre_Regulation_Ext` staging implementation.
+- Step 5B1 includes only:
+  - `Reg_CurrencyPrice_Ext`
+  - `Reg_Ext_DailyMaxPrices`
+  - `Reg_Ext_CurrencyPriceMaxDateWithSplit` (profiling/comparison only)
+  - `Reg_Ext_T_PriceCandle60Min`
+- No migration-in/out staging implementation.
 - No `MIFID2_ext` staging implementation.
 - No final MiFID output table-generation implementation.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
@@ -48,6 +55,15 @@ This document tracks known or intentional differences for the currently implemen
   - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_trade_instrumentmetadata`
 - Deferred artifact note:
   - `databricks/sql/02_udfs/02_instrumentmetadata_specialchar_conversion_deferred.sql`
+- `Reg_Ext_CurrencyPriceMaxDateWithSplit` final source and staging materialization are deferred until candidate profiling evidence selects one authoritative Databricks source.
+- `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` remain deferred to later modules even though materialization policy is already tracked as an unresolved item.
+
+## Step 5B1 implementation differences and cautions
+
+- `Reg_CurrencyPrice_Ext` and `Reg_Ext_DailyMaxPrices` SQL is authored as provisional and must not be executed until required-column parity checks pass.
+- `Reg_Ext_CurrencyPriceMaxDateWithSplit` is intentionally left as profiling/comparison-only in Step 5B1; no silent source choice was made.
+- `Reg_Ext_T_PriceCandle60Min` staging SQL preserves SSIS-style logic (`DateFrom < report_date + 1 day`, latest row per `InstrumentID`, `InstrumentID < 100000`) and materializes to Delta.
+- All Step 5B1 targets are prefixed and scoped to `main.regtech_ops_stg`.
 
 ## Reference-only policy
 
