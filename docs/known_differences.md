@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-11)
+# Known Differences (Current Safe + Steps 5B1-12B1)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -14,6 +14,12 @@ This document tracks known or intentional differences for the currently implemen
 - MIFID2_ext staging profiling/gated templates (Step 9)
 - MIFID2_Customer output profiling/gated templates (Step 10)
 - MIFID2_RegChange_Customer output profiling/gated templates (Step 11)
+- MIFID2_Report / MIFID2_ME_Report / MIFID2_Removed_OP_Partials scaffolding and validation foundation (Step 12B1):
+  - Step 12B1 created scaffolding, output schema contracts, gates, and validation foundation only.
+  - It did not implement full report business logic.
+  - Final report business logic remains gated for later Step 12B2 / 12B3.
+  - `UpdateDate` remains nullable; no default should be invented.
+  - `MIFID2_Removed_OP_Partials` must use explicit column lists.
 
 ## Scope and non-goals in this step
 
@@ -207,6 +213,31 @@ This document tracks known or intentional differences for the currently implemen
   - countries `67,95,102,126,164,191` drive `NotAllowedCONCAT`
   - non-LEI `PIN_LEI` remains `CountryAbbreviation + PIN` (no no-concat PIN suppression in this module).
 - Step 11 template does not enable any out-of-scope final outputs (`Report`, `ME`, `ETORO`, `Hedge`, `NPD_TRAX`).
+
+## Step 12B1 implementation differences and cautions
+
+- `databricks/sql/08_outputs/03_mifid2_report_scaffolding.sql` is scaffolding-only and intentionally non-executable for final report loads:
+  - report-date parameter scaffold only
+  - gate-status output only
+  - commented DDL contracts only for:
+    - `bi_output_regtechops_mifid2_report`
+    - `bi_output_regtechops_mifid2_me_report`
+    - `bi_output_regtechops_mifid2_removed_op_partials`
+  - explicit TODO anchors for Step 12B2 (position/trade CTEs), Step 12B3 (branch projections), Step 12B4 (activation/reconciliation)
+- `databricks/sql/08_outputs/03_mifid2_report_validation_foundation.sql` contains validation foundations only:
+  - schema parity templates (including order and precision/scale checks)
+  - row-count, duplicate, null, exclusion, coverage, movement/regchange, removed-partials, aggregate, source-to-output placeholders
+- No full `SP_MIFID_Report` business logic is ported in Step 12B1.
+- No position/trade population CTEs are activated in Step 12B1.
+- No final branch projections (EU/CySEC, UK/FCA, FCA-flow-in-EU, Seychelles, ME) are activated in Step 12B1.
+- `MIFID2_Report` and `MIFID2_ME_Report` keep `UpdateDate` nullable with no invented default.
+- `MIFID2_Removed_OP_Partials` requires explicit target column lists for inserts; implicit-order SQL Server pattern is not acceptable for Databricks parity safety.
+- Futures metadata is treated as expected mapping (`main.trading.bronze_etoro_trade_futuresmetadata`) and remains profiling-gated, not unknown.
+- Step 12B1 intentionally excludes:
+  - `MIFID2_ETORO_Report`
+  - `MIFID2_Hedge_Report`
+  - `MIFID2_NPD_TRAX`
+  - file delivery and deployment workflows
 
 ## Reference-only policy
 

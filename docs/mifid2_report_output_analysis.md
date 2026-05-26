@@ -1,0 +1,142 @@
+# Step 12B1 - MIFID2 Report Output Analysis
+
+This document captures Step 12B1 only: scaffolding, output contracts, dependency gates, and validation foundations for the three report targets below. It does not implement full report business logic.
+
+## Scope (Step 12B1 only)
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
+
+## Out of scope (Step 12B1)
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax`
+- Full position/trade population CTE implementation
+- Final report branch projections
+- File delivery / upload / response handling / production deployment
+
+## SQL Server authorities for this module
+
+- Stored procedure authority:
+  - `reference/mifid_databricks_migration_context/01_sql_server_stored_procedures/core_mifid/SP_MIFID_Report.sql`
+- DDL authorities:
+  - `reference/mifid_databricks_migration_context/02_sql_server_ddls/target_output_tables/MIFID2_Report.sql`
+  - `reference/mifid_databricks_migration_context/02_sql_server_ddls/target_output_tables/MIFID2_ME_Report.sql`
+  - `reference/mifid_databricks_migration_context/02_sql_server_ddls/target_output_tables/MIFID2_Removed_OP_Partials.sql`
+
+## Target object names
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
+
+## Output schema contracts
+
+### 1) MIFID2_Report contract
+
+- Databricks target: `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+- Contract source: `MIFID2_Report.sql`
+- Column contract: full 100-column projection from SQL Server DDL (mapped to Databricks types) is captured explicitly in:
+  - `databricks/sql/08_outputs/03_mifid2_report_scaffolding.sql`
+  - `databricks/sql/08_outputs/03_mifid2_report_validation_foundation.sql`
+- `UpdateDate` is nullable and must remain nullable; no invented default is allowed.
+
+### 2) MIFID2_ME_Report contract
+
+- Databricks target: `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+- Contract source: `MIFID2_ME_Report.sql`
+- Column contract: same shape as `MIFID2_Report` DDL contract in practice for this migration scope and represented explicitly in the Step 12B1 scaffolding/validation SQL.
+- `UpdateDate` is nullable and must remain nullable; no invented default is allowed.
+
+### 3) MIFID2_Removed_OP_Partials contract
+
+- Databricks target: `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
+- Contract source: `MIFID2_Removed_OP_Partials.sql`
+- Contract columns and decimal precision/scale are represented explicitly in Step 12B1 SQL scaffolding/validation.
+- Critical parity rule: all inserts must use explicit target column lists (no implicit ordinal insert).
+
+## Primary keys / uniqueness intent
+
+- `MIFID2_Report` uniqueness intent (SQL Server unique key equivalent for validation):
+  - `ReportDate`, `RegulationReportID`, `TransactionReferenceNumber`, `BackReportingIndicator`
+- `MIFID2_ME_Report` analogous uniqueness checks:
+  - `ReportDate`, `RegulationReportID`, `TransactionReferenceNumber`, `BackReportingIndicator`
+- `MIFID2_Removed_OP_Partials` business-key checks (validation intent for Step 12B1 foundation):
+  - `ReportDate`, `CID`, `PositionID`, `OriginalPositionID`, `OpenORClose`
+  - Additional open/close lifecycle checks to be finalized in Step 12B2/B3.
+
+## Report branches identified in SP_MIFID_Report
+
+- EU / CySEC
+- UK / FCA
+- FCA-flow-in-EU
+- Seychelles
+- ME
+
+## Important SQL Server behavior to preserve
+
+- Report-date scoped delete/insert behavior for report targets.
+- Batched delete loops (`DELETE TOP (4000)`) by report date before inserts.
+- Same-day open+close synthetic open-row handling in partial-close flows.
+- Partial close removal logic with side-table persistence in `MIFID2_Removed_OP_Partials`.
+- Removed partials staging behavior appears in both regular and RegChange flows.
+- RegChange logic based on migration intervals (`ValidFrom`, `ValidTo`, rank, prev/current regulation).
+- Mirror/copy handling (`MirrorID`, `CopyFund`, `FundType` driven fields).
+- Split logic for position amount adjustments.
+- GBX price conversion/division by 100 behavior.
+- `UpdateDate` is nullable for `MIFID2_Report` and `MIFID2_ME_Report`; no invented default.
+- `MIFID2_Removed_OP_Partials` must use explicit insert column lists.
+
+## Required upstream dependencies and statuses
+
+| dependency group | dependency object | status for Step 12B1 | notes |
+| --- | --- | --- | --- |
+| Customer outputs | `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer` | implemented/gated | Step 10 activation gates still tracked. |
+| Customer outputs | `main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer` | implemented/gated | Step 11 activation gates still tracked. |
+| Step 9 staging | `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_position` | implemented/gated | Source contract must be cleared before report activation. |
+| Step 9 staging | `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_position` | implemented/gated | Reg-change interval parity still gated. |
+| Step 9 staging | `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_positionchangelog` | implemented/gated | Needed for open/close lifecycle and partial handling. |
+| Step 9 staging | `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_mirror` | implemented/gated | Needed for mirror/copy logic. |
+| Reg-change/movement | `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population` | implemented/gated | Step 6 parity evidence still required for full activation. |
+| Reg-change/movement | `main.regtech_ops_stg.bi_output_regtechops_reg_regulation_movments_positions` | implemented/gated | Movement-stage gate remains unresolved. |
+| Reg-change/movement | `main.regtech_ops_stg.bi_output_regtechops_reg_regulationinoutdailydata` | expected source/access pending | Mapping known; usage confirmation remains pending for this module. |
+| Instrument metadata | `main.regtech_ops_stg.bi_output_regtechops_reg_ext_trade_instrumentmetadata` | expected source/access pending | Also blocks special-char conversion dependency. |
+| Instrument metadata | `main.regtech_ops_stg.bi_output_regtechops_reg_ext_trade_getinstrument` | expected source/access pending | Required-column profiling pending. |
+| Instrument metadata | `main.regtech_ops_stg.bi_output_regtechops_reg_instruments_ext` | expected source/access pending | Shape confirmation vs gold/FIRDS outputs pending. |
+| Instrument metadata | `main.regtech.gold_regtech_reg_instruments_scd` | implemented/gated | Certified source; coverage validation required. |
+| Instrument metadata | `main.regtech.gold_regtech_reg_instruments_full_description` | implemented/gated | Certified source; coverage validation required. |
+| Instrument special-char | `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion` | implemented/gated | Depends on `Reg_Ext_Trade_InstrumentMetaData` profiling. |
+| Currency/dictionary/split | `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrency` | expected source/access pending | Required-column/access profiling pending. |
+| Currency/dictionary/split | `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrencytype` | expected source/access pending | Required-column/access profiling pending. |
+| Currency/dictionary/split | `main.regtech_ops_stg.bi_output_regtechops_reg_ext_historysplitratio` | expected source/access pending | Split-ratio source/filter parity still gated. |
+| Exclusions/static refs | `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments` | implemented/gated | Validation foundation includes exclusion checks. |
+| Exclusions/static refs | `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids` | implemented/gated | Validation foundation includes exclusion checks. |
+| Exclusions/static refs | `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids` | implemented/gated | Used in related customer/regchange lineage; report-level use validated in later steps. |
+| Exclusions/static refs | `main.regtech_stg.silver_sharepoint_transactionreporting_isin_for_instrumentid_341` | implemented/gated | Instrument override compatibility checks deferred to Step 12B2/B3. |
+| Exclusions/static refs | `MIFID2_Instruments_To_Exclude` mapped equivalent | unresolved | Mapping/availability must be confirmed before activation. |
+| Futures metadata | `main.trading.bronze_etoro_trade_futuresmetadata` | expected source/access pending | Treat as expected mapping, not unknown; required columns pending profiling (`InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`). |
+| Out of scope outputs | ETORO/Hedge/NPD_TRAX report outputs | out of scope | Explicitly excluded from Step 12B1. |
+
+## Gates that remain unresolved after Step 12B1
+
+- Price/split source gates from Step 5B1.
+- Non-price `Pre_Regulation_Ext` gates from Step 5B2.
+- Movement/reg-change gates from Step 6.
+- Step 9 position and reg-change position staging gates.
+- `InstrumentMetaData_SpecialChar_Conversion` dependency on profiled `Reg_Ext_Trade_InstrumentMetaData`.
+- Futures metadata required-column profiling gate.
+- Excluded instruments/position IDs / `MIFID2_Instruments_To_Exclude` mapping-parity gate.
+- Source profiling/access pending gates for dictionary/instrument/migration dependencies.
+- Removed partials explicit-column parity enforcement gate.
+- `MIFID2_Report` / `MIFID2_ME_Report` `UpdateDate` nullable no-default caution gate.
+
+## Step 12B1 implementation artifacts
+
+- SQL scaffolding:
+  - `databricks/sql/08_outputs/03_mifid2_report_scaffolding.sql`
+- Validation foundation:
+  - `databricks/sql/08_outputs/03_mifid2_report_validation_foundation.sql`
+
+Step 12B1 stops here by design. Step 12B2, Step 12B3, and Step 12B4 remain TODO-scaffolded only.

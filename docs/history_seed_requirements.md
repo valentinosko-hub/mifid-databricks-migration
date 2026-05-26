@@ -232,6 +232,55 @@ For a requested Step 11 `ReportDate`, ensure:
 - Missing/partial PIN/UserAPI history in Step 9 sources can affect reg-change identity fields.
 - Missing ReplaceChar parity evidence for the run window can alter normalized names/PIN-derived identifiers.
 
+## Step 12 - MIFID2_Report / MIFID2_ME_Report / MIFID2_Removed_OP_Partials
+
+Primary Step 12 targets:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
+
+Supporting Step 12 dependencies (carry-forward gates):
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_position`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_position`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_positionchangelog`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_mirror`
+- `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population`
+- `main.regtech_ops_stg.bi_output_regtechops_reg_regulation_movments_positions`
+- `main.regtech_ops_stg.bi_output_regtechops_reg_ext_historysplitratio` (gated)
+- `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion` (gated)
+- `main.trading.bronze_etoro_trade_futuresmetadata` (expected source; profiling-gated)
+
+### Minimum seed requirements for Step 12 parity windows
+
+For a requested Step 12 `ReportDate`, ensure:
+
+- Step 10/11 customer snapshots for the same report date window are available.
+- Step 9 position/reg-change-position/changelog/mirror snapshots for the same report date window are available.
+- Movement and migration snapshots for the same report date are available (or explicitly marked gated and excluded from execution).
+- Instrument coverage sources are available for the requested date window (`Reg_Instruments_SCD`, `Reg_Instruments_Full_Description`).
+- Split and price sources for report-date pricing logic are available and approved by Step 5B1 gates.
+- Futures metadata required columns are available for report-date instrument coverage:
+  - `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`.
+
+### Seed/cutover policy for Step 12
+
+- Phase-1 default remains validation-window seeding only.
+- Step 12 report targets should be rebuilt as report-date scoped delete/insert after upstream snapshots refresh.
+- Full historical backfill is not required for Step 12B1 and is deferred until explicitly requested for reconciliation windows.
+
+### Known Step 12 history risks
+
+- Unresolved price/split source selection can alter report prices and quantity normalization.
+- Migration/regchange interval parity gaps can alter branch membership and row composition.
+- Missing `InstrumentMetaData_SpecialChar_Conversion` population can change instrument-name normalization outcomes.
+- Missing FuturesMetaData required-column profiling can impact futures-specific fields and coverage.
+- `MIFID2_Removed_OP_Partials` implicit-order insert behavior from SQL Server must not be carried forward; explicit-column parity is required to avoid schema-order drift.
+- `MIFID2_Report` / `MIFID2_ME_Report` `UpdateDate` must remain nullable with no synthesized default; default injection would create non-parity history artifacts.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.

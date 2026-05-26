@@ -199,6 +199,33 @@ Step 11 note (`MIFID2_RegChange_Customer` output):
   - countries (`67,95,102,126,164,191`) drive `NotAllowedCONCAT`
   - non-LEI `PIN_LEI` remains country-prefix concatenated (no Step 10-style no-concat PIN suppression).
 
+Step 12 note (`MIFID2_Report` / `MIFID2_ME_Report` / `MIFID2_Removed_OP_Partials` scaffolding):
+- Step 12B1 target objects are:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
+- Step 12 consumes confirmed-but-gated lineage objects:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_position`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_position`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_positionchangelog`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_mirror`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_regulation_movments_positions`
+- Step 12 expected source/access pending mappings remain gated:
+  - `bi_output_regtechops_reg_ext_trade_getinstrument`
+  - `bi_output_regtechops_reg_ext_trade_instrumentmetadata`
+  - `bi_output_regtechops_reg_ext_dictionarycurrency`
+  - `bi_output_regtechops_reg_ext_dictionarycurrencytype`
+  - `bi_output_regtechops_reg_ext_historysplitratio`
+  - `bi_output_regtechops_reg_regulationinoutdailydata` usage confirmation
+  - `MIFID2_Instruments_To_Exclude` mapped equivalent
+- Futures metadata must be treated as expected mapping, not unknown:
+  - `Trade.FuturesMetaData` -> `main.trading.bronze_etoro_trade_futuresmetadata`
+  - required-column profiling is still pending for `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`.
+- Step 12 must keep `UpdateDate` nullable for `MIFID2_Report` and `MIFID2_ME_Report` (no default invention), and must use explicit insert column lists for `MIFID2_Removed_OP_Partials`.
+
 ## Mappings not to use (legacy/reference-only)
 
 - Do not use optional/reference package artifacts as current mapping authority:
