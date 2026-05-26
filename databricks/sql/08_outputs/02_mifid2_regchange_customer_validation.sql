@@ -248,7 +248,11 @@ FROM VALUES
 AS t(gate_name, gate_status, gate_reason);
 
 -- Optional TradeFund column-contract check.
--- Replace {{ext_tradefund_source}} with the confirmed object name before execution.
+-- Dictionary.Ext_TradeFund mapping is not confirmed yet.
+-- Replace {{ext_tradefund_source}} and {{ext_tradefund_source_table_name_only}}
+-- only after the real Databricks source table is confirmed.
+-- Expected logical columns: FundAccountID, FundName, FundType.
+-- Keep this validation gated until the mapping is confirmed.
 /*
 WITH required_tradefund_columns AS (
   SELECT col AS column_name
@@ -741,7 +745,12 @@ JOIN failed_only_cids f
 -- -----------------------------------------------------------------------------
 -- 15) Comparison notes vs MIFID2_Customer
 -- -----------------------------------------------------------------------------
--- 13a) Schema contract parity check between regchange and customer outputs.
+-- OPTIONAL - run only after Step 10 MIFID2_Customer has been materialized.
+-- The queries below reference:
+--   main.regtech_ops_stg.bi_output_regtechops_mifid2_customer
+-- and should remain gated until that object exists.
+/*
+-- 15a) Schema contract parity check between regchange and customer outputs.
 WITH regchange_schema AS (
   SELECT
     lower(column_name) AS column_name,
@@ -777,7 +786,7 @@ WHERE r.column_name IS NULL
    OR r.is_nullable <> c.is_nullable
 ORDER BY COALESCE(r.column_name, c.column_name);
 
--- 13b) Expected row-set differences by report_date.
+-- 15b) Expected row-set differences by report_date.
 WITH run_parameters AS (
   SELECT CAST('{{report_date}}' AS DATE) AS report_date
 ),
@@ -817,6 +826,7 @@ FROM customer_cids c
 LEFT JOIN regchange_cids r
   ON c.CID = r.CID
 WHERE r.CID IS NULL;
+*/
 
 -- 15c) Step 11 behavior note check:
 -- This output should not apply excluded-CID filtering unless SP logic changes.
