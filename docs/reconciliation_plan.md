@@ -4,10 +4,10 @@ This plan defines reconciliation scope and execution order for migration validat
 
 ## Current focus
 
-- Step 12B1 scaffolding and validation foundation only for:
-  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
-  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
-  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
+- Step 12B2 intermediate position/trade population templates only (pre-branch):
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report_trade_population` (optional checkpoint)
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report_customer_reg_flags` (optional checkpoint)
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials_candidates` (optional checkpoint)
 
 ## Out of scope for this step
 
@@ -24,68 +24,67 @@ This plan defines reconciliation scope and execution order for migration validat
 - Step 6 movement/reg-change parity gates resolved.
 - Step 9 position/reg-change-position staging gates resolved.
 - `InstrumentMetaData_SpecialChar_Conversion` dependency cleared.
-- Futures metadata columns profiled in `main.trading.bronze_etoro_trade_futuresmetadata`.
+- Futures metadata columns profiled in `main.trading.bronze_etoro_trade_futuresmetadata` before Step 12B3 (not required to author Step 12B2 templates).
 - Exclusion source mappings confirmed, including `MIFID2_Instruments_To_Exclude` equivalent.
 - `UpdateDate` no-default rule approved for `MIFID2_Report` and `MIFID2_ME_Report`.
 - Removed partials explicit-column insert parity rule enforced.
 
-## Step 12B1 reconciliation coverage
+## Step 12B2 reconciliation coverage
 
 1. Schema parity:
-   - Report / ME / Removed_OP_Partials column names, order, types, nullability, decimal precision-scale.
+   - Intermediate checkpoint schema checks (if materialized) for trade population, customer flags, removed-partials candidates.
 2. Row counts:
-   - By `ReportDate`, `RegulationReportID`, `RegulationID`, `RegChange`.
+   - Source row counts and intermediate row counts by report date.
 3. Duplicate checks:
-   - `ReportDate` + `RegulationReportID` + `TransactionReferenceNumber` + `BackReportingIndicator`.
-   - Position/open-close lifecycle business keys.
-   - Removed partials business keys.
+   - Intermediate trade business keys (`CID`, `PositionID`, `OpenORClose`, `RegChange`).
+   - Removed partial candidate business keys (`ReportDate`, `CID`, `PositionID`, `OriginalPositionID`, `OpenORClose`).
 4. Required null checks:
-   - Mandatory identifiers, datetime fields, quantity and price fields.
+   - Mandatory intermediate identifiers, datetime fields, quantity and rate fields.
 5. Exclusion checks:
-   - Excluded instruments and position IDs absent.
-   - Placeholder gate for `MIFID2_Instruments_To_Exclude`.
+   - Excluded-instrument mapping parity in pre-branch population.
 6. Instrument coverage:
    - `Reg_Instruments_SCD`, `Reg_Instruments_Full_Description`,
-   - `InstrumentMetaData_SpecialChar_Conversion`,
-   - `FuturesMetaData`.
+   - `InstrumentMetaData_SpecialChar_Conversion`.
+   - Futures metadata checks are deferred to Step 12B3.
 7. Movement/RegChange checks:
    - Counts by `RegChange`,
-   - Movement-stage coverage,
-   - `IsOpenedAfterLastMigration` distribution,
-   - Migration customer counts.
+   - movement-stage coverage and migration interval coverage,
+   - `IsOpenedAfterLastMigration` distribution and 10-second exception evidence,
+   - SQL Server parity for 10-second exception null behavior (missing movement rows must not satisfy the `> 10` predicate).
 8. Removed partial checks:
-   - Removed partial count,
-   - Source-to-removed reconciliation placeholders,
+   - Removed partial candidate counts,
+   - Source-to-candidate reconciliation placeholders,
    - Same-day open/close checks.
 9. Aggregates:
-   - Quantity and price aggregates by branch/report ID.
+   - Quantity and rate aggregates by open/close and reg-change classes.
+   - Split/GBX parity proofs only after audit fields are materialized (`AmountRatioSplit`, `IsSplitAdjusted`, `IsGBX`, before/after GBX rates).
 10. Source-to-output checks:
-   - Customers to output,
-   - Positions to output,
-   - Reg-change positions to output,
-   - Movement source to output.
+   - Customers to intermediate,
+   - positions/reg-change positions to intermediate,
+   - movement source to intermediate.
 
 ## Execution order once gates pass
 
-1. Run schema contract checks for all three targets.
+1. Run source visibility/required-column checks for Step 12B2 dependencies.
 2. Run dependency visibility/coverage checks.
-3. Run row-count and duplicate checks.
-4. Run required-null and exclusion checks.
-5. Run instrument/movement/regchange checks.
-6. Run removed-partials and aggregate checks.
-7. Compare source-to-output placeholders and classify deltas.
-8. Record outcomes in `docs/known_differences.md` and unresolved follow-ups in `docs/unresolved_dependencies.md`.
+3. Materialize optional checkpoints only if full derived schemas are defined (no dummy schema checkpoints).
+4. Run source/intermediate row-count and duplicate checks.
+5. Run required-null, open/close, and same-day checks.
+6. Run partial/split/GBX and reg-change checks.
+7. Run instrument coverage and source-to-intermediate reconciliation checks.
+8. Classify deltas and carry unresolved issues into Step 12B3 gates.
+9. Record outcomes in `docs/known_differences.md` and unresolved follow-ups in `docs/unresolved_dependencies.md`.
 
 ## Planned evidence output
 
 - SQL result sets from:
-  - `databricks/sql/08_outputs/03_mifid2_report_validation_foundation.sql`
+  - `databricks/sql/08_outputs/04_mifid2_report_position_population_validation.sql`
 - Updated gate decisions and known-difference notes:
   - `docs/unresolved_dependencies.md`
   - `docs/known_differences.md`
   - `docs/history_seed_requirements.md`
 
-## Stop condition for Step 12B1
+## Stop condition for Step 12B2
 
-- Step 12B1 ends when scaffolding and validation foundations are in place and all unresolved gates are documented.
-- Full branch/business logic migration starts in Step 12B2/12B3 only.
+- Step 12B2 ends when intermediate pre-branch templates and validation templates are authored, gated, and documented.
+- Final branch/business logic migration starts in Step 12B3 only.

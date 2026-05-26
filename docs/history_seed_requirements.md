@@ -254,6 +254,11 @@ Supporting Step 12 dependencies (carry-forward gates):
 - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion` (gated)
 - `main.trading.bronze_etoro_trade_futuresmetadata` (expected source; profiling-gated)
 
+Step 12B2 boundary note:
+
+- Step 12B2 uses pre-branch intermediate population only and stops at unified trade pool (`#tradesFinal` equivalent).
+- Futures metadata is not a Step 12B2 seed dependency because it is used in final branch projections (Step 12B3).
+
 ### Minimum seed requirements for Step 12 parity windows
 
 For a requested Step 12 `ReportDate`, ensure:
@@ -263,7 +268,12 @@ For a requested Step 12 `ReportDate`, ensure:
 - Movement and migration snapshots for the same report date are available (or explicitly marked gated and excluded from execution).
 - Instrument coverage sources are available for the requested date window (`Reg_Instruments_SCD`, `Reg_Instruments_Full_Description`).
 - Split and price sources for report-date pricing logic are available and approved by Step 5B1 gates.
-- Futures metadata required columns are available for report-date instrument coverage:
+- For Step 12B2 specifically, ensure intermediate instrument metadata dependencies are available:
+  - `Reg_Ext_Trade_InstrumentMetaData`
+  - `Reg_Ext_Trade_GetInstrument`
+  - `Reg_Instruments_ext` / certified gold equivalents
+  - `InstrumentMetaData_SpecialChar_Conversion` (if used before unified trade pool)
+- Futures metadata required columns are needed for Step 12B3 final branch coverage:
   - `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`.
 
 ### Seed/cutover policy for Step 12
@@ -277,7 +287,7 @@ For a requested Step 12 `ReportDate`, ensure:
 - Unresolved price/split source selection can alter report prices and quantity normalization.
 - Migration/regchange interval parity gaps can alter branch membership and row composition.
 - Missing `InstrumentMetaData_SpecialChar_Conversion` population can change instrument-name normalization outcomes.
-- Missing FuturesMetaData required-column profiling can impact futures-specific fields and coverage.
+- Missing FuturesMetaData required-column profiling can impact Step 12B3 futures-specific projection fields and coverage.
 - `MIFID2_Removed_OP_Partials` implicit-order insert behavior from SQL Server must not be carried forward; explicit-column parity is required to avoid schema-order drift.
 - `MIFID2_Report` / `MIFID2_ME_Report` `UpdateDate` must remain nullable with no synthesized default; default injection would create non-parity history artifacts.
 

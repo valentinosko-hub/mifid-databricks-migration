@@ -1,6 +1,6 @@
-# Step 12B1 - MIFID2 Report Output Analysis
+# Step 12B1-12B2 - MIFID2 Report Output Analysis
 
-This document captures Step 12B1 only: scaffolding, output contracts, dependency gates, and validation foundations for the three report targets below. It does not implement full report business logic.
+This document captures Step 12B1 scaffolding and Step 12B2 intermediate position/trade population templates for the three report targets below. It does not implement final report branch projections.
 
 ## Scope (Step 12B1 only)
 
@@ -140,3 +140,131 @@ This document captures Step 12B1 only: scaffolding, output contracts, dependency
   - `databricks/sql/08_outputs/03_mifid2_report_validation_foundation.sql`
 
 Step 12B1 stops here by design. Step 12B2, Step 12B3, and Step 12B4 remain TODO-scaffolded only.
+
+## Step 12B2 scope and boundary
+
+Step 12B2 authors gated templates for intermediate population only:
+
+- Main position population from `MIFID2_ext_Position` + `MIFID2_Customer`.
+- Reg-change position population from `MIFID2_ext_RegChange_Position` + `MIFID2_RegChange_Customer`.
+- Position change-log latest-row logic.
+- Mirror/copy-fund enrichment.
+- Same-day open+close synthetic open-row handling.
+- Partial-close replacement logic and removed-partial candidate logic.
+- Split-adjusted quantity logic for `IsCompletedOpenPositions = 1`.
+- RegChange intermediate logic (`0/1/2`) up to unified trade pool.
+- Price/currency intermediate logic used before final branch inserts (including GBX divide-by-100).
+- Instrument intermediate logic used before final branch inserts.
+- Customer EU/UK report-eligibility flag preparation from pre-branch intermediate population.
+- SQL Server 10-second migration/open exception parity:
+  - keep NULL-as-not-true behavior for missing movement rows in the 10-second condition.
+
+Step 12B2 stop point:
+
+- Unified intermediate trade pool (`#tradesFinal` equivalent), plus pre-branch customer EU/UK flags.
+
+Step 12B2 explicit exclusions:
+
+- Final report branch inserts (EU/CySEC, UK/FCA, FCA-flow-in-EU, Seychelles, ME).
+- Final inserts into:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+- Finalization insert into `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`.
+
+## Step 12B2 SQL artifacts
+
+- Intermediate population template:
+  - `databricks/sql/08_outputs/04_mifid2_report_position_population.sql`
+- Intermediate validation template:
+  - `databricks/sql/08_outputs/04_mifid2_report_position_population_validation.sql`
+
+Both are intentionally gated/commented and non-executable for final outputs in this step.
+
+## Step 12B2 CTE/materialization strategy
+
+Primary strategy:
+
+- Use local CTE templates to mirror SQL Server temp-table flow, preserving business logic sequence while avoiding active writes.
+
+Optional materialized checkpoints (still gated/commented):
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_report_trade_population`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_report_customer_reg_flags`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials_candidates`
+
+Checkpoint safety rule:
+
+- Do not materialize optional checkpoints with dummy one-column schemas.
+- Add checkpoint DDL only after full schemas are derived from final Step 12B2 CTE outputs.
+
+Naming rule:
+
+- Any persistent intermediate in this module must be in `main.regtech_ops_stg` and start with `bi_output_regtechops_`.
+
+## Step 12B2 logic deferred to Step 12B3
+
+Deferred to final projection step:
+
+- EU/CySEC final report insert branch.
+- UK/FCA final report insert branch.
+- FCA-flow-in-EU final report insert branch.
+- Seychelles final report insert branch.
+- ME final report insert branch.
+- Any final-write orchestration into `MIFID2_Report` / `MIFID2_ME_Report`.
+- Final-write orchestration into `MIFID2_Removed_OP_Partials`.
+
+FuturesMetaData boundary:
+
+- `FuturesMetaData` is referenced in final branch projection paths, not in pre-branch unified trade-pool population.
+- Therefore, FuturesMetaData remains a Step 12B3 activation gate, not a Step 12B2 implementation dependency.
+
+## Step 12B2 carried-forward gates
+
+Step 12B2 remains gated on:
+
+- Step 5B1/5B2 price and split dependencies.
+- Step 6 migration/movement parity dependencies.
+- Step 9 position/regchange/changelog/mirror staging dependencies.
+- Step 10/11 customer output readiness.
+- `InstrumentMetaData_SpecialChar_Conversion` profiling/coverage dependency.
+- `Dictionary.Ext_TradeFund` Databricks mapping dependency.
+- `MIFID2_Instruments_To_Exclude` mapping parity dependency.
+- `Reg_Ext_DictionaryCurrency` profiling/availability dependency for pre-branch instrument metadata enrichment.
+- Explicit-column insert rule for removed partials finalization.
+
+## Step 12B2 validation coverage
+
+Step 12B2 validation templates cover:
+
+- Source row counts.
+- Intermediate row counts.
+- Main vs reg-change counts.
+- Open/close and same-day open+close counts.
+- Partial-close and removed-partial candidate counts.
+- RegChange distribution checks (`0/1/2`) and migration exception evidence placeholders.
+- Split-adjustment and GBX checks.
+- Instrument coverage checks.
+- Duplicate business-key checks.
+- Required null checks.
+- Source-to-intermediate reconciliation checks.
+
+Validation gating note:
+
+- Checkpoint-dependent validation blocks are optional and must not run until optional checkpoint tables are materialized.
+- Split/GBX parity cannot be treated as proven until audit fields are materialized:
+  - `AmountRatioSplit`
+  - `IsSplitAdjusted`
+  - `IsGBX`
+  - `InitForexRateBeforeGBX`
+  - `InitForexRateAfterGBX`
+  - `EndForexRateBeforeGBX`
+  - `EndForexRateAfterGBX`
+
+Removed-partials scope rule:
+
+- Explicit-column candidate insert must be activated only as part of the full Step 12B2 CTE stack where `removed_partial_candidates` is defined.
+- Standalone removed-partials candidate insert statements are not valid.
+
+Step 12B3 boundary in validation:
+
+- FuturesMetaData validations are deferred to Step 12B3 because they apply to final branch projection logic.

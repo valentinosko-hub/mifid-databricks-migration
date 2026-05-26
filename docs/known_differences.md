@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-12B1)
+# Known Differences (Current Safe + Steps 5B1-12B2)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -20,6 +20,10 @@ This document tracks known or intentional differences for the currently implemen
   - Final report business logic remains gated for later Step 12B2 / 12B3.
   - `UpdateDate` remains nullable; no default should be invented.
   - `MIFID2_Removed_OP_Partials` must use explicit column lists.
+- MIFID2_Report intermediate position/trade population templates (Step 12B2):
+  - Step 12B2 adds gated pre-branch population templates only.
+  - It stops at unified intermediate trade pool (`#tradesFinal` equivalent).
+  - Final branch inserts remain deferred to Step 12B3.
 
 ## Scope and non-goals in this step
 
@@ -238,6 +242,28 @@ This document tracks known or intentional differences for the currently implemen
   - `MIFID2_Hedge_Report`
   - `MIFID2_NPD_TRAX`
   - file delivery and deployment workflows
+
+## Step 12B2 implementation differences and cautions
+
+- `databricks/sql/08_outputs/04_mifid2_report_position_population.sql` is a gated template only:
+  - includes dependency/gate status output
+  - includes commented CTE stack for intermediate flow only
+  - does not create final-report rows in `MIFID2_Report` / `MIFID2_ME_Report`
+- `databricks/sql/08_outputs/04_mifid2_report_position_population_validation.sql` defines validation templates for pre-branch intermediate population checks only.
+- SQL Server temp-table `DELETE`/`UPDATE` behavior in intermediate flow is represented as Databricks CTE filtering/anti-join logic in templates.
+- Step 12B2 includes optional customer EU/UK flag preparation but does not apply final customer table updates.
+- Step 12B2 includes removed-partial candidate logic only; final write to `MIFID2_Removed_OP_Partials` remains deferred.
+- Step 12B2 preserves SQL Server null semantics for the 10-second migration/open exception:
+  - no `COALESCE(..., sentinel)` substitution is used to force null differences into deletion criteria.
+- Removed-partials candidate insert activation is scoped to the full Step 12B2 CTE stack:
+  - standalone insert snippets that reference out-of-scope `removed_partial_candidates` are not valid.
+- Optional intermediate checkpoint materialization is documented but not provided as dummy one-column DDL:
+  - full schemas must be derived before any checkpoint table activation.
+- Checkpoint-dependent validation blocks are marked optional/gated and must not be executed before checkpoint materialization.
+- Split/GBX parity validation is gated on audit-field availability and is not treated as proven without those fields.
+- FuturesMetaData is intentionally deferred to Step 12B3:
+  - Step 12B2 pre-branch trade-pool templates do not include FuturesMetaData-dependent logic.
+  - Futures metadata remains an activation/profile gate for final branch projections.
 
 ## Reference-only policy
 

@@ -199,7 +199,7 @@ Step 11 note (`MIFID2_RegChange_Customer` output):
   - countries (`67,95,102,126,164,191`) drive `NotAllowedCONCAT`
   - non-LEI `PIN_LEI` remains country-prefix concatenated (no Step 10-style no-concat PIN suppression).
 
-Step 12 note (`MIFID2_Report` / `MIFID2_ME_Report` / `MIFID2_Removed_OP_Partials` scaffolding):
+Step 12 note (`MIFID2_Report` / `MIFID2_ME_Report` / `MIFID2_Removed_OP_Partials`):
 - Step 12B1 target objects are:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
@@ -213,6 +213,14 @@ Step 12 note (`MIFID2_Report` / `MIFID2_ME_Report` / `MIFID2_Removed_OP_Partials
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_mirror`
   - `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population`
   - `main.regtech_ops_stg.bi_output_regtechops_reg_regulation_movments_positions`
+- Step 12B2 (intermediate population templates) additionally references:
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_historysplitratio`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_trade_instrumentmetadata`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_trade_getinstrument`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_instruments_ext`
+  - `main.regtech.gold_regtech_reg_instruments_scd`
+  - `main.regtech.gold_regtech_reg_instruments_full_description`
+  - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion` (if available and report-date covered)
 - Step 12 expected source/access pending mappings remain gated:
   - `bi_output_regtechops_reg_ext_trade_getinstrument`
   - `bi_output_regtechops_reg_ext_trade_instrumentmetadata`
@@ -221,10 +229,15 @@ Step 12 note (`MIFID2_Report` / `MIFID2_ME_Report` / `MIFID2_Removed_OP_Partials
   - `bi_output_regtechops_reg_ext_historysplitratio`
   - `bi_output_regtechops_reg_regulationinoutdailydata` usage confirmation
   - `MIFID2_Instruments_To_Exclude` mapped equivalent
+  - `Dictionary.Ext_TradeFund` mapped equivalent for mirror/copy-fund enrichment in intermediate population
 - Futures metadata must be treated as expected mapping, not unknown:
   - `Trade.FuturesMetaData` -> `main.trading.bronze_etoro_trade_futuresmetadata`
   - required-column profiling is still pending for `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`.
+  - boundary rule: FuturesMetaData is deferred to Step 12B3 final branch projections and is not a Step 12B2 pre-branch dependency.
 - Step 12 must keep `UpdateDate` nullable for `MIFID2_Report` and `MIFID2_ME_Report` (no default invention), and must use explicit insert column lists for `MIFID2_Removed_OP_Partials`.
+- Step 12B2 SQL artifacts are gated templates only:
+  - `databricks/sql/08_outputs/04_mifid2_report_position_population.sql`
+  - `databricks/sql/08_outputs/04_mifid2_report_position_population_validation.sql`
 
 ## Mappings not to use (legacy/reference-only)
 
