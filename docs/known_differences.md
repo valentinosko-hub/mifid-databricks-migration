@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-9)
+# Known Differences (Current Safe + Steps 5B1-10)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -12,6 +12,7 @@ This document tracks known or intentional differences for the currently implemen
 - Hedge liquidity mapping staging analysis/profiling gates (Step 7)
 - ASIC2-compatible MiFID subset profiling/gated templates (Step 8)
 - MIFID2_ext staging profiling/gated templates (Step 9)
+- MIFID2_Customer output profiling/gated templates (Step 10)
 
 ## Scope and non-goals in this step
 
@@ -26,7 +27,7 @@ This document tracks known or intentional differences for the currently implemen
 - Step 7 includes hedge-liquidity profiling/gating only; no active Step 7 staging/SCD DDL is enabled yet.
 - Step 8 includes ASIC2 subset profiling/gating only; no active Step 8 staging/view DDL is enabled yet.
 - Step 9 includes MIFID2_ext profiling/gating only; no active Step 9 staging DDL is enabled yet.
-- No final MiFID output table-generation implementation.
+- Step 10 includes only `MIFID2_Customer` profiling/gating; no active final-output DDL is enabled yet.
 - No Hedge EU/UK final report implementation.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
 - No CSV/7z/SFTP/Cappitech/TRAX upload/response handling.
@@ -75,6 +76,10 @@ This document tracks known or intentional differences for the currently implemen
 - Step 9 customer/reg-change customer activation remains gated until BackOffice as-of contracts and PIN/UserAPI source contracts are runtime-profiled.
 - Step 9 position/reg-change position activation remains gated until `PositionForExternalUse` source-shape and migration interval parity are validated.
 - Step 9 `MIFID2_Failed_TRAX` activation remains gated until `MIFID2_NPD_TRAX` history/current seed policy is approved for requested validation windows.
+- Step 10 `MIFID2_Customer` activation remains gated until:
+  - Step 9 customer/failed-TRAX staging gates are cleared.
+  - `Reg_Ext_CustomerLatinName` source/profile gate is cleared.
+  - `Dictionary.Ext_TradeFund` Databricks mapping is confirmed.
 
 ## Step 5B1 implementation differences and cautions
 
@@ -149,6 +154,23 @@ This document tracks known or intentional differences for the currently implemen
 - `databricks/sql/07_mifid2_ext/07_mifid2_ext_validation.sql` includes source/target contract checks, duplicate/null checks, as-of/date-window checks, `ChangeTypeID = 0`, mirror `CopyFund`, hedge exclusion checks, failed-TRAX latest-row checks, and source-to-stage parity checks.
 - Only `MIFID2_Failed_TRAX` has formal DDL in the ssis-created DDL folder; the other seven Step 9 table contracts are documented as derived from SSIS metadata plus consumer stored-procedure usage.
 - Step 9 position staging uses `Trade.PositionForExternalUse` and `History.PositionForExternalUse` mappings; broad `Trade.Position` / `History.Position` are not used as replacement sources for this module unless package proof requires it.
+
+## Step 10 implementation differences and cautions
+
+- `databricks/sql/08_outputs/01_mifid2_customer.sql` is authored as a gated template only:
+  - includes gate-status output
+  - includes commented DDL + report-date delete/insert template
+  - includes explicit DDL-aligned column list for `MIFID2_Customer`
+- `databricks/sql/08_outputs/01_mifid2_customer_validation.sql` contains Step 10 validation templates for:
+  - target/schema contract checks
+  - row counts by `ReportDate` and `RegulationID`
+  - duplicate and null checks
+  - ReplaceChar sample checks
+  - InternalAccounts/LEI coverage checks
+  - PIN/UserAPI availability/completeness checks
+  - source-to-output count checks
+- Step 10 preserves SQL Server fallback behavior for `FTD` (`COALESCE(..., '2015-04-26')`) and does not invent upstream `FirstTimeDepositSuccessDate` source behavior.
+- Step 10 template intentionally does not enable any out-of-scope final outputs (`RegChange_Customer`, `Report`, `ME`, `ETORO`, `Hedge`, `NPD_TRAX`).
 
 ## Reference-only policy
 

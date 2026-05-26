@@ -158,6 +158,40 @@ For a requested Step 9 `ReportDate` window, ensure:
 - As-of history risk: incomplete `History.Customer` / `History.BackOfficeCustomer` windows can break customer as-of parity.
 - PIN/UserAPI history risk: unresolved PIN source contract can produce null/incorrect identifiers in historical windows.
 
+## Step 10 - MIFID2_Customer output
+
+Primary Step 10 target:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer`
+
+Supporting Step 10 dependencies:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_customer`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_failed_trax`
+- `main.regtech_ops_stg.bi_output_regtechops_vw_internal_accounts`
+- `main.regtech_ops_stg.bi_output_regtechops_vw_ext_country`
+- `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
+
+### Minimum seed requirements for Step 10 parity windows
+
+For a requested Step 10 `ReportDate`, ensure:
+
+- Step 9 customer and failed-TRAX staging are available for the same report date window.
+- Any required historical window for failed-TRAX latest-CID derivation is already seeded in `MIFID2_NPD_TRAX` (Step 9 dependency).
+- Internal-account and country references are available and current for the run window.
+
+### Seed/cutover policy for Step 10
+
+- Phase-1 default remains validation-window seeding only.
+- Step 10 should be rerun as report-date scoped delete/insert after supporting Step 9 snapshots are refreshed.
+- No full historical backfill is required unless parity checks explicitly request older windows.
+
+### Known Step 10 history risks
+
+- Missing `MIFID2_NPD_TRAX` seed history can alter failed-customer supplementation via Step 9 `MIFID2_Failed_TRAX`.
+- Missing `Reg_Ext_CustomerLatinName` windows can alter non-Latin name translation parity in customer output.
+- Unconfirmed `Dictionary.Ext_TradeFund` mapping can affect copy-fund historical classification.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.

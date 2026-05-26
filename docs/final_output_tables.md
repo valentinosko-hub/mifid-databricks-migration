@@ -26,3 +26,17 @@ Target naming rule applied in this phase:
 - `dbo.MIFID2_Report` and `dbo.MIFID2_ME_Report` define nullable `UpdateDate` with no default in the uploaded DDL.
 - `dbo.MIFID2_Removed_OP_Partials` includes `OpenORClose` as `NOT NULL`; insert logic should always use explicit column lists.
 - SQL Server storage/index options in DDLs (clustered/nonclustered index definitions, filegroups, compression clauses) are not 1:1 migrated as physical Databricks storage settings.
+
+## Step 10 status (`MIFID2_Customer` only)
+
+- Authored Step 10 SQL artifacts:
+  - `databricks/sql/08_outputs/01_mifid2_customer.sql`
+  - `databricks/sql/08_outputs/01_mifid2_customer_validation.sql`
+- Current status:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer` is authored as a gated template and is not activated.
+- Blocking gates before activation:
+  - Step 9 `MIFID2_ext_Customer` / `MIFID2_Failed_TRAX` activation prerequisites
+  - `Reg_Ext_CustomerLatinName` source/profile confirmation
+  - `Dictionary.Ext_TradeFund` Databricks mapping confirmation
+- Scope boundary preserved:
+  - No implementation in this step for `MIFID2_RegChange_Customer`, `MIFID2_Report`, `MIFID2_ME_Report`, `MIFID2_ETORO_Report`, `MIFID2_Hedge_Report`, or `MIFID2_NPD_TRAX`.

@@ -66,6 +66,8 @@ These are valid mappings but should be used conditionally based on package logic
   Documented as manually uploaded static reference; keep as compatibility/static input.
 - `regtech.si_reporting_configurations` -> `main.bi_db.bronze_fivetran_regtech_si_reporting_configurations`  
   Mapped in inventory, but usage should be confirmed per package/procedure dependency.
+- `Dictionary.Ext_TradeFund` -> expected source/access pending  
+  Required by Step 10 `SP_MIFID2_Customer` copy-fund enrichment (`FundAccountID`, `FundName`, `FundType`); do not activate mapping without profiling.
 
 Classification note:
 - `dbo.Reg_MigrationInOut_Population` and `dbo.Reg_RegulationInOutDailyData` have confirmed gold mappings, but in phase-1 dependency documentation they remain classified as SSIS-created staging dependencies (not missing raw sources) when produced/refreshed by SSIS/package logic.
@@ -159,6 +161,21 @@ Step 9 note (MIFID2_ext staging):
   - PIN/UserAPI runtime source object/column contract for `PIN_ID`, `PIN_Type`, `PIN`, `UAPI_CountryID`
   - `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population` parity contract for reg-change windows
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax` history/current availability for `MIFID2_Failed_TRAX`
+
+Step 10 note (`MIFID2_Customer` output):
+- Step 10 target object is:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer`
+- Step 10 consumes:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_failed_trax`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_internal_accounts`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_ext_country`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
+  - `main.regtech_ops_stg.bi_output_regtechops_fn_replacechar`
+- Step 10 expected source/access pending:
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_customerlatinname` (name translation path)
+  - Databricks mapping for `Dictionary.Ext_TradeFund` (copy-fund enrichment path)
+- Step 10 activation remains gated until Step 9 customer/failed-TRAX gates are cleared and the two Step 10 pending mappings above are confirmed.
 
 ## Mappings not to use (legacy/reference-only)
 
