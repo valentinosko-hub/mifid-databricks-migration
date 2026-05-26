@@ -162,16 +162,20 @@ reg_population AS (
     ON p.RunDate = rp.report_date
   WHERE p.PrevRegulationID IN (1, 2, 9, 11)
 ),
-regchange_position_cids AS (
-  SELECT DISTINCT p.CID
+regchange_position_union AS (
+  SELECT
+    p.CID,
+    p.OpenOccurred,
+    p.CloseOccurred
   FROM main.bi_db.bronze_etoro_trade_positionforexternaluse p
   JOIN run_window w
     ON p.Occurred >= w.start_ts
    AND p.Occurred < w.end_ts
-  JOIN reg_population reg
-    ON p.CID = reg.CID
-  UNION
-  SELECT DISTINCT p.CID
+  UNION ALL
+  SELECT
+    p.CID,
+    p.OpenOccurred,
+    p.CloseOccurred
   FROM main.trading.bronze_etoro_history_position_datafactory p
   JOIN run_window w
     ON (
@@ -179,8 +183,21 @@ regchange_position_cids AS (
          OR (p.OpenOccurred >= w.start_ts AND p.OpenOccurred < w.end_ts AND p.CloseOccurred >= w.end_ts)
        )
    AND p.OpenOccurred >= CAST('2015-04-26' AS TIMESTAMP)
+),
+regchange_interval_positions AS (
+  -- RegChange customer CID scope must be derived from interval-scoped reg-change positions.
+  -- Do not execute until reg-change interval logic is confirmed.
+  SELECT DISTINCT
+    pu.CID
+  FROM regchange_position_union pu
   JOIN reg_population reg
-    ON p.CID = reg.CID
+    ON pu.CID = reg.CID
+   AND pu.OpenOccurred < COALESCE(reg.RegValidTo, CAST('9999-12-31 00:00:00' AS TIMESTAMP))
+   AND COALESCE(pu.CloseOccurred, CAST('9999-12-31 00:00:00' AS TIMESTAMP)) >= reg.RegValidFrom
+),
+regchange_position_cids AS (
+  SELECT DISTINCT CID
+  FROM regchange_interval_positions
 ),
 customer_asof AS (
   SELECT

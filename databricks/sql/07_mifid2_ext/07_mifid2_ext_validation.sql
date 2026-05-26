@@ -19,6 +19,10 @@ WITH source_targets AS (
   SELECT 'customer_customer' AS source_key, 'main' AS table_catalog, 'general' AS table_schema, 'bronze_etoro_customer_customer' AS table_name UNION ALL
   SELECT 'history_customer', 'main', 'pii_data', 'bronze_etoro_history_customer' UNION ALL
   SELECT 'history_backofficecustomer', 'main', 'general', 'bronze_etoro_history_backofficecustomer' UNION ALL
+  SELECT 'dictionary_country', 'main', 'general', 'bronze_etoro_dictionary_country' UNION ALL
+  SELECT 'dictionary_label', 'main', 'general', 'bronze_etoro_dictionary_label' UNION ALL
+  SELECT 'customer_extendeduserfield', 'main', 'dwh', 'gold_sql_dp_prod_we_dwh_dbo_dim_extendeduserfield' UNION ALL
+  SELECT 'dictionary_extendeduservaluetype', 'main', 'compliance', 'bronze_userapidb_dictionary_extendeduservaluetype' UNION ALL
   SELECT 'trade_positionforexternaluse', 'main', 'bi_db', 'bronze_etoro_trade_positionforexternaluse' UNION ALL
   SELECT 'history_positionforexternaluse', 'main', 'trading', 'bronze_etoro_history_position_datafactory' UNION ALL
   SELECT 'history_positionchangelog', 'main', 'trading', 'bronze_etoro_history_positionchangelog' UNION ALL
@@ -29,7 +33,8 @@ WITH source_targets AS (
 ),
 required_columns AS (
   SELECT 'customer_customer' AS source_key, col AS column_name FROM VALUES
-    ('CID'), ('GCID'), ('PlayerLevelID'), ('PlayerStatusID'), ('CountryID'), ('LabelID')
+    ('CID'), ('GCID'), ('PlayerLevelID'), ('PlayerStatusID'), ('CountryID'), ('LabelID'),
+    ('BirthDate'), ('CitizenshipCountryID')
   AS t(col)
   UNION ALL
   SELECT 'history_customer', col FROM VALUES
@@ -40,16 +45,40 @@ required_columns AS (
     ('CID'), ('RegulationID'), ('AccountTypeID'), ('Lei'), ('CountryIDByIP'), ('ValidFrom'), ('ValidTo')
   AS t(col)
   UNION ALL
+  SELECT 'dictionary_country', col FROM VALUES
+    ('CountryID')
+  AS t(col)
+  UNION ALL
+  SELECT 'dictionary_label', col FROM VALUES
+    ('LabelID')
+  AS t(col)
+  UNION ALL
+  SELECT 'customer_extendeduserfield', col FROM VALUES
+    ('GCID'), ('ValueTypeID'), ('Value'), ('CountryID')
+  AS t(col)
+  UNION ALL
+  SELECT 'dictionary_extendeduservaluetype', col FROM VALUES
+    ('ValueTypeID'), ('Code')
+  AS t(col)
+  UNION ALL
   SELECT 'trade_positionforexternaluse', col FROM VALUES
-    ('PositionID'), ('CID'), ('OpenOccurred'), ('CloseOccurred'), ('InstrumentID'), ('Occurred')
+    ('PositionID'), ('ParentPositionID'), ('CID'), ('OpenOccurred'), ('CloseOccurred'),
+    ('InitForexRate'), ('EndForexRate'), ('AmountInUnitsDecimal'), ('InstrumentID'), ('IsBuy'),
+    ('Leverage'), ('LastOpConversionRate'), ('MirrorID'), ('InitExecutionID'), ('EndExecutionID'),
+    ('HedgeServerID'), ('IsSettled'), ('InitForexPriceRateID'), ('EndForexPriceRateID'),
+    ('LastOpPriceRate'), ('OriginalPositionID'), ('InitialUnits'), ('Occurred')
   AS t(col)
   UNION ALL
   SELECT 'history_positionforexternaluse', col FROM VALUES
-    ('PositionID'), ('CID'), ('OpenOccurred'), ('CloseOccurred'), ('InstrumentID')
+    ('PositionID'), ('ParentPositionID'), ('CID'), ('OpenOccurred'), ('CloseOccurred'),
+    ('InitForexRate'), ('EndForexRate'), ('AmountInUnitsDecimal'), ('InstrumentID'), ('IsBuy'),
+    ('Leverage'), ('LastOpConversionRate'), ('MirrorID'), ('InitExecutionID'), ('EndExecutionID'),
+    ('HedgeServerID'), ('IsSettled'), ('InitForexPriceRateID'), ('EndForexPriceRateID'),
+    ('LastOpPriceRate'), ('OriginalPositionID'), ('InitialUnits')
   AS t(col)
   UNION ALL
   SELECT 'history_positionchangelog', col FROM VALUES
-    ('PositionID'), ('Occurred'), ('ChangeTypeID'), ('LastOpPriceRate')
+    ('PositionID'), ('Occurred'), ('ChangeTypeID'), ('LastOpPriceRate'), ('IsSettled')
   AS t(col)
   UNION ALL
   SELECT 'history_mirror', col FROM VALUES
@@ -57,11 +86,14 @@ required_columns AS (
   AS t(col)
   UNION ALL
   SELECT 'hedge_executionlog', col FROM VALUES
-    ('OrderID'), ('ExecutionTime'), ('ProviderExecID'), ('OrderState')
+    ('OrderID'), ('HedgeServerID'), ('InstrumentID'), ('IsBuy'), ('Units'), ('ExecutionRate'),
+    ('ProviderExecID'), ('ExecutionTime'), ('Success'), ('LogTime'), ('LiquidityAccountID'),
+    ('EMSOrderID'), ('OrderState')
   AS t(col)
   UNION ALL
   SELECT 'reg_migrationinout_population', col FROM VALUES
-    ('CID'), ('PrevRegulationID'), ('RegulationID'), ('RunDate')
+    ('CID'), ('PrevRegulationID'), ('RegulationID'), ('Migration_Occurred'),
+    ('RegValidFrom'), ('RegValidTo'), ('RegChangeRank'), ('RunDate')
   AS t(col)
   UNION ALL
   SELECT 'mifid2_npd_trax', col FROM VALUES
@@ -434,18 +466,110 @@ backoffice_hits AS (
    AND b.ValidTo >= w.end_ts
 )
 SELECT
-  COUNT(*) AS staged_rows_without_history_asof_match
-FROM customer_rows s
-LEFT JOIN history_hits h
-  ON s.CID = h.CID
-WHERE h.CID IS NULL;
+  (
+    SELECT COUNT(*)
+    FROM customer_rows s
+    LEFT JOIN history_hits h
+      ON s.CID = h.CID
+    WHERE h.CID IS NULL
+  ) AS staged_rows_without_history_asof_match,
+  (
+    SELECT COUNT(*)
+    FROM customer_rows s
+    LEFT JOIN backoffice_hits b
+      ON s.CID = b.CID
+    WHERE b.CID IS NULL
+  ) AS staged_rows_without_backoffice_asof_match;
 
+-- -----------------------------------------------------------------------------
+-- 7b) RegChange customer as-of and migration-gate validation
+-- -----------------------------------------------------------------------------
+WITH run_parameters AS (
+  SELECT CAST('{{report_date}}' AS DATE) AS report_date
+),
+run_window AS (
+  SELECT
+    CAST(report_date AS TIMESTAMP) AS start_ts,
+    CAST(date_add(report_date, 1) AS TIMESTAMP) AS end_ts
+  FROM run_parameters
+),
+regchange_rows AS (
+  SELECT *
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+),
+history_hits AS (
+  SELECT DISTINCT s.CID
+  FROM regchange_rows s
+  JOIN main.pii_data.bronze_etoro_history_customer h
+    ON s.CID = h.CID
+  JOIN run_window w
+    ON h.ValidFrom < w.end_ts
+   AND h.ValidTo >= w.end_ts
+),
+backoffice_non_mifid_hits AS (
+  SELECT DISTINCT s.CID
+  FROM regchange_rows s
+  JOIN main.general.bronze_etoro_history_backofficecustomer b
+    ON s.CID = b.CID
+  JOIN run_window w
+    ON b.ValidFrom < w.end_ts
+   AND b.ValidTo >= w.end_ts
+  WHERE b.RegulationID NOT IN (1, 2, 9, 11)
+),
+backoffice_mifid_hits AS (
+  SELECT DISTINCT s.CID
+  FROM regchange_rows s
+  JOIN main.general.bronze_etoro_history_backofficecustomer b
+    ON s.CID = b.CID
+  JOIN run_window w
+    ON b.ValidFrom < w.end_ts
+   AND b.ValidTo >= w.end_ts
+  WHERE b.RegulationID IN (1, 2, 9, 11)
+),
+migration_prevreg_hits AS (
+  SELECT DISTINCT s.CID
+  FROM regchange_rows s
+  JOIN main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population p
+    ON s.CID = p.CID
+  JOIN run_parameters rp
+    ON p.RunDate = rp.report_date
+  WHERE p.PrevRegulationID IN (1, 2, 9, 11)
+)
 SELECT
-  COUNT(*) AS staged_rows_without_backoffice_asof_match
-FROM customer_rows s
-LEFT JOIN backoffice_hits b
-  ON s.CID = b.CID
-WHERE b.CID IS NULL;
+  (
+    SELECT COUNT(*)
+    FROM regchange_rows s
+    LEFT JOIN history_hits h
+      ON s.CID = h.CID
+    WHERE h.CID IS NULL
+  ) AS regchange_rows_without_history_asof_match,
+  (
+    SELECT COUNT(*)
+    FROM regchange_rows s
+    LEFT JOIN backoffice_non_mifid_hits b
+      ON s.CID = b.CID
+    WHERE b.CID IS NULL
+  ) AS regchange_rows_without_nonmifid_backoffice_asof_match,
+  (
+    SELECT COUNT(*)
+    FROM regchange_rows s
+    JOIN backoffice_mifid_hits b
+      ON s.CID = b.CID
+  ) AS regchange_rows_with_mifid_backoffice_asof_match,
+  (
+    SELECT COUNT(*)
+    FROM regchange_rows s
+    LEFT JOIN migration_prevreg_hits m
+      ON s.CID = m.CID
+    WHERE m.CID IS NULL
+  ) AS regchange_rows_without_prevreg_gate_match,
+  (
+    SELECT COUNT(*)
+    FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer
+    WHERE ReportDate <> (SELECT report_date FROM run_parameters)
+       OR ReportDate IS NULL
+  ) AS regchange_rows_with_reportdate_mismatch;
 
 -- -----------------------------------------------------------------------------
 -- 8) Position date-window validation
@@ -460,30 +584,32 @@ run_window AS (
   FROM run_parameters
 )
 SELECT
-  COUNT(*) AS invalid_position_window_count
-FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_position p
-JOIN run_window w
-  ON 1 = 1
-WHERE p.OpenOccurred < CAST('2015-04-26' AS TIMESTAMP)
-   OR (
-        NOT (
-          (p.CloseOccurred >= w.start_ts AND p.CloseOccurred < w.end_ts)
-          OR (p.OpenOccurred >= w.start_ts AND p.OpenOccurred < w.end_ts)
-        )
-      );
-
-SELECT
-  COUNT(*) AS invalid_regchange_position_window_count
-FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_position p
-JOIN run_window w
-  ON 1 = 1
-WHERE p.OpenOccurred < CAST('2015-04-26' AS TIMESTAMP)
-   OR (
-        NOT (
-          (p.CloseOccurred >= w.start_ts AND p.CloseOccurred < w.end_ts)
-          OR (p.OpenOccurred >= w.start_ts AND p.OpenOccurred < w.end_ts)
-        )
-      );
+  (
+    SELECT COUNT(*)
+    FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_position p
+    JOIN run_window w
+      ON 1 = 1
+    WHERE p.OpenOccurred < CAST('2015-04-26' AS TIMESTAMP)
+       OR (
+            NOT (
+              (p.CloseOccurred >= w.start_ts AND p.CloseOccurred < w.end_ts)
+              OR (p.OpenOccurred >= w.start_ts AND p.OpenOccurred < w.end_ts)
+            )
+          )
+  ) AS invalid_position_window_count,
+  (
+    SELECT COUNT(*)
+    FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_position p
+    JOIN run_window w
+      ON 1 = 1
+    WHERE p.OpenOccurred < CAST('2015-04-26' AS TIMESTAMP)
+       OR (
+            NOT (
+              (p.CloseOccurred >= w.start_ts AND p.CloseOccurred < w.end_ts)
+              OR (p.OpenOccurred >= w.start_ts AND p.OpenOccurred < w.end_ts)
+            )
+          )
+  ) AS invalid_regchange_position_window_count;
 
 -- Suspicious null-close checks:
 -- CloseOccurred is acceptable as NULL only for open positions that opened within the report-day window.
@@ -609,18 +735,20 @@ staged_failed AS (
   WHERE ReportDate = (SELECT report_date FROM run_parameters)
 )
 SELECT
-  COUNT(*) AS expected_failed_cids_missing_from_stage
-FROM expected_failed ef
-LEFT JOIN staged_failed sf
-  ON ef.CID = sf.CID
-WHERE sf.CID IS NULL;
-
-SELECT
-  COUNT(*) AS staged_failed_cids_not_in_expected_latest_set
-FROM staged_failed sf
-LEFT JOIN expected_failed ef
-  ON sf.CID = ef.CID
-WHERE ef.CID IS NULL;
+  (
+    SELECT COUNT(*)
+    FROM expected_failed ef
+    LEFT JOIN staged_failed sf
+      ON ef.CID = sf.CID
+    WHERE sf.CID IS NULL
+  ) AS expected_failed_cids_missing_from_stage,
+  (
+    SELECT COUNT(*)
+    FROM staged_failed sf
+    LEFT JOIN expected_failed ef
+      ON sf.CID = ef.CID
+    WHERE ef.CID IS NULL
+  ) AS staged_failed_cids_not_in_expected_latest_set;
 
 -- -----------------------------------------------------------------------------
 -- 13) Source-to-stage count checks where practical
@@ -634,7 +762,166 @@ run_window AS (
     CAST(date_add(report_date, 1) AS TIMESTAMP) AS end_ts
   FROM run_parameters
 ),
+reg_population AS (
+  SELECT
+    p.CID,
+    p.PrevRegulationID,
+    p.RegulationID AS NewRegulationID,
+    p.RegValidFrom,
+    p.RegValidTo,
+    p.RegChangeRank
+  FROM main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population p
+  JOIN run_parameters rp
+    ON p.RunDate = rp.report_date
+  WHERE p.PrevRegulationID IN (1, 2, 9, 11)
+),
+main_position_cids AS (
+  SELECT DISTINCT p.CID
+  FROM main.bi_db.bronze_etoro_trade_positionforexternaluse p
+  JOIN run_window w
+    ON p.Occurred >= w.start_ts
+   AND p.Occurred < w.end_ts
+  UNION
+  SELECT DISTINCT p.CID
+  FROM main.trading.bronze_etoro_history_position_datafactory p
+  JOIN run_window w
+    ON (
+         (p.CloseOccurred >= w.start_ts AND p.CloseOccurred < w.end_ts)
+         OR (p.OpenOccurred >= w.start_ts AND p.OpenOccurred < w.end_ts AND COALESCE(p.CloseOccurred, w.end_ts) >= w.end_ts)
+       )
+   AND p.OpenOccurred >= CAST('2015-04-26' AS TIMESTAMP)
+),
+regchange_position_union AS (
+  SELECT
+    p.CID,
+    p.OpenOccurred,
+    p.CloseOccurred
+  FROM main.bi_db.bronze_etoro_trade_positionforexternaluse p
+  JOIN run_window w
+    ON p.Occurred >= w.start_ts
+   AND p.Occurred < w.end_ts
+  UNION ALL
+  SELECT
+    p.CID,
+    p.OpenOccurred,
+    p.CloseOccurred
+  FROM main.trading.bronze_etoro_history_position_datafactory p
+  JOIN run_window w
+    ON (
+         (p.CloseOccurred >= w.start_ts AND p.CloseOccurred < w.end_ts)
+         OR (p.OpenOccurred >= w.start_ts AND p.OpenOccurred < w.end_ts AND COALESCE(p.CloseOccurred, w.end_ts) >= w.end_ts)
+       )
+   AND p.OpenOccurred >= CAST('2015-04-26' AS TIMESTAMP)
+),
+regchange_interval_cids AS (
+  SELECT DISTINCT pu.CID
+  FROM regchange_position_union pu
+  JOIN reg_population reg
+    ON pu.CID = reg.CID
+   AND pu.OpenOccurred < COALESCE(reg.RegValidTo, CAST('9999-12-31 00:00:00' AS TIMESTAMP))
+   AND COALESCE(pu.CloseOccurred, CAST('9999-12-31 00:00:00' AS TIMESTAMP)) >= reg.RegValidFrom
+),
+main_customer_scope AS (
+  SELECT DISTINCT CID
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_customer
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+),
+regchange_customer_scope AS (
+  SELECT DISTINCT CID
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+),
+position_union AS (
+  SELECT
+    p.PositionID,
+    p.CID,
+    p.OpenOccurred,
+    p.CloseOccurred
+  FROM main.bi_db.bronze_etoro_trade_positionforexternaluse p
+  JOIN run_window w
+    ON p.Occurred >= w.start_ts
+   AND p.Occurred < w.end_ts
+  UNION ALL
+  SELECT
+    p.PositionID,
+    p.CID,
+    p.OpenOccurred,
+    p.CloseOccurred
+  FROM main.trading.bronze_etoro_history_position_datafactory p
+  JOIN run_window w
+    ON (
+         (p.CloseOccurred >= w.start_ts AND p.CloseOccurred < w.end_ts)
+         OR (p.OpenOccurred >= w.start_ts AND p.OpenOccurred < w.end_ts AND COALESCE(p.CloseOccurred, w.end_ts) >= w.end_ts)
+       )
+   AND p.OpenOccurred >= CAST('2015-04-26' AS TIMESTAMP)
+),
+latest_npd AS (
+  SELECT
+    t.CID,
+    t.AcceptedTRAX,
+    ROW_NUMBER() OVER (
+      PARTITION BY t.CID
+      ORDER BY t.ReportDate DESC
+    ) AS rn
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax t
+),
 source_counts AS (
+  SELECT
+    'MIFID2_ext_Customer' AS staging_object,
+    COUNT(*) AS source_count
+  FROM main.general.bronze_etoro_customer_customer c
+  JOIN main_position_cids pc
+    ON c.CID = pc.CID
+  JOIN main.pii_data.bronze_etoro_history_customer h
+    ON c.CID = h.CID
+  JOIN run_window w
+    ON h.ValidFrom < w.end_ts
+   AND h.ValidTo >= w.end_ts
+  JOIN main.general.bronze_etoro_history_backofficecustomer b
+    ON c.CID = b.CID
+   AND b.ValidFrom < w.end_ts
+   AND b.ValidTo >= w.end_ts
+  WHERE b.RegulationID IN (1, 2, 9, 11)
+    AND b.AccountTypeID NOT IN (7, 9)
+    AND h.LabelID NOT IN (26, 30)
+  UNION ALL
+  SELECT
+    'MIFID2_ext_RegChange_Customer',
+    COUNT(*)
+  FROM main.general.bronze_etoro_customer_customer c
+  JOIN regchange_interval_cids pc
+    ON c.CID = pc.CID
+  JOIN main.pii_data.bronze_etoro_history_customer h
+    ON c.CID = h.CID
+  JOIN run_window w
+    ON h.ValidFrom < w.end_ts
+   AND h.ValidTo >= w.end_ts
+  JOIN main.general.bronze_etoro_history_backofficecustomer b
+    ON c.CID = b.CID
+   AND b.ValidFrom < w.end_ts
+   AND b.ValidTo >= w.end_ts
+  WHERE b.RegulationID NOT IN (1, 2, 9, 11)
+    AND b.AccountTypeID NOT IN (7, 9)
+    AND h.LabelID NOT IN (26, 30)
+  UNION ALL
+  SELECT
+    'MIFID2_ext_Position',
+    COUNT(*)
+  FROM position_union p
+  JOIN main_customer_scope c
+    ON p.CID = c.CID
+  UNION ALL
+  SELECT
+    'MIFID2_ext_RegChange_Position',
+    COUNT(*)
+  FROM position_union p
+  JOIN regchange_customer_scope c
+    ON p.CID = c.CID
+  JOIN reg_population reg
+    ON p.CID = reg.CID
+   AND p.OpenOccurred < COALESCE(reg.RegValidTo, CAST('9999-12-31 00:00:00' AS TIMESTAMP))
+   AND COALESCE(p.CloseOccurred, CAST('9999-12-31 00:00:00' AS TIMESTAMP)) >= reg.RegValidFrom
+  UNION ALL
   SELECT
     'MIFID2_ext_PositionChangeLog' AS staging_object,
     COUNT(*) AS source_count
@@ -661,28 +948,82 @@ source_counts AS (
     ON src.ExecutionTime >= w.start_ts
    AND src.ExecutionTime < w.end_ts
   WHERE NOT (src.ProviderExecID IS NULL AND src.OrderState = 4)
+  UNION ALL
+  -- Gated check:
+  -- Expected Failed TRAX rows come from latest MIFID2_NPD_TRAX rows per CID.
+  -- Keep this check gated until MIFID2_NPD_TRAX history/current availability is confirmed.
+  SELECT
+    'MIFID2_Failed_TRAX',
+    COUNT(*)
+  FROM latest_npd n
+  WHERE n.rn = 1
+    AND (n.AcceptedTRAX = 0 OR n.AcceptedTRAX IS NULL)
 ),
 stage_counts AS (
+  SELECT
+    'MIFID2_ext_Customer' AS staging_object,
+    COUNT(*) AS stage_count
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_customer
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+  UNION ALL
+  SELECT
+    'MIFID2_ext_RegChange_Customer',
+    COUNT(*)
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+  UNION ALL
+  SELECT
+    'MIFID2_ext_Position',
+    COUNT(*)
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_position
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+  UNION ALL
+  SELECT
+    'MIFID2_ext_RegChange_Position',
+    COUNT(*)
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_position
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+  UNION ALL
   SELECT
     'MIFID2_ext_PositionChangeLog' AS staging_object,
     COUNT(*) AS stage_count
   FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_positionchangelog
+  JOIN run_window w
+    ON ChangeLogOccurred >= w.start_ts
+   AND ChangeLogOccurred < w.end_ts
   UNION ALL
   SELECT
     'MIFID2_ext_Mirror',
     COUNT(*)
   FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_mirror
+  JOIN run_window w
+    ON Occurred >= w.start_ts
+   AND Occurred < w.end_ts
   UNION ALL
   SELECT
     'MIFID2_ext_HedgeExecutionLog',
     COUNT(*)
   FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_hedgeexecutionlog
+  JOIN run_window w
+    ON ExecutionTime >= w.start_ts
+   AND ExecutionTime < w.end_ts
+  UNION ALL
+  SELECT
+    'MIFID2_Failed_TRAX',
+    COUNT(*)
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_failed_trax
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
 )
 SELECT
   src.staging_object,
   src.source_count,
   stg.stage_count,
-  src.source_count - stg.stage_count AS count_delta
+  src.source_count - stg.stage_count AS count_delta,
+  CASE
+    WHEN src.staging_object = 'MIFID2_Failed_TRAX'
+      THEN 'gated_pending_mifid2_npd_trax_history_current_availability'
+    ELSE 'active_check'
+  END AS check_status
 FROM source_counts src
 JOIN stage_counts stg
   ON src.staging_object = stg.staging_object

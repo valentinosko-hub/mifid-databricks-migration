@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-10)
+# Known Differences (Current Safe + Steps 5B1-11)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -13,6 +13,7 @@ This document tracks known or intentional differences for the currently implemen
 - ASIC2-compatible MiFID subset profiling/gated templates (Step 8)
 - MIFID2_ext staging profiling/gated templates (Step 9)
 - MIFID2_Customer output profiling/gated templates (Step 10)
+- MIFID2_RegChange_Customer output profiling/gated templates (Step 11)
 
 ## Scope and non-goals in this step
 
@@ -28,6 +29,7 @@ This document tracks known or intentional differences for the currently implemen
 - Step 8 includes ASIC2 subset profiling/gating only; no active Step 8 staging/view DDL is enabled yet.
 - Step 9 includes MIFID2_ext profiling/gating only; no active Step 9 staging DDL is enabled yet.
 - Step 10 includes only `MIFID2_Customer` profiling/gating; no active final-output DDL is enabled yet.
+- Step 11 includes only `MIFID2_RegChange_Customer` profiling/gating; no active final-output DDL is enabled yet.
 - No Hedge EU/UK final report implementation.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
 - No CSV/7z/SFTP/Cappitech/TRAX upload/response handling.
@@ -78,6 +80,10 @@ This document tracks known or intentional differences for the currently implemen
 - Step 9 `MIFID2_Failed_TRAX` activation remains gated until `MIFID2_NPD_TRAX` history/current seed policy is approved for requested validation windows.
 - Step 10 `MIFID2_Customer` activation remains gated until:
   - Step 9 customer/failed-TRAX staging gates are cleared.
+  - `Reg_Ext_CustomerLatinName` source/profile gate is cleared.
+  - `Dictionary.Ext_TradeFund` Databricks mapping is confirmed.
+- Step 11 `MIFID2_RegChange_Customer` activation remains gated until:
+  - Step 9 reg-change customer staging gates are cleared.
   - `Reg_Ext_CustomerLatinName` source/profile gate is cleared.
   - `Dictionary.Ext_TradeFund` Databricks mapping is confirmed.
 
@@ -171,6 +177,25 @@ This document tracks known or intentional differences for the currently implemen
   - source-to-output count checks
 - Step 10 preserves SQL Server fallback behavior for `FTD` (`COALESCE(..., '2015-04-26')`) and does not invent upstream `FirstTimeDepositSuccessDate` source behavior.
 - Step 10 template intentionally does not enable any out-of-scope final outputs (`RegChange_Customer`, `Report`, `ME`, `ETORO`, `Hedge`, `NPD_TRAX`).
+
+## Step 11 implementation differences and cautions
+
+- `databricks/sql/08_outputs/02_mifid2_regchange_customer.sql` is authored as a gated template only:
+  - includes gate-status output
+  - includes commented DDL + report-date delete/insert template
+  - includes explicit DDL-aligned column list for `MIFID2_RegChange_Customer`
+- `databricks/sql/08_outputs/02_mifid2_regchange_customer_validation.sql` contains Step 11 validation templates for:
+  - target/schema contract checks
+  - row counts by `ReportDate` and `RegulationID`
+  - duplicate and required-null checks
+  - country/name/ReplaceChar checks
+  - Latin-name coverage checks
+  - LEI/PIN checks
+  - source-to-output count checks
+  - schema/row-set comparison notes vs `MIFID2_Customer`
+- Step 11 preserves SQL Server fallback behavior for `FTD` (`ISNULL(FirstTimeDepositSuccessDate, '20150426')`) without inventing an upstream source.
+- Step 11 intentionally uses `MIFID2_ext_RegChange_Customer` only, without `MIFID2_Failed_TRAX` union and without excluded-CID filtering.
+- Step 11 template does not enable any out-of-scope final outputs (`Report`, `ME`, `ETORO`, `Hedge`, `NPD_TRAX`).
 
 ## Reference-only policy
 

@@ -67,7 +67,7 @@ These are valid mappings but should be used conditionally based on package logic
 - `regtech.si_reporting_configurations` -> `main.bi_db.bronze_fivetran_regtech_si_reporting_configurations`  
   Mapped in inventory, but usage should be confirmed per package/procedure dependency.
 - `Dictionary.Ext_TradeFund` -> expected source/access pending  
-  Required by Step 10 `SP_MIFID2_Customer` copy-fund enrichment (`FundAccountID`, `FundName`, `FundType`); do not activate mapping without profiling.
+  Required by Step 10/11 customer outputs (`SP_MIFID2_Customer`, `SP_MIFID2_RegChange_Customer`) copy-fund enrichment (`FundAccountID`, `FundName`, `FundType`); do not activate mapping without profiling.
 
 Classification note:
 - `dbo.Reg_MigrationInOut_Population` and `dbo.Reg_RegulationInOutDailyData` have confirmed gold mappings, but in phase-1 dependency documentation they remain classified as SSIS-created staging dependencies (not missing raw sources) when produced/refreshed by SSIS/package logic.
@@ -176,6 +176,20 @@ Step 10 note (`MIFID2_Customer` output):
   - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_customerlatinname` (name translation path)
   - Databricks mapping for `Dictionary.Ext_TradeFund` (copy-fund enrichment path)
 - Step 10 activation remains gated until Step 9 customer/failed-TRAX gates are cleared and the two Step 10 pending mappings above are confirmed.
+
+Step 11 note (`MIFID2_RegChange_Customer` output):
+- Step 11 target object is:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer`
+- Step 11 consumes:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_internal_accounts`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_ext_country`
+  - `main.regtech_ops_stg.bi_output_regtechops_fn_replacechar`
+- Step 11 expected source/access pending:
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_customerlatinname` (name translation path)
+  - Databricks mapping for `Dictionary.Ext_TradeFund` (copy-fund enrichment path)
+- Step 11 activation remains gated until Step 9 reg-change customer gates are cleared and the two pending mappings above are confirmed.
+- Step 11 does not consume `MIFID2_Failed_TRAX` and does not apply excluded-CID filtering (per `SP_MIFID2_RegChange_Customer` logic).
 
 ## Mappings not to use (legacy/reference-only)
 

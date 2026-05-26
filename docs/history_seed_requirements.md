@@ -192,6 +192,39 @@ For a requested Step 10 `ReportDate`, ensure:
 - Missing `Reg_Ext_CustomerLatinName` windows can alter non-Latin name translation parity in customer output.
 - Unconfirmed `Dictionary.Ext_TradeFund` mapping can affect copy-fund historical classification.
 
+## Step 11 - MIFID2_RegChange_Customer output
+
+Primary Step 11 target:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer`
+
+Supporting Step 11 dependencies:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer`
+- `main.regtech_ops_stg.bi_output_regtechops_vw_internal_accounts`
+- `main.regtech_ops_stg.bi_output_regtechops_vw_ext_country`
+
+### Minimum seed requirements for Step 11 parity windows
+
+For a requested Step 11 `ReportDate`, ensure:
+
+- Step 9 reg-change customer staging is available for the same report date window.
+- Step 6 migration-in/out population history required by Step 9 reg-change derivation is already available for that run date.
+- Internal-account and country-reference snapshots are available and current for the run window.
+
+### Seed/cutover policy for Step 11
+
+- Phase-1 default remains validation-window seeding only.
+- Step 11 should be rerun as report-date scoped delete/insert after Step 9 reg-change staging refresh.
+- No full historical backfill is required unless parity checks explicitly request older windows.
+
+### Known Step 11 history risks
+
+- Missing migration/reg-change history in Step 9 inputs can alter reg-change customer population.
+- Missing `Reg_Ext_CustomerLatinName` windows can alter Chinese/Cyrillic translation parity.
+- Unconfirmed `Dictionary.Ext_TradeFund` mapping can affect copy-fund historical classification.
+- Missing/partial PIN/UserAPI history in Step 9 sources can affect reg-change identity fields.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.
