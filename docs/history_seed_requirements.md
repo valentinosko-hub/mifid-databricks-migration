@@ -119,6 +119,45 @@ For Step 8 validation windows, ensure availability of:
 - Conditional fallback risk: if `Reg_DWH_StaticPosition` fallback is required in specific windows, missing seed coverage may affect `OpenPrice`.
 - UPI governance risk: UPI should remain non-blocking for MiFID fields unless validation proves impact.
 
+## Step 9 - MIFID2_ext staging
+
+Primary Step 9 history-sensitive target:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_failed_trax`
+
+Supporting Step 9 targets (run-snapshot staging):
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_customer`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_position`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_position`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_positionchangelog`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_mirror`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_hedgeexecutionlog`
+
+### Minimum seed requirements for Step 9 parity windows
+
+For a requested Step 9 `ReportDate` window, ensure:
+
+- Source-day coverage exists for customer, backoffice, position-for-external-use, mirror, change-log, and hedge execution raw inputs.
+- Step 6 migration-population snapshot is available for run date where reg-change staging is validated:
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population`
+- Latest-row lookup source for failed TRAX exists:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax`
+
+### Seed/cutover policy for Step 9
+
+- Phase-1 default: seed only requested validation windows (no full historical backfill).
+- `MIFID2_ext_*` objects are truncate/reload day snapshots and do not require deep historical persistence for authoring.
+- `MIFID2_Failed_TRAX` must not fabricate history. If historical parity is requested, seed `MIFID2_NPD_TRAX` first and then recompute failed-TRAX rows by latest-per-CID logic.
+
+### Known Step 9 history risks
+
+- Failed-TRAX dependency risk: missing or partial `MIFID2_NPD_TRAX` history changes latest-row outcomes for `AcceptedTRAX` filters.
+- Reg-change interval risk: incomplete migration-population history can alter `PrevRegulationID`/interval-based inclusion.
+- As-of history risk: incomplete `History.Customer` / `History.BackOfficeCustomer` windows can break customer as-of parity.
+- PIN/UserAPI history risk: unresolved PIN source contract can produce null/incorrect identifiers in historical windows.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.

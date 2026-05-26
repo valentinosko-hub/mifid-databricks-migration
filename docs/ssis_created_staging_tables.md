@@ -54,6 +54,41 @@ Produced via package SQL task (`exec dbo.SP_InstrumentMetaData_SpecialChar_Conve
 Consumed (not primary producer in this package):
 - `Reg_MigrationInOut_Population`
 
+Step 9 (`MIFID2_ext`) producer/filter notes from `MIFID2.dtsx`:
+
+- `MIFID2_ext_Customer`
+  - Truncate + reload snapshot in package.
+  - Customer/backoffice as-of logic uses `ValidFrom < @EndDate AND ValidTo >= @EndDate`.
+  - Applies `RegulationID IN (1,2,9,11)`, `AccountTypeID NOT IN (7,9)`, `LabelID NOT IN (26,30)`.
+- `MIFID2_ext_RegChange_Customer`
+  - Truncate + reload snapshot in package.
+  - Uses reg-change path with non-MiFID current regulations and migration-population constraints (`PrevRegulationID` gate).
+- `MIFID2_ext_Position`
+  - Truncate + reload snapshot in package.
+  - Uses `Trade.PositionForExternalUse` + `History.PositionForExternalUse` windows.
+  - Preserves `OpenOccurred >= '2015-04-26'` where present in history branch.
+- `MIFID2_ext_RegChange_Position`
+  - Truncate + reload snapshot in package.
+  - Uses same position sources plus regulation-change interval constraints.
+- `MIFID2_ext_PositionChangeLog`
+  - Truncate + reload snapshot in package.
+  - Uses `History.PositionChangeLog` day window with `ChangeTypeID = 0`.
+- `MIFID2_ext_Mirror`
+  - Truncate + reload snapshot in package.
+  - Uses `History.Mirror` with `MirrorOperationID = 1` and day window.
+  - Derives `CopyFund` by parent CID account-type logic.
+- `MIFID2_ext_HedgeExecutionLog`
+  - Truncate + reload snapshot in package.
+  - Uses `Hedge.ExecutionLog` `ExecutionTime` window and excludes `(ProviderExecID IS NULL AND OrderState = 4)`.
+- `MIFID2_Failed_TRAX`
+  - Truncate + reload snapshot in package.
+  - Uses latest-per-CID `MIFID2_NPD_TRAX` logic with `(AcceptedTRAX = 0 OR AcceptedTRAX IS NULL)`.
+  - This table is SSIS-created staging and is not a raw source.
+
+Step 9 materialization policy:
+
+- All `MIFID2_ext_*` and `MIFID2_Failed_TRAX` objects are treated as materialized Delta staging tables in Databricks (not views) because package behavior is truncate/reload run snapshots.
+
 ## Regulation_Movments_Report.dtsx
 
 Classified as SSIS-created staging (producer package: `Regulation_Movments_Report.dtsx`):

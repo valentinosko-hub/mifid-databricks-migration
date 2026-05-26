@@ -20,8 +20,13 @@ These mappings are explicitly documented as established in `06_mappings`:
 - `Dictionary.Label` -> `main.general.bronze_etoro_dictionary_label`
 - `Customer.Customer` -> `main.general.bronze_etoro_customer_customer`
 - `History.Customer` -> `main.pii_data.bronze_etoro_history_customer`
+- `History.BackOfficeCustomer` -> `main.general.bronze_etoro_history_backofficecustomer`
+- `Customer.ExtendedUserField` -> `main.dwh.gold_sql_dp_prod_we_dwh_dbo_dim_extendeduserfield`
+- `Dictionary.ExtendedUserValueType` -> `main.compliance.bronze_userapidb_dictionary_extendeduservaluetype`
 - `Trade.Position` -> `main.trading.silver_etoro_trade_position`
 - `History.Position` -> `main.trading.bronze_etoro_history_position_datafactory`
+- `Trade.PositionForExternalUse` -> `main.bi_db.bronze_etoro_trade_positionforexternaluse`
+- `History.PositionForExternalUse` -> `main.trading.bronze_etoro_history_position_datafactory`
 - `History.Mirror` -> `main.trading.bronze_etoro_history_mirror`
 - `History.PositionChangeLog` -> `main.trading.bronze_etoro_history_positionchangelog`
 - `Hedge.ExecutionLog` -> `main.dealing.bronze_etoro_hedge_executionlog`
@@ -132,9 +137,28 @@ Step 8 note (ASIC2-compatible MiFID subset):
   - `Reg_DWH_StaticPosition` remains conditional/legacy and non-blocking unless OpenPrice fallback impact is proven.
   - EMIR Refit UPI remains non-blocking unless profiling proves effect on the 11 MiFID compatibility fields.
 - Expected source/access pending for Step 8:
-  - `History.BackOfficeCustomer`
-  - `Trade.GetInstrument`, `Trade.InstrumentMetaData`, `Trade.Instrument`, `Trade.ProviderToInstrument`, `Dictionary.Currency`
   - Step 5 gated dependencies consumed by ASIC2 logic (`Reg_Ext_CustomerLatinName`, `Reg_Ext_DictionaryCurrency`, `Reg_Ext_CurrencyPriceMaxDateWithSplit`, `Reg_Ext_DailyMaxPrices`, `Reg_RegulationInOutDailyData`, `Reg_Instruments_ext`)
+  - `Trade.GetInstrument`, `Trade.InstrumentMetaData`, `Trade.Instrument`, `Trade.ProviderToInstrument`, `Dictionary.Currency`
+
+Step 9 note (MIFID2_ext staging):
+- Confirmed mappings for Step 9 include:
+  - `History.BackOfficeCustomer` -> `main.general.bronze_etoro_history_backofficecustomer` (required-column profiling pending)
+  - `Trade.PositionForExternalUse` -> `main.bi_db.bronze_etoro_trade_positionforexternaluse`
+  - `History.PositionForExternalUse` -> `main.trading.bronze_etoro_history_position_datafactory`
+  - `History.PositionChangeLog` -> `main.trading.bronze_etoro_history_positionchangelog`
+  - `History.Mirror` -> `main.trading.bronze_etoro_history_mirror`
+  - `Hedge.ExecutionLog` -> `main.dealing.bronze_etoro_hedge_executionlog`
+  - `Customer.Customer` -> `main.general.bronze_etoro_customer_customer`
+  - `History.Customer` -> `main.pii_data.bronze_etoro_history_customer`
+  - `Customer.ExtendedUserField` -> `main.dwh.gold_sql_dp_prod_we_dwh_dbo_dim_extendeduserfield`
+  - `Dictionary.ExtendedUserValueType` -> `main.compliance.bronze_userapidb_dictionary_extendeduservaluetype`
+  - `Dictionary.Country` -> `main.general.bronze_etoro_dictionary_country`
+  - `Dictionary.Label` -> `main.general.bronze_etoro_dictionary_label`
+- Step 9 position staging contract is `PositionForExternalUse`-based. Do not replace it with broad `Trade.Position` / `History.Position` mappings unless package evidence requires that.
+- Step 9 expected source/access pending:
+  - PIN/UserAPI runtime source object/column contract for `PIN_ID`, `PIN_Type`, `PIN`, `UAPI_CountryID`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population` parity contract for reg-change windows
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax` history/current availability for `MIFID2_Failed_TRAX`
 
 ## Mappings not to use (legacy/reference-only)
 

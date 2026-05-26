@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-8)
+# Known Differences (Current Safe + Steps 5B1-9)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -11,6 +11,7 @@ This document tracks known or intentional differences for the currently implemen
 - Regulation movement staging analysis/profiling gates (Step 6)
 - Hedge liquidity mapping staging analysis/profiling gates (Step 7)
 - ASIC2-compatible MiFID subset profiling/gated templates (Step 8)
+- MIFID2_ext staging profiling/gated templates (Step 9)
 
 ## Scope and non-goals in this step
 
@@ -24,7 +25,7 @@ This document tracks known or intentional differences for the currently implemen
 - Step 6 includes regulation-movement profiling/gating only; no active movement staging DDL is authored yet.
 - Step 7 includes hedge-liquidity profiling/gating only; no active Step 7 staging/SCD DDL is enabled yet.
 - Step 8 includes ASIC2 subset profiling/gating only; no active Step 8 staging/view DDL is enabled yet.
-- No `MIFID2_ext` staging implementation.
+- Step 9 includes MIFID2_ext profiling/gating only; no active Step 9 staging DDL is enabled yet.
 - No final MiFID output table-generation implementation.
 - No Hedge EU/UK final report implementation.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
@@ -71,6 +72,9 @@ This document tracks known or intentional differences for the currently implemen
 - Step 8 compatibility view activation remains gated until `CDE_Execution_timestamp -> OpenTime` semantics are validated.
 - Step 8 keeps `SP_ASIC2_Instrument_Automation` and `SP_ASIC2_PositionReport_Agg` as conditional dependencies only; they are not activated unless profiling proves direct feed into required Step 8 outputs.
 - Step 8 keeps `Reg_DWH_StaticPosition` conditional/legacy and non-blocking unless OpenPrice fallback impact is proven for MiFID-consumed fields.
+- Step 9 customer/reg-change customer activation remains gated until BackOffice as-of contracts and PIN/UserAPI source contracts are runtime-profiled.
+- Step 9 position/reg-change position activation remains gated until `PositionForExternalUse` source-shape and migration interval parity are validated.
+- Step 9 `MIFID2_Failed_TRAX` activation remains gated until `MIFID2_NPD_TRAX` history/current seed policy is approved for requested validation windows.
 
 ## Step 5B1 implementation differences and cautions
 
@@ -125,6 +129,26 @@ This document tracks known or intentional differences for the currently implemen
 - `databricks/sql/06_asic2_subset/06_asic2_validation.sql` includes OpenTime parsing checks, Quantity->Volume parity checks, exact 11-column compatibility schema checks, UPI non-dependency checks, and Reg_DWH_StaticPosition fallback-impact checks.
 - `CDE_Execution_timestamp -> OpenTime` is intentionally treated as unproven and remains validation-gated.
 - EMIR Refit UPI remains out of active Step 8 dependency scope unless validation proves impact on MiFID-consumed compatibility fields.
+
+## Step 9 implementation differences and cautions
+
+- `databricks/sql/07_mifid2_ext/01_mifid2_ext_source_profiling.sql` profiles Step 9 source visibility, required columns, PIN/UserAPI discovery, and migration/NPD_TRAX dependency gates before any Step 9 activation.
+- `databricks/sql/07_mifid2_ext/02_customer_ext_staging.sql` contains commented Delta templates for:
+  - `MIFID2_ext_Customer`
+  - `MIFID2_ext_RegChange_Customer`
+- `databricks/sql/07_mifid2_ext/03_position_ext_staging.sql` contains commented Delta templates for:
+  - `MIFID2_ext_Position`
+  - `MIFID2_ext_RegChange_Position`
+- `databricks/sql/07_mifid2_ext/04_positionchangelog_mirror_ext_staging.sql` contains commented Delta templates for:
+  - `MIFID2_ext_PositionChangeLog`
+  - `MIFID2_ext_Mirror`
+- `databricks/sql/07_mifid2_ext/05_hedge_ext_staging.sql` contains a commented Delta template for:
+  - `MIFID2_ext_HedgeExecutionLog`
+- `databricks/sql/07_mifid2_ext/06_failed_trax_staging.sql` contains a commented Delta template for:
+  - `MIFID2_Failed_TRAX`
+- `databricks/sql/07_mifid2_ext/07_mifid2_ext_validation.sql` includes source/target contract checks, duplicate/null checks, as-of/date-window checks, `ChangeTypeID = 0`, mirror `CopyFund`, hedge exclusion checks, failed-TRAX latest-row checks, and source-to-stage parity checks.
+- Only `MIFID2_Failed_TRAX` has formal DDL in the ssis-created DDL folder; the other seven Step 9 table contracts are documented as derived from SSIS metadata plus consumer stored-procedure usage.
+- Step 9 position staging uses `Trade.PositionForExternalUse` and `History.PositionForExternalUse` mappings; broad `Trade.Position` / `History.Position` are not used as replacement sources for this module unless package proof requires it.
 
 ## Reference-only policy
 

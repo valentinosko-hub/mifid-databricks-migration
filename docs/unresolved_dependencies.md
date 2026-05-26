@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-8 - Unresolved Dependencies
+# Phase 1D / Steps 5-9 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -19,6 +19,12 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 | `SP_ASIC2_PositionReport_Agg` / aggregate ASIC2 outputs dependency | Out of scope only if they do not feed `ASIC2_Positions` / `ASIC2_Transactions` / MiFID projection | If required but skipped, downstream transaction parity may be incomplete | Verify with profiling and gate activation if direct feed is proven | Yes |
 | `CDE_Execution_timestamp -> OpenTime` mapping | Mapping is still unproven for ETORO semantics | MiFID compatibility view may expose incorrect transaction timing | Validate parse success, round-trip format behavior, and projected `OpenTime` parity before activation | Yes |
 | EMIR Refit UPI non-dependency proof for MiFID fields | UPI is present in full ASIC2 schema but should not affect MiFID-consumed compatibility columns unless proven | Pulling UPI logic into Step 8 unnecessarily can add avoidable dependencies and complexity | Use Step 8 validation checks to prove UPI does not alter the 11 required MiFID compatibility fields | No (unless validation proves impact) |
+| Step 9 `History.BackOfficeCustomer` required-column/access profiling | Mapping is confirmed (`main.general.bronze_etoro_history_backofficecustomer`) but Step 9-specific required-column/runtime parity is not yet profiled | Customer/reg-change customer staging can fail or drift on regulation/account-type/as-of filters | Run `databricks/sql/07_mifid2_ext/01_mifid2_ext_source_profiling.sql` and confirm required columns for Step 9 contracts before un-gating customer templates | Yes |
+| Step 9 `Trade/History.PositionForExternalUse` source-shape parity | Mappings are confirmed, but SSIS date-window/filter parity and required-column checks are not runtime-validated | `MIFID2_ext_Position` / `MIFID2_ext_RegChange_Position` can diverge from SQL Server position population | Validate required columns and day-window parity before un-gating `03_position_ext_staging.sql` | Yes |
+| Step 9 PIN/UserAPI source contract | Customer and Failed TRAX flows require PIN enrichment, but exact runtime source object/column contracts are still discovery-gated | `PIN_ID` / `PIN_Type` / `PIN` / `UAPI_CountryID` outputs can be null/incorrect in staging | Complete UserAPI/PIN discovery + required-column profiling, then replace temporary gated placeholders in Step 9 templates | Yes |
+| Step 9 reg-change migration population parity | Step 9 reg-change customer/position flows depend on Step 6 migration population representation and interval semantics (`PrevRegulationID`, `RegValidFrom`, `RegValidTo`, `RegChangeRank`) | Incorrect reg-change CID/position inclusion around migration boundaries | Confirm Step 6 parity behavior for `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population` before un-gating reg-change templates | Yes |
+| Step 9 `MIFID2_Failed_TRAX` history/current dependency | Step 9 requires latest-row logic over `MIFID2_NPD_TRAX`, but history/cutover window and availability are unresolved | Failed-TRAX customer supplementation can be incomplete or non-deterministic for requested validation windows | Define validation-window seed policy and confirm `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax` availability before un-gating `06_failed_trax_staging.sql` | Yes |
+| Step 9 missing formal DDLs for seven `MIFID2_ext_*` tables | Only `MIFID2_Failed_TRAX` has formal DDL in ssis-created DDL folder; other contracts are reconstructed | Silent schema drift risk if runtime source columns differ from SSIS metadata/SP usage assumptions | Keep contracts documented as "derived from SSIS metadata + consumer stored procedure usage" and validate target required columns before activation | Yes |
 | Historical seed strategy for `MIFID2_NPD_TRAX` | Full historical backfill is out of scope; optional seed policy not finalized | Backdated reconciliation windows may fail parity | Define minimal seed approach for validation-only windows | No (unless older validation window is requested) |
 | Historical seed strategy for `ASIC2_Transactions` | Same as above; history required only for some parity windows | Backdated ETORO parity may diverge | Define optional seed/rebuild boundaries and triggers | No (unless older validation window is requested) |
 | Materialization choice for `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` | Both SSIS-created staging and mapped gold equivalents exist | Inconsistent lineage and row-count mismatches between flows | Step 5B2 decision gate: prefer prefixed snapshots from certified gold only after row-count/schema parity passes; otherwise recreate SSIS-compatible materialized logic from run-date inputs | Yes (for deterministic reproducibility) |
@@ -53,10 +59,14 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 6. Confirm whether `SP_ASIC2_Instrument_Automation` is required or remains conditional/out of scope.
 7. Confirm whether `SP_ASIC2_PositionReport_Agg` or aggregate ASIC2 outputs are truly non-feeding for Step 8.
 8. Validate UPI non-dependency for the 11 MiFID compatibility fields.
-9. Decide `RecordID` strategy for `MIFID2_Hedge_Report`.
-10. Lock staging-vs-gold materialization policy for migration/in-out tables using Step 5B2 parity profiling.
-11. Confirm Step 5B2 expected source access/schema before authoring active non-price staging SQL.
-12. Confirm Step 6 movement source contracts and join/date parity before activating Step 6 staging DDL.
-13. Complete Step 7 liquidity source profiling and close required-column/access gaps.
-14. Decide Step 7 SCD seed/cutover strategy and removed-account `IsLast` parity/correction policy.
-15. Confirm Step 7 sensitive-column compatibility needs (if any) without exposing secrets.
+9. Complete Step 9 source profiling for BackOfficeCustomer, PositionForExternalUse, and reg-change migration dependencies.
+10. Confirm Step 9 PIN/UserAPI source contract and replace gated placeholders in customer/failed-TRAX templates.
+11. Confirm Step 9 `MIFID2_NPD_TRAX` history/current availability for Failed TRAX validation windows.
+12. Validate Step 9 target required-column contracts for all eight staging targets.
+13. Decide `RecordID` strategy for `MIFID2_Hedge_Report`.
+14. Lock staging-vs-gold materialization policy for migration/in-out tables using Step 5B2 parity profiling.
+15. Confirm Step 5B2 expected source access/schema before authoring active non-price staging SQL.
+16. Confirm Step 6 movement source contracts and join/date parity before activating Step 6 staging DDL.
+17. Complete Step 7 liquidity source profiling and close required-column/access gaps.
+18. Decide Step 7 SCD seed/cutover strategy and removed-account `IsLast` parity/correction policy.
+19. Confirm Step 7 sensitive-column compatibility needs (if any) without exposing secrets.
