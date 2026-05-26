@@ -10,35 +10,47 @@
 --
 -- IMPORTANT:
 -- - Keep executable SQL gated while Step 9 customer/failed-trax inputs remain gated.
--- - Do not synthesize PIN/UserAPI fields in this output layer.
--- - Preserve SQL Server default behavior:
+-- - Preserve SQL Server fallback behavior:
 --     FTD = COALESCE(FirstTimeDepositSuccessDate, '2015-04-26')
---   without inventing new upstream source logic.
+--   without inventing upstream FTD source logic.
+-- - Do not synthesize unresolved source mappings for:
+--     PIN/UserAPI source contract
+--     Reg_Ext_CustomerLatinName
+--     Dictionary.Ext_TradeFund
 
 WITH output_gates AS (
   SELECT
     'main.regtech_ops_stg.bi_output_regtechops_mifid2_customer' AS target_object,
     'pending' AS executable_status,
-    'Step 9 sources bi_output_regtechops_mifid2_ext_customer and bi_output_regtechops_mifid2_failed_trax are still gated (PIN/UserAPI and failed-TRAX dependency gates).' AS gate_reason
+    'Step 9 MIFID2_ext_Customer profiling and PIN/UserAPI source contract remain unresolved.' AS gate_reason
   UNION ALL
   SELECT
     'main.regtech_ops_stg.bi_output_regtechops_mifid2_customer',
     'pending',
-    'Reg_Ext_CustomerLatinName mapping/profile gate is unresolved; translation path must be confirmed before activation.'
+    'Step 9 MIFID2_Failed_TRAX remains gated; MIFID2_NPD_TRAX history/current availability dependency unresolved.'
   UNION ALL
   SELECT
     'main.regtech_ops_stg.bi_output_regtechops_mifid2_customer',
     'pending',
-    'Dictionary.Ext_TradeFund Databricks mapping is unresolved; CopyFund/FundType enrichment must stay gated.'
+    'Reg_Ext_CustomerLatinName mapping/profile gate is unresolved; translation path must remain gated.'
+  UNION ALL
+  SELECT
+    'main.regtech_ops_stg.bi_output_regtechops_mifid2_customer',
+    'pending',
+    'Dictionary.Ext_TradeFund Databricks mapping is unresolved; CopyFund/FundType enrichment must remain gated.'
+  UNION ALL
+  SELECT
+    'main.regtech_ops_stg.bi_output_regtechops_mifid2_customer',
+    'pending',
+    'ReplaceChar parity validation is pending; final customer output activation must remain gated.'
 )
 SELECT *
 FROM output_gates;
 
 -- -----------------------------------------------------------------------------
 -- COMMENTED TEMPLATE ONLY - DO NOT UNCOMMENT UNTIL ALL GATES PASS.
--- DDL contract source: 02_sql_server_ddls/target_output_tables/MIFID2_Customer.sql
+-- DDL contract source: reference/.../target_output_tables/MIFID2_Customer.sql
 -- -----------------------------------------------------------------------------
-
 /*
 CREATE TABLE IF NOT EXISTS main.regtech_ops_stg.bi_output_regtechops_mifid2_customer (
   CID INT NOT NULL,
@@ -67,6 +79,7 @@ CREATE TABLE IF NOT EXISTS main.regtech_ops_stg.bi_output_regtechops_mifid2_cust
 )
 USING DELTA;
 
+-- SQL Server PK intent is (ReportDate, CID, RegulationID). Enforce with validation checks.
 DELETE FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_customer
 WHERE ReportDate = CAST('{{report_date}}' AS DATE);
 
@@ -117,6 +130,8 @@ ext_customers AS (
     e.BirthDate,
     CASE WHEN e.RegulationID IN (4, 10) THEN 4 ELSE e.RegulationID END AS RegulationID,
     e.AccountTypeID,
+    -- Step 9 customer staging does not currently provide FirstTimeDepositSuccessDate.
+    -- Keep SQL Server fallback at output projection: COALESCE(..., '2015-04-26').
     CAST(NULL AS TIMESTAMP) AS FirstTimeDepositSuccessDate,
     COALESCE(e.Lei, ia.LEI) AS Lei,
     e.CountryIDByIP,
@@ -193,14 +208,20 @@ failed_customers AS (
   FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_failed_trax f
   JOIN run_parameters rp
     ON f.ReportDate = rp.report_date
+  LEFT JOIN main.regtech_ops_stg.bi_output_regtechops_vw_internal_accounts ia
+    ON f.CID = ia.CID
   WHERE NOT EXISTS (
     SELECT 1
     FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_customer e
     WHERE e.CID = f.CID
       AND e.ReportDate = rp.report_date
   )
+    AND NOT (
+      f.CountryID = 250
+      OR (f.PlayerLevelID = 4 AND ia.CID IS NULL)
+    )
 ),
-cust_union AS (
+customer_union AS (
   SELECT * FROM ext_customers
   UNION ALL
   SELECT * FROM failed_customers
@@ -210,13 +231,13 @@ latin_names AS (
     c.CID,
     UPPER(main.regtech_ops_stg.bi_output_regtechops_fn_replacechar(l.FirstName)) AS FirstName,
     UPPER(main.regtech_ops_stg.bi_output_regtechops_fn_replacechar(l.LastName)) AS LastName
-  FROM cust_union c
+  FROM customer_union c
   JOIN main.regtech_ops_stg.bi_output_regtechops_reg_ext_customerlatinname l
     ON c.CID = l.CID
   WHERE c.RegulationID <> 4
     AND c.Lang IS NOT NULL
 ),
-cust_with_translation AS (
+customer_with_translation AS (
   SELECT
     c.*,
     CASE
@@ -227,11 +248,11 @@ cust_with_translation AS (
       WHEN c.Lang = 'Chinese' AND ln.CID IS NOT NULL THEN ln.LastName
       ELSE c.LastName
     END AS translated_last_name
-  FROM cust_union c
+  FROM customer_union c
   LEFT JOIN latin_names ln
     ON c.CID = ln.CID
 ),
-cust_names_fixed AS (
+customer_names_fixed AS (
   SELECT
     c.*,
     CASE
@@ -246,7 +267,7 @@ cust_names_fixed AS (
         THEN c.translated_first_name
       ELSE c.translated_last_name
     END AS final_last_name
-  FROM cust_with_translation c
+  FROM customer_with_translation c
 ),
 final_rows AS (
   SELECT
@@ -276,11 +297,17 @@ final_rows AS (
       ELSE COALESCE(c.PIN_Type, '')
     END AS PIN_Type,
     CASE
-      WHEN c.Lei IS NOT NULL AND (length(COALESCE(c.Lei, '')) = 20 OR COALESCE(c.AccountTypeID, 0) = 2)
+      WHEN c.Lei IS NOT NULL
+           AND (length(COALESCE(c.Lei, '')) = 20 OR COALESCE(c.AccountTypeID, 0) = 2)
         THEN UPPER(c.Lei)
       WHEN NOT (length(COALESCE(c.Lei, '')) = 20 OR COALESCE(c.AccountTypeID, 0) = 2)
            AND length(COALESCE(c.PIN, '')) > 0
+           AND nc.CountryID IS NULL
         THEN CONCAT(country.Abbreviation, c.PIN)
+      WHEN NOT (length(COALESCE(c.Lei, '')) = 20 OR COALESCE(c.AccountTypeID, 0) = 2)
+           AND length(COALESCE(c.PIN, '')) > 0
+           AND nc.CountryID IS NOT NULL
+        THEN c.PIN
       ELSE NULL
     END AS PIN_LEI,
     c.BirthDate,
@@ -308,11 +335,12 @@ final_rows AS (
         END
       ELSE NULL
     END AS TraxAccount
-  FROM cust_names_fixed c
+  FROM customer_names_fixed c
   JOIN main.regtech_ops_stg.bi_output_regtechops_vw_ext_country country
     ON c.CountryID = country.CountryID
-  -- TODO: replace with confirmed Dictionary.Ext_TradeFund mapping.
-  LEFT JOIN main.regtech_ops_stg.bi_output_regtechops_vw_ext_tradefund funds
+  -- TODO: replace {{ext_tradefund_source}} with confirmed Databricks mapping for Dictionary.Ext_TradeFund.
+  -- Required columns: FundAccountID, FundName, FundType
+  LEFT JOIN {{ext_tradefund_source}} funds
     ON c.CID = funds.FundAccountID
   LEFT JOIN no_concat nc
     ON c.CountryID = nc.CountryID
@@ -320,6 +348,29 @@ final_rows AS (
     ON excluded.cid = c.CID
   WHERE excluded.cid IS NULL
 )
-SELECT *
+SELECT
+  CID,
+  RegulationID,
+  PlayerLevelID,
+  CountryID,
+  FTD,
+  AccountTypeID,
+  Country,
+  CopyFund,
+  CopyFundName,
+  FundTypeID,
+  FundType,
+  IDType,
+  PIN_Type,
+  PIN_LEI,
+  BirthDate,
+  FirstName,
+  LastName,
+  IsUKReport,
+  IsEUReport,
+  NotAllowedCONCAT,
+  ReportDate,
+  TraxEntity,
+  TraxAccount
 FROM final_rows;
 */

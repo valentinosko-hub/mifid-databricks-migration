@@ -170,12 +170,16 @@ This document tracks known or intentional differences for the currently implemen
 - `databricks/sql/08_outputs/01_mifid2_customer_validation.sql` contains Step 10 validation templates for:
   - target/schema contract checks
   - row counts by `ReportDate` and `RegulationID`
-  - duplicate and null checks
-  - ReplaceChar sample checks
+  - duplicate and required-null checks
+  - exclusion checks (excluded CIDs, CountryID 250, PlayerLevelID/internal-account rule)
+  - country normalization checks (Citizenship precedence, 144->143, abbreviation coverage)
+  - ReplaceChar and name-normalization sample checks
   - InternalAccounts/LEI coverage checks
   - PIN/UserAPI availability/completeness checks
   - source-to-output count checks
 - Step 10 preserves SQL Server fallback behavior for `FTD` (`COALESCE(..., '2015-04-26')`) and does not invent upstream `FirstTimeDepositSuccessDate` source behavior.
+- Step 10 template keeps `FirstTimeDepositSuccessDate` as a consumer-layer fallback derivation because Step 9 customer staging does not provide this field directly.
+- Step 10 preserves no-concat country controls (`67,95,102,126,164,191`) for `NotAllowedCONCAT` and non-LEI PIN identifier handling.
 - Step 10 template intentionally does not enable any out-of-scope final outputs (`RegChange_Customer`, `Report`, `ME`, `ETORO`, `Hedge`, `NPD_TRAX`).
 
 ## Step 11 implementation differences and cautions

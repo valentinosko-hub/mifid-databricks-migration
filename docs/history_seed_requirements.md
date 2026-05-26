@@ -179,6 +179,7 @@ For a requested Step 10 `ReportDate`, ensure:
 - Step 9 customer and failed-TRAX staging are available for the same report date window.
 - Any required historical window for failed-TRAX latest-CID derivation is already seeded in `MIFID2_NPD_TRAX` (Step 9 dependency).
 - Internal-account and country references are available and current for the run window.
+- ReplaceChar parity-validation inputs are available for the same run window to validate name/PIN normalization before activation.
 
 ### Seed/cutover policy for Step 10
 
@@ -191,6 +192,7 @@ For a requested Step 10 `ReportDate`, ensure:
 - Missing `MIFID2_NPD_TRAX` seed history can alter failed-customer supplementation via Step 9 `MIFID2_Failed_TRAX`.
 - Missing `Reg_Ext_CustomerLatinName` windows can alter non-Latin name translation parity in customer output.
 - Unconfirmed `Dictionary.Ext_TradeFund` mapping can affect copy-fund historical classification.
+- Missing ReplaceChar parity evidence for the run window can alter normalized names/PIN-derived identifiers.
 
 ## Step 11 - MIFID2_RegChange_Customer output
 

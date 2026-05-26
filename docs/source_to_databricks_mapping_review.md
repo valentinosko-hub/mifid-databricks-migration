@@ -175,7 +175,11 @@ Step 10 note (`MIFID2_Customer` output):
 - Step 10 expected source/access pending:
   - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_customerlatinname` (name translation path)
   - Databricks mapping for `Dictionary.Ext_TradeFund` (copy-fund enrichment path)
+- Step 10 also depends on Step 9 failed-TRAX upstream seed availability:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax` (latest-row dependency for `MIFID2_Failed_TRAX`)
 - Step 10 activation remains gated until Step 9 customer/failed-TRAX gates are cleared and the two Step 10 pending mappings above are confirmed.
+- Step 10 activation also requires approved ReplaceChar parity validation before executable output SQL is enabled.
+- Step 10 preserves no-concat country controls (`67,95,102,126,164,191`) for customer PIN/identifier handling and `NotAllowedCONCAT` flag derivation.
 
 Step 11 note (`MIFID2_RegChange_Customer` output):
 - Step 11 target object is:
