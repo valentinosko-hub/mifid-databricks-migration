@@ -12,6 +12,9 @@
 -- - Use MIFID2_ext_RegChange_Customer as the source contract.
 -- - Do not union MIFID2_Failed_TRAX in this module.
 -- - Do not add excluded-CID filtering unless SQL Server source of truth requires it.
+-- - Preserve Step 11 no-concat behavior from SQL Server:
+--     no-concat list controls NotAllowedCONCAT flag only;
+--     PIN_LEI still uses country-prefix concat when non-LEI PIN is present.
 -- - Preserve SQL Server fallback behavior:
 --     FTD = ISNULL(FirstTimeDepositSuccessDate, '20150426')
 --   If staging does not expose FirstTimeDepositSuccessDate, project NULL internally
@@ -21,7 +24,12 @@ WITH output_gates AS (
   SELECT
     'main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer' AS target_object,
     'pending' AS executable_status,
-    'Step 9 source bi_output_regtechops_mifid2_ext_regchange_customer remains gated (BackOffice/PositionForExternalUse/migration profiling prerequisites).' AS gate_reason
+    'Step 9 source bi_output_regtechops_mifid2_ext_regchange_customer remains gated (required source profiling and contracts unresolved).' AS gate_reason
+  UNION ALL
+  SELECT
+    'main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer',
+    'pending',
+    'Step 6 migration population and reg-change interval parity gates remain unresolved for Step 9 reg-change staging.'
   UNION ALL
   SELECT
     'main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer',
@@ -37,6 +45,11 @@ WITH output_gates AS (
     'main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer',
     'pending',
     'Dictionary.Ext_TradeFund Databricks mapping is unresolved; CopyFund/FundType enrichment must stay gated.'
+  UNION ALL
+  SELECT
+    'main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer',
+    'pending',
+    'ReplaceChar parity validation is pending; Step 11 output activation must remain gated.'
 )
 SELECT *
 FROM output_gates;
@@ -233,6 +246,8 @@ final_rows AS (
     CASE
       WHEN c.Lei IS NOT NULL AND (length(COALESCE(c.Lei, '')) = 20 OR COALESCE(c.AccountTypeID, 0) = 2)
         THEN UPPER(c.Lei)
+      -- Step 11 SQL Server parity: non-LEI PIN path concatenates country abbreviation,
+      -- including countries in the no-concat list (that list only drives NotAllowedCONCAT).
       WHEN NOT (length(COALESCE(c.Lei, '')) = 20 OR COALESCE(c.AccountTypeID, 0) = 2)
            AND length(COALESCE(c.PIN, '')) > 0
         THEN CONCAT(country.Abbreviation, c.PIN)
@@ -266,8 +281,9 @@ final_rows AS (
   FROM customers_names_fixed c
   JOIN main.regtech_ops_stg.bi_output_regtechops_vw_ext_country country
     ON c.CountryID = country.CountryID
-  -- TODO: replace with confirmed Dictionary.Ext_TradeFund mapping.
-  LEFT JOIN main.regtech_ops_stg.bi_output_regtechops_vw_ext_tradefund funds
+  -- TODO: replace {{ext_tradefund_source}} with confirmed Dictionary.Ext_TradeFund mapping.
+  -- Required columns: FundAccountID, FundName, FundType
+  LEFT JOIN {{ext_tradefund_source}} funds
     ON c.CID = funds.FundAccountID
   LEFT JOIN no_concat nc
     ON c.CountryID = nc.CountryID

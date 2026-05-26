@@ -193,7 +193,11 @@ Step 11 note (`MIFID2_RegChange_Customer` output):
   - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_customerlatinname` (name translation path)
   - Databricks mapping for `Dictionary.Ext_TradeFund` (copy-fund enrichment path)
 - Step 11 activation remains gated until Step 9 reg-change customer gates are cleared and the two pending mappings above are confirmed.
+- Step 11 activation also requires approved ReplaceChar parity validation before executable output SQL is enabled.
 - Step 11 does not consume `MIFID2_Failed_TRAX` and does not apply excluded-CID filtering (per `SP_MIFID2_RegChange_Customer` logic).
+- Step 11 preserves SQL Server no-concat behavior:
+  - countries (`67,95,102,126,164,191`) drive `NotAllowedCONCAT`
+  - non-LEI `PIN_LEI` remains country-prefix concatenated (no Step 10-style no-concat PIN suppression).
 
 ## Mappings not to use (legacy/reference-only)
 

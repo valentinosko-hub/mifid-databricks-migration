@@ -205,6 +205,9 @@ Supporting Step 11 dependencies:
 - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer`
 - `main.regtech_ops_stg.bi_output_regtechops_vw_internal_accounts`
 - `main.regtech_ops_stg.bi_output_regtechops_vw_ext_country`
+- `main.regtech_ops_stg.bi_output_regtechops_fn_replacechar`
+- `main.regtech_ops_stg.bi_output_regtechops_reg_ext_customerlatinname` (gated dependency)
+- `Dictionary.Ext_TradeFund` mapped Databricks equivalent (gated dependency)
 
 ### Minimum seed requirements for Step 11 parity windows
 
@@ -213,6 +216,7 @@ For a requested Step 11 `ReportDate`, ensure:
 - Step 9 reg-change customer staging is available for the same report date window.
 - Step 6 migration-in/out population history required by Step 9 reg-change derivation is already available for that run date.
 - Internal-account and country-reference snapshots are available and current for the run window.
+- ReplaceChar parity-validation inputs are available for the same run window before Step 11 activation.
 
 ### Seed/cutover policy for Step 11
 
@@ -226,6 +230,7 @@ For a requested Step 11 `ReportDate`, ensure:
 - Missing `Reg_Ext_CustomerLatinName` windows can alter Chinese/Cyrillic translation parity.
 - Unconfirmed `Dictionary.Ext_TradeFund` mapping can affect copy-fund historical classification.
 - Missing/partial PIN/UserAPI history in Step 9 sources can affect reg-change identity fields.
+- Missing ReplaceChar parity evidence for the run window can alter normalized names/PIN-derived identifiers.
 
 ## Out of scope
 

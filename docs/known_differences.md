@@ -188,10 +188,14 @@ This document tracks known or intentional differences for the currently implemen
   - includes gate-status output
   - includes commented DDL + report-date delete/insert template
   - includes explicit DDL-aligned column list for `MIFID2_RegChange_Customer`
+  - remains gated on Step 9 reg-change source readiness, Step 6 migration interval parity evidence, PIN/UserAPI contracts, TradeFund mapping, CustomerLatinName availability, and ReplaceChar parity approval
 - `databricks/sql/08_outputs/02_mifid2_regchange_customer_validation.sql` contains Step 11 validation templates for:
   - target/schema contract checks
+  - source dependency and gate checklist checks
   - row counts by `ReportDate` and `RegulationID`
   - duplicate and required-null checks
+  - exclusion checks (`CountryID = 250`, `PlayerLevelID = 4` unless internal account)
+  - country normalization and no-concat-flag checks
   - country/name/ReplaceChar checks
   - Latin-name coverage checks
   - LEI/PIN checks
@@ -199,6 +203,9 @@ This document tracks known or intentional differences for the currently implemen
   - schema/row-set comparison notes vs `MIFID2_Customer`
 - Step 11 preserves SQL Server fallback behavior for `FTD` (`ISNULL(FirstTimeDepositSuccessDate, '20150426')`) without inventing an upstream source.
 - Step 11 intentionally uses `MIFID2_ext_RegChange_Customer` only, without `MIFID2_Failed_TRAX` union and without excluded-CID filtering.
+- Step 11 preserves SQL Server no-concat behavior:
+  - countries `67,95,102,126,164,191` drive `NotAllowedCONCAT`
+  - non-LEI `PIN_LEI` remains `CountryAbbreviation + PIN` (no no-concat PIN suppression in this module).
 - Step 11 template does not enable any out-of-scope final outputs (`Report`, `ME`, `ETORO`, `Hedge`, `NPD_TRAX`).
 
 ## Reference-only policy

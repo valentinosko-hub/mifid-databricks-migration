@@ -143,6 +143,54 @@ SELECT *
 FROM precision_scale_mismatches
 ORDER BY column_name, mismatch_type;
 
+-- 1b) Column-order parity check (ordinal position vs SQL Server DDL order)
+WITH expected_column_order AS (
+  SELECT * FROM VALUES
+    (1, 'CID'),
+    (2, 'RegulationID'),
+    (3, 'PlayerLevelID'),
+    (4, 'CountryID'),
+    (5, 'FTD'),
+    (6, 'AccountTypeID'),
+    (7, 'Country'),
+    (8, 'CopyFund'),
+    (9, 'CopyFundName'),
+    (10, 'FundTypeID'),
+    (11, 'FundType'),
+    (12, 'IDType'),
+    (13, 'PIN_Type'),
+    (14, 'PIN_LEI'),
+    (15, 'BirthDate'),
+    (16, 'FirstName'),
+    (17, 'LastName'),
+    (18, 'IsUKReport'),
+    (19, 'IsEUReport'),
+    (20, 'NotAllowedCONCAT'),
+    (21, 'ReportDate'),
+    (22, 'TraxEntity'),
+    (23, 'TraxAccount')
+  AS t(expected_ordinal_position, column_name)
+),
+actual_column_order AS (
+  SELECT
+    ordinal_position AS actual_ordinal_position,
+    column_name
+  FROM system.information_schema.columns
+  WHERE lower(table_catalog) = 'main'
+    AND lower(table_schema) = 'regtech_ops_stg'
+    AND lower(table_name) = 'bi_output_regtechops_mifid2_regchange_customer'
+)
+SELECT
+  e.column_name,
+  e.expected_ordinal_position,
+  a.actual_ordinal_position
+FROM expected_column_order e
+LEFT JOIN actual_column_order a
+  ON lower(e.column_name) = lower(a.column_name)
+WHERE a.actual_ordinal_position IS NULL
+   OR a.actual_ordinal_position <> e.expected_ordinal_position
+ORDER BY e.expected_ordinal_position;
+
 -- -----------------------------------------------------------------------------
 -- 2) Source required-column checks
 -- -----------------------------------------------------------------------------
@@ -187,6 +235,40 @@ LEFT JOIN available_source_columns asc
  AND lower(rsc.column_name) = lower(asc.column_name)
 WHERE asc.column_name IS NULL
 ORDER BY rsc.source_key, rsc.column_name;
+
+-- 2b) Activation gate checklist (status output; no side effects)
+SELECT *
+FROM VALUES
+  ('step9_regchange_staging_ready', 'pending', 'bi_output_regtechops_mifid2_ext_regchange_customer source profiling and contract gates must be cleared.'),
+  ('step6_regchange_interval_parity', 'pending', 'Migration population and reg-change interval parity gates must be cleared in Step 6/9 lineage.'),
+  ('pin_userapi_contract', 'pending', 'PIN_ID/PIN_Type/PIN/UAPI_CountryID profiling and contracts must be approved.'),
+  ('reg_ext_customerlatinname_ready', 'pending', 'bi_output_regtechops_reg_ext_customerlatinname availability/shape must be confirmed.'),
+  ('ext_tradefund_mapping', 'pending', 'Dictionary.Ext_TradeFund Databricks mapping must be confirmed (FundAccountID, FundName, FundType).'),
+  ('replacechar_parity', 'pending', 'bi_output_regtechops_fn_replacechar parity validation must be approved for Step 11.')
+AS t(gate_name, gate_status, gate_reason);
+
+-- Optional TradeFund column-contract check.
+-- Replace {{ext_tradefund_source}} with the confirmed object name before execution.
+/*
+WITH required_tradefund_columns AS (
+  SELECT col AS column_name
+  FROM VALUES ('FundAccountID'), ('FundName'), ('FundType') AS t(col)
+),
+available_tradefund_columns AS (
+  SELECT c.column_name
+  FROM system.information_schema.columns c
+  WHERE lower(c.table_catalog) = 'main'
+    AND lower(c.table_schema) = 'regtech_ops_stg'
+    AND lower(c.table_name) = lower('{{ext_tradefund_source_table_name_only}}')
+)
+SELECT
+  rtc.column_name AS missing_tradefund_column
+FROM required_tradefund_columns rtc
+LEFT JOIN available_tradefund_columns atc
+  ON lower(rtc.column_name) = lower(atc.column_name)
+WHERE atc.column_name IS NULL
+ORDER BY rtc.column_name;
+*/
 
 -- -----------------------------------------------------------------------------
 -- 3) Row counts by ReportDate and ReportDate/RegulationID
@@ -239,7 +321,27 @@ SELECT
 FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer;
 
 -- -----------------------------------------------------------------------------
--- 6) Country-code coverage and name/birthdate checks
+-- 6) Exclusion checks from SP_MIFID2_RegChange_Customer
+-- -----------------------------------------------------------------------------
+WITH run_parameters AS (
+  SELECT CAST('{{report_date}}' AS DATE) AS report_date
+)
+SELECT
+  SUM(CASE WHEN o.CountryID = 250 THEN 1 ELSE 0 END) AS rows_with_country_250,
+  SUM(
+    CASE
+      WHEN o.PlayerLevelID = 4 AND ia.CID IS NULL THEN 1
+      ELSE 0
+    END
+  ) AS playerlevel4_without_internal_account_count
+FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer o
+JOIN run_parameters rp
+  ON o.ReportDate = rp.report_date
+LEFT JOIN main.regtech_ops_stg.bi_output_regtechops_vw_internal_accounts ia
+  ON o.CID = ia.CID;
+
+-- -----------------------------------------------------------------------------
+-- 7) Country-code coverage and country normalization checks
 -- -----------------------------------------------------------------------------
 SELECT
   COUNT(*) AS rows_with_missing_country_code
@@ -250,6 +352,71 @@ WHERE c.CountryID IS NULL
    OR c.Abbreviation IS NULL
    OR length(trim(c.Abbreviation)) = 0;
 
+WITH run_parameters AS (
+  SELECT CAST('{{report_date}}' AS DATE) AS report_date
+)
+SELECT
+  SUM(CASE WHEN o.CountryID = 144 THEN 1 ELSE 0 END) AS output_rows_with_country_144
+FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer o
+JOIN run_parameters rp
+  ON o.ReportDate = rp.report_date;
+
+WITH run_parameters AS (
+  SELECT CAST('{{report_date}}' AS DATE) AS report_date
+),
+source_effective_country AS (
+  SELECT
+    s.CID,
+    CASE WHEN s.RegulationID IN (4, 10) THEN 4 ELSE s.RegulationID END AS normalized_regulation_id,
+    CASE
+      WHEN COALESCE(NULLIF(s.CitizenshipCountryID, 0), s.CountryID) = 144 THEN 143
+      ELSE COALESCE(NULLIF(s.CitizenshipCountryID, 0), s.CountryID)
+    END AS expected_country_id
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer s
+  JOIN run_parameters rp
+    ON s.ReportDate = rp.report_date
+)
+SELECT
+  COUNT(*) AS rows_with_country_precedence_mismatch
+FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer o
+JOIN run_parameters rp
+  ON o.ReportDate = rp.report_date
+JOIN source_effective_country s
+  ON o.CID = s.CID
+ AND o.RegulationID = s.normalized_regulation_id
+WHERE o.CountryID <> s.expected_country_id;
+
+WITH no_concat AS (
+  SELECT CountryID
+  FROM VALUES (67), (95), (102), (126), (164), (191) AS t(CountryID)
+),
+output_rows AS (
+  SELECT
+    o.CountryID,
+    o.NotAllowedCONCAT
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer o
+  WHERE o.ReportDate = CAST('{{report_date}}' AS DATE)
+)
+SELECT
+  SUM(
+    CASE
+      WHEN nc.CountryID IS NOT NULL AND o.NotAllowedCONCAT <> TRUE THEN 1
+      ELSE 0
+    END
+  ) AS no_concat_countries_flagged_false_count,
+  SUM(
+    CASE
+      WHEN nc.CountryID IS NULL AND o.NotAllowedCONCAT <> FALSE THEN 1
+      ELSE 0
+    END
+  ) AS non_no_concat_countries_flagged_true_count
+FROM output_rows o
+LEFT JOIN no_concat nc
+  ON o.CountryID = nc.CountryID;
+
+-- -----------------------------------------------------------------------------
+-- 8) Name/birthdate checks
+-- -----------------------------------------------------------------------------
 SELECT
   SUM(CASE WHEN BirthDate IS NULL THEN 1 ELSE 0 END) AS null_birthdate_count,
   SUM(CASE WHEN FirstName IS NULL OR length(trim(FirstName)) = 0 THEN 1 ELSE 0 END) AS blank_firstname_count,
@@ -257,7 +424,7 @@ SELECT
 FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer;
 
 -- -----------------------------------------------------------------------------
--- 7) ReplaceChar sample checks
+-- 9) ReplaceChar sample checks
 -- -----------------------------------------------------------------------------
 WITH samples AS (
   SELECT raw_input, expected_output
@@ -273,8 +440,25 @@ SELECT
   main.regtech_ops_stg.bi_output_regtechops_fn_replacechar(raw_input) AS actual_output
 FROM samples;
 
+-- Uppercase behavior sanity checks
+SELECT
+  SUM(
+    CASE
+      WHEN FirstName IS NOT NULL AND FirstName <> upper(FirstName) THEN 1
+      ELSE 0
+    END
+  ) AS non_uppercase_firstname_count,
+  SUM(
+    CASE
+      WHEN LastName IS NOT NULL AND LastName <> upper(LastName) THEN 1
+      ELSE 0
+    END
+  ) AS non_uppercase_lastname_count
+FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer
+WHERE ReportDate = CAST('{{report_date}}' AS DATE);
+
 -- -----------------------------------------------------------------------------
--- 8) Latin-name coverage for Chinese/Cyrillic source rows
+-- 10) Latin-name coverage for Chinese/Cyrillic source rows
 -- -----------------------------------------------------------------------------
 WITH run_parameters AS (
   SELECT CAST('{{report_date}}' AS DATE) AS report_date
@@ -319,7 +503,7 @@ GROUP BY lr.detected_lang
 ORDER BY lr.detected_lang;
 
 -- -----------------------------------------------------------------------------
--- 9) Blank first/last fallback behavior check
+-- 11) Blank first/last fallback behavior check
 -- -----------------------------------------------------------------------------
 SELECT
   COUNT(*) AS suspicious_one_side_blank_name_count
@@ -327,8 +511,25 @@ FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer
 WHERE (length(COALESCE(trim(FirstName), '')) = 0 AND length(COALESCE(trim(LastName), '')) > 0)
    OR (length(COALESCE(trim(LastName), '')) = 0 AND length(COALESCE(trim(FirstName), '')) > 0);
 
+-- Final Cyrillic replacements should be applied in output names.
+SELECT
+  SUM(
+    CASE
+      WHEN coalesce(FirstName, '') LIKE '%І%' OR coalesce(LastName, '') LIKE '%І%' THEN 1
+      ELSE 0
+    END
+  ) AS rows_containing_unreplaced_cyrillic_i,
+  SUM(
+    CASE
+      WHEN coalesce(FirstName, '') LIKE '%Ё%' OR coalesce(LastName, '') LIKE '%Ё%' THEN 1
+      ELSE 0
+    END
+  ) AS rows_containing_unreplaced_cyrillic_yo
+FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer
+WHERE ReportDate = CAST('{{report_date}}' AS DATE);
+
 -- -----------------------------------------------------------------------------
--- 10) PIN/UserAPI completeness checks (if source is available)
+-- 12) PIN/UserAPI completeness checks (if source is available)
 -- -----------------------------------------------------------------------------
 WITH required_pin_columns AS (
   SELECT col AS column_name
@@ -364,7 +565,7 @@ SELECT
 FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer;
 
 -- -----------------------------------------------------------------------------
--- 11) InternalAccounts / LEI checks
+-- 13) InternalAccounts / LEI checks
 -- -----------------------------------------------------------------------------
 SELECT
   COUNT(*) AS accounttype2_without_lei_pin_count
@@ -386,8 +587,62 @@ JOIN main.regtech_ops_stg.bi_output_regtechops_vw_internal_accounts ia
 WHERE (o.PIN_Type = 'LEI' OR o.IDType = 2)
   AND (o.PIN_LEI IS NULL OR length(o.PIN_LEI) <> 20);
 
+SELECT
+  COUNT(*) AS lei_rows_not_uppercase_count
+FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer
+WHERE PIN_Type = 'LEI'
+  AND PIN_LEI IS NOT NULL
+  AND PIN_LEI <> upper(PIN_LEI);
+
+-- Step 11-specific behavior check:
+-- No-concat countries still keep country+PIN concatenation in PIN_LEI for non-LEI rows.
+WITH run_parameters AS (
+  SELECT CAST('{{report_date}}' AS DATE) AS report_date
+),
+no_concat AS (
+  SELECT CountryID
+  FROM VALUES (67), (95), (102), (126), (164), (191) AS t(CountryID)
+),
+source_rows AS (
+  SELECT
+    s.CID,
+    CASE WHEN s.RegulationID IN (4, 10) THEN 4 ELSE s.RegulationID END AS normalized_regulation_id,
+    CASE
+      WHEN COALESCE(NULLIF(s.CitizenshipCountryID, 0), s.CountryID) = 144 THEN 143
+      ELSE COALESCE(NULLIF(s.CitizenshipCountryID, 0), s.CountryID)
+    END AS effective_country_id,
+    upper(trim(s.PIN)) AS source_pin,
+    s.AccountTypeID,
+    s.Lei
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer s
+  JOIN run_parameters rp
+    ON s.ReportDate = rp.report_date
+),
+expected_non_lei AS (
+  SELECT
+    s.CID,
+    s.normalized_regulation_id,
+    concat(c.Abbreviation, s.source_pin) AS expected_pin_lei
+  FROM source_rows s
+  JOIN main.regtech_ops_stg.bi_output_regtechops_vw_ext_country c
+    ON s.effective_country_id = c.CountryID
+  JOIN no_concat nc
+    ON s.effective_country_id = nc.CountryID
+  WHERE NOT (length(coalesce(s.Lei, '')) = 20 OR coalesce(s.AccountTypeID, 0) = 2)
+    AND length(coalesce(s.source_pin, '')) > 0
+)
+SELECT
+  COUNT(*) AS no_concat_rows_with_unexpected_pin_lei_count
+FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer o
+JOIN run_parameters rp
+  ON o.ReportDate = rp.report_date
+JOIN expected_non_lei e
+  ON o.CID = e.CID
+ AND o.RegulationID = e.normalized_regulation_id
+WHERE o.PIN_LEI <> e.expected_pin_lei;
+
 -- -----------------------------------------------------------------------------
--- 12) Source-to-output row-count check for report_date
+-- 14) Source-to-output row-count checks for report_date
 -- -----------------------------------------------------------------------------
 WITH run_parameters AS (
   SELECT CAST('{{report_date}}' AS DATE) AS report_date
@@ -428,8 +683,63 @@ SELECT
 FROM source_expected s
 CROSS JOIN output_counts o;
 
+WITH run_parameters AS (
+  SELECT CAST('{{report_date}}' AS DATE) AS report_date
+),
+source_cids AS (
+  SELECT DISTINCT CID
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+),
+output_cids AS (
+  SELECT DISTINCT CID
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+)
+SELECT
+  COUNT(*) AS output_cids_not_present_in_regchange_source
+FROM output_cids o
+LEFT JOIN source_cids s
+  ON o.CID = s.CID
+WHERE s.CID IS NULL;
+
+-- Optional check: run when Step 9 failed-trax staging table exists in environment.
+-- Confirms Step 11 output does not include failed-trax-only CIDs.
+/*
+WITH run_parameters AS (
+  SELECT CAST('{{report_date}}' AS DATE) AS report_date
+),
+source_cids AS (
+  SELECT DISTINCT CID
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+),
+failed_trax_cids AS (
+  SELECT DISTINCT CID
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_failed_trax
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+),
+failed_only_cids AS (
+  SELECT f.CID
+  FROM failed_trax_cids f
+  LEFT JOIN source_cids s
+    ON f.CID = s.CID
+  WHERE s.CID IS NULL
+),
+output_cids AS (
+  SELECT DISTINCT CID
+  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer
+  WHERE ReportDate = (SELECT report_date FROM run_parameters)
+)
+SELECT
+  COUNT(*) AS failed_trax_only_cids_present_in_step11_output
+FROM output_cids o
+JOIN failed_only_cids f
+  ON o.CID = f.CID;
+*/
+
 -- -----------------------------------------------------------------------------
--- 13) Comparison notes vs MIFID2_Customer
+-- 15) Comparison notes vs MIFID2_Customer
 -- -----------------------------------------------------------------------------
 -- 13a) Schema contract parity check between regchange and customer outputs.
 WITH regchange_schema AS (
@@ -507,3 +817,12 @@ FROM customer_cids c
 LEFT JOIN regchange_cids r
   ON c.CID = r.CID
 WHERE r.CID IS NULL;
+
+-- 15c) Step 11 behavior note check:
+-- This output should not apply excluded-CID filtering unless SP logic changes.
+SELECT
+  COUNT(*) AS output_rows_present_in_excluded_cid_reference
+FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer o
+JOIN main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids e
+  ON o.CID = e.CID
+WHERE o.ReportDate = CAST('{{report_date}}' AS DATE);
