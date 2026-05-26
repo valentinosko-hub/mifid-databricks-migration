@@ -40,7 +40,7 @@ These mappings are explicitly documented as established in `06_mappings`:
 - `ThirdParty_Fivetran...regulation_report_excluded_cids` -> `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
 - `ThirdParty_Fivetran...regtech_excluded_instruments` -> `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
 - `ThirdParty_Fivetran...regtech_excluded_position_ids` -> `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
-- `ThirdParty_Fivetran...isin_for_instrumentid_341` -> `main.regtech_stg.silver_sharepoint_transactionreporting_isin_for_instrumentid_341`
+- `ThirdParty_Fivetran...isin_for_instrumentid_341` -> `{{isin_for_instrumentid_341_source}}` (mapped source table expected, but required-column contract for Step 12B3 override adapter is still pending)
 
 ## Candidate mappings
 
@@ -238,6 +238,36 @@ Step 12 note (`MIFID2_Report` / `MIFID2_ME_Report` / `MIFID2_Removed_OP_Partials
 - Step 12B2 SQL artifacts are gated templates only:
   - `databricks/sql/08_outputs/04_mifid2_report_position_population.sql`
   - `databricks/sql/08_outputs/04_mifid2_report_position_population_validation.sql`
+
+Step 12B3 note (final branch projections):
+
+- Step 12B3 starts from Step 12B2 `#tradesFinal` equivalent:
+  - `{{trades_final_source}}` or a validated materialized intermediate with equivalent contract.
+- Step 12B3 final branch template artifacts:
+  - `databricks/sql/08_outputs/05_mifid2_report_branch_projections.sql`
+  - `databricks/sql/08_outputs/05_mifid2_report_branch_projection_validation.sql`
+- Branch targets:
+  - EU/CySEC, UK/FCA, FCA-flow-in-EU, Seychelles -> `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+  - ME -> `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+  - removed partials finalization -> `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
+- FuturesMetaData remains Step 12B3-only and still profiling-gated:
+  - expected mapping: `Trade.FuturesMetaData` -> `main.trading.bronze_etoro_trade_futuresmetadata`
+  - required columns pending confirmation: `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`
+- Futures validation rule in Step 12B3:
+  - futures candidate rows must be identified from pre-output metadata (`IsFuture = 1`) via `{{report_metadata_source}}` / `{{trades_final_source}}` enrichment, not from output-populated futures fields.
+- InstrumentClassification/CFI mapping rule in Step 12B3:
+  - exact `SP_MIFID_Report` branch-specific mappings are still a hard gate.
+  - simplified fallback logic is intentionally removed until exact branch mappings are ported.
+- Category-specific instrument coverage rule in Step 12B3 validation:
+  - real stock/ETF rows require ISIN.
+  - futures rows require FuturesMetaData (`CFICode`, `ExpirationDateTime`, `Multiplier`) coverage.
+  - non-real, non-future CFD CFI checks remain gated until exact branch-specific mapping is finalized.
+- Exclusion parity in Step 12B3 final branch logic requires:
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids` (UK branch)
+  - `{{isin_for_instrumentid_341_source}}` (normalized logical columns required: `InstrumentID`, `OverrideISIN`, optional effective/report date)
+  - `MIFID2_Instruments_To_Exclude` mapped equivalent (still unresolved)
 
 ## Mappings not to use (legacy/reference-only)
 

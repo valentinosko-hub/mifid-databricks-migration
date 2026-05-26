@@ -1,14 +1,14 @@
-# Step 12B1-12B2 - MIFID2 Report Output Analysis
+# Step 12B1-12B3 - MIFID2 Report Output Analysis
 
-This document captures Step 12B1 scaffolding and Step 12B2 intermediate position/trade population templates for the three report targets below. It does not implement final report branch projections.
+This document captures Step 12B1 scaffolding, Step 12B2 intermediate position/trade population templates, and Step 12B3 final branch projection templates for the three report targets below.
 
-## Scope (Step 12B1 only)
+## Scope (Step 12 module targets)
 
 - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
 - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
 - `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
 
-## Out of scope (Step 12B1)
+## Out of scope (Step 12B1-12B3)
 
 - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
 - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
@@ -114,7 +114,7 @@ This document captures Step 12B1 scaffolding and Step 12B2 intermediate position
 | Exclusions/static refs | `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments` | implemented/gated | Validation foundation includes exclusion checks. |
 | Exclusions/static refs | `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids` | implemented/gated | Validation foundation includes exclusion checks. |
 | Exclusions/static refs | `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids` | implemented/gated | Used in related customer/regchange lineage; report-level use validated in later steps. |
-| Exclusions/static refs | `main.regtech_stg.silver_sharepoint_transactionreporting_isin_for_instrumentid_341` | implemented/gated | Instrument override compatibility checks deferred to Step 12B2/B3. |
+| Exclusions/static refs | `{{isin_for_instrumentid_341_source}}` | expected source/access pending | Required-column profiling pending; source adapter must provide normalized logical columns (`InstrumentID`, `OverrideISIN`, optional effective/report date). |
 | Exclusions/static refs | `MIFID2_Instruments_To_Exclude` mapped equivalent | unresolved | Mapping/availability must be confirmed before activation. |
 | Futures metadata | `main.trading.bronze_etoro_trade_futuresmetadata` | expected source/access pending | Treat as expected mapping, not unknown; required columns pending profiling (`InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`). |
 | Out of scope outputs | ETORO/Hedge/NPD_TRAX report outputs | out of scope | Explicitly excluded from Step 12B1. |
@@ -268,3 +268,132 @@ Removed-partials scope rule:
 Step 12B3 boundary in validation:
 
 - FuturesMetaData validations are deferred to Step 12B3 because they apply to final branch projection logic.
+
+## Step 12B3 scope and boundary
+
+Step 12B3 starts from the Step 12B2 unified trade pool (`#tradesFinal` equivalent) and does not re-author Step 12B2 pre-branch population logic.
+
+Scope in Step 12B3:
+
+- Final branch projections into:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+- Removed partials finalization into:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
+
+Out of scope in Step 12B3:
+
+- `MIFID2_ETORO_Report`, `MIFID2_Hedge_Report`, `MIFID2_NPD_TRAX`
+- file delivery/export/upload/response/deployment logic
+
+## Step 12B3 SQL artifacts
+
+- Branch projection templates:
+  - `databricks/sql/08_outputs/05_mifid2_report_branch_projections.sql`
+- Branch-projection validation templates:
+  - `databricks/sql/08_outputs/05_mifid2_report_branch_projection_validation.sql`
+
+Both artifacts are intentionally gated/commented and remain non-executable until upstream dependencies are cleared.
+
+## Step 12B3 branch projection summary
+
+### MIFID2_Report branches
+
+- EU / CySEC:
+  - `RegulationReportID = 1`
+  - source regulation filter from `OrigRegulationID = 1`
+  - transaction reference strips `UK`
+  - `BackReportingIndicator = 0`
+- UK / FCA:
+  - `RegulationReportID = 2`
+  - source regulation filter from `OrigRegulationID = 2`
+  - transaction reference strips `UK`
+  - UK-specific CID exclusion is applied
+  - `BackReportingIndicator = 0`
+- FCA-flow-in-EU:
+  - `RegulationReportID = 1`
+  - source regulation filter from `OrigRegulationID = 2`
+  - requires both `IsMifidByFCA = 1` and `IsMifid = 1`
+  - transaction reference keeps `PositionIDOut` (retains UK marker)
+  - `BackReportingIndicator = 0`
+- Seychelles:
+  - `RegulationReportID = 1`
+  - source regulation filter from `OrigRegulationID = 9`
+  - transaction reference suffix: `SC + yyyymmdd`
+  - `BackReportingIndicator = 0`
+
+### MIFID2_ME_Report branch
+
+- ME:
+  - target table is `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+  - `RegulationReportID = 1`
+  - source regulation filter from `OrigRegulationID = 11`
+  - transaction reference suffix: `ME + yyyymmdd`
+  - `BackReportingIndicator = 0`
+
+## Step 12B3 source-to-target mapping summary
+
+Core mapping behavior preserved in templates:
+
+- `DateID = yyyyMMdd(report_date)`, `ReportDate = report_date`.
+- `RegulationID` output is taken from `OrigRegulationID` (trade-occurrence regulation).
+- `RegChange` is propagated from Step 12B2 trades-final source.
+- Trading timestamp uses open/close event (`OpenORClose`) with second-level adjustment parity pattern.
+- Quantity/price mapping remains open-close dependent:
+  - quantity from `AmountInUnitsDecimal`
+  - price from `InitForexRate` (open) / `EndForexRate` (close)
+  - `PriceType` from instrument-type/currency-type behavior.
+- `UpdateDate` is explicitly kept nullable and unpopulated in projections.
+
+## Step 12B3 instrument/FIRDS and FuturesMetaData behavior
+
+- Step 12B3 templates consume Step 12B2-prepared metadata path and keep final instrument projection behavior branch-aware (ISIN/full-name/CFI/asset class).
+- `InstrumentClassification`/CFI output in branch templates is now hard-gated (`NULL`) until exact SQL Server branch-specific mappings are ported:
+  - HARD GATE covers EU/CySEC, UK/FCA, FCA-flow-in-EU, Seychelles, and ME variants.
+  - simplified fallback mapping is intentionally removed to avoid accidental non-parity activation.
+- `main.trading.bronze_etoro_trade_futuresmetadata` is treated as Step 12B3-only dependency.
+- Futures required-column gate remains explicit:
+  - `InstrumentID`
+  - `CFICode`
+  - `ExpirationDateTime`
+  - `Multiplier`
+- Futures branch activation remains gated until required-column profiling is approved.
+
+## Step 12B3 exclusions and removed partials finalization
+
+- Exclusion logic in branch templates includes:
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
+  - UK branch: `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
+  - UK branch support for `{{isin_for_instrumentid_341_source}}` (gated required-column contract: `InstrumentID`, `OverrideISIN`, optional effective/report date)
+- `MIFID2_Instruments_To_Exclude` remains mapped-source gated and is retained as a dependency gate in templates.
+
+Removed partials finalization behavior:
+
+- Uses scoped/materialized Step 12B2 candidates input (`{{removed_partial_candidates_source}}`).
+- Uses explicit target column list only.
+- No out-of-scope CTE reference is allowed.
+
+## Step 12B3 final output gates and activation constraints
+
+- All final delete/insert statements remain commented.
+- Branch templates are non-activating while Step 5/6/9/10/11 gates are unresolved.
+- `InstrumentMetaData_SpecialChar_Conversion` and futures profiling gates are carried forward.
+- `UpdateDate` no-default rule is preserved explicitly.
+
+## Step 12B3 validation coverage
+
+`05_mifid2_report_branch_projection_validation.sql` adds templates for:
+
+- schema presence/width checks (with detailed contract checks still anchored in `03_mifid2_report_validation_foundation.sql`)
+- row counts by report date, regulation report id, regulation id, regchange, branch
+- duplicate checks for report/ME uniqueness intent and removed-partials business key
+- required-null checks for report/ME required fields and `BackReportingIndicator`
+- branch behavior checks for EU/UK/FCA-flow/Seychelles/ME transaction-reference patterns
+- instrument coverage checks for category-specific ISIN/CFI rules plus SCD/full-description/special-char coverage:
+  - real stock/ETF rows require ISIN and should not be flagged for expected blank CFI.
+  - futures coverage must be identified from pre-output `IsFuture` metadata (`{{report_metadata_source}}` / `{{trades_final_source}}` enrichment), not from output-populated futures fields.
+  - non-real, non-future CFD CFI checks remain hard-gated until exact branch-specific CFI mapping is ported.
+- exclusion checks (instruments/positions and optional mapped `MIFID2_Instruments_To_Exclude`)
+- removed-partials candidate-to-output reconciliation templates
+- aggregate checks (quantity/price/economic fields by branch)

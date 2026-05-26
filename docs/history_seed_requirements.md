@@ -291,6 +291,24 @@ For a requested Step 12 `ReportDate`, ensure:
 - `MIFID2_Removed_OP_Partials` implicit-order insert behavior from SQL Server must not be carried forward; explicit-column parity is required to avoid schema-order drift.
 - `MIFID2_Report` / `MIFID2_ME_Report` `UpdateDate` must remain nullable with no synthesized default; default injection would create non-parity history artifacts.
 
+## Step 12B3-specific seed notes
+
+Step 12B3 final projection templates consume the Step 12B2 unified trades-final source and do not regenerate Step 12B2 intermediate logic.
+
+Additional Step 12B3 seed dependencies:
+
+- Branch source boundary:
+  - validated `{{trades_final_source}}` (or approved materialized equivalent) for the requested report date.
+- Futures-only enrichment source:
+  - `main.trading.bronze_etoro_trade_futuresmetadata`
+  - required columns: `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`.
+- Removed partials finalization source:
+  - scoped/materialized Step 12B2 removed-partials candidates (`{{removed_partial_candidates_source}}`).
+
+Step 12B3 historical caution:
+
+- If Step 12B2 intermediate snapshots are not reproducible for older windows, Step 12B3 branch outputs cannot be parity-reconstructed for those windows.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.

@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-12B2)
+# Known Differences (Current Safe + Steps 5B1-12B3)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -264,6 +264,33 @@ This document tracks known or intentional differences for the currently implemen
 - FuturesMetaData is intentionally deferred to Step 12B3:
   - Step 12B2 pre-branch trade-pool templates do not include FuturesMetaData-dependent logic.
   - Futures metadata remains an activation/profile gate for final branch projections.
+
+## Step 12B3 implementation differences and cautions
+
+- `databricks/sql/08_outputs/05_mifid2_report_branch_projections.sql` is authored as a gated template only:
+  - branch projections are present for EU/CySEC, UK/FCA, FCA-flow-in-EU, Seychelles, and ME
+  - removed partials finalization template is included with explicit target columns
+  - all final delete/insert statements remain commented pending gate clearance
+- `databricks/sql/08_outputs/05_mifid2_report_branch_projection_validation.sql` adds Step 12B3 validation templates:
+  - branch counts and suffix behavior checks
+  - report/ME uniqueness checks
+  - exclusion coverage checks
+  - instrument/futures coverage checks (category-specific, with futures candidates derived from pre-output `IsFuture`)
+  - removed-partials candidate-to-output reconciliation templates
+- `InstrumentClassification` / CFI in Step 12B3 branch projections is hard-gated:
+  - simplified fallback mapping is intentionally removed.
+  - templates keep `InstrumentClassification = NULL` until exact `SP_MIFID_Report` branch-specific mappings are ported.
+- `InstrumentID = 341` UK override source remains placeholder-gated:
+  - branch template uses `{{isin_for_instrumentid_341_source}}`.
+  - required normalized logical columns (`InstrumentID`, `OverrideISIN`, optional effective/report date) are still profiling-pending.
+- `UpdateDate` is intentionally not populated in final branch templates:
+  - templates keep `UpdateDate` nullable (`NULL`) and do not use `current_timestamp` or any default synthesis
+- FuturesMetaData remains Step 12B3 profiling-gated:
+  - expected source is `main.trading.bronze_etoro_trade_futuresmetadata`
+  - activation remains blocked until required columns are verified
+- No file-delivery/upload/deployment logic is included in Step 12B3 artifacts:
+  - no CSV/7z/SFTP/TRAX/Cappitech/response handling
+  - no production deployment behavior
 
 ## Reference-only policy
 

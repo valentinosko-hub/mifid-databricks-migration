@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-12B2 - Unresolved Dependencies
+# Phase 1D / Steps 5-12B3 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -103,3 +103,28 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 28. Keep FuturesMetaData validation strictly in Step 12B3 final-branch activation checks.
 29. Confirm Step 12B2 dictionary-currency source/profile parity for pre-branch metadata and GBX handling.
 30. Materialize Step 12B2 split/GBX audit fields before declaring parity checks as passed.
+
+## Step 12B3 carry-forward unresolved dependencies
+
+The following items remain explicitly unresolved for Step 12B3 activation of final branch projections:
+
+- FuturesMetaData profiling gate:
+  - `main.trading.bronze_etoro_trade_futuresmetadata`
+  - required columns pending final signoff: `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`.
+  - validation gate: futures candidate detection must use a pre-output source with `IsFuture = 1` (for example `{{report_metadata_source}}` / `{{trades_final_source}}` enrichment), not output-populated futures fields.
+- InstrumentClassification/CFI parity hard gate:
+  - exact `SP_MIFID_Report` branch-specific mappings are not fully ported yet for EU/CySEC, UK/FCA, FCA-flow-in-EU, Seychelles, and ME.
+  - final branch activation remains blocked while `InstrumentClassification` is intentionally hard-gated in templates.
+- Instrument metadata conversion gate:
+  - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion`
+  - feeder/source parity remains blocked by unresolved `Reg_Ext_Trade_InstrumentMetaData` profiling.
+- `MIFID2_Instruments_To_Exclude` source gate:
+  - mapped equivalent is still unresolved and remains a blocking exclusion-parity gate for final branch activation.
+- Exclusion mapping gates:
+  - validate and lock final behavior for excluded instruments / excluded position IDs / UK excluded CIDs.
+  - InstrumentID 341 override source is still required-column profiling pending and remains placeholder-gated as `{{isin_for_instrumentid_341_source}}` with normalized logical columns (`InstrumentID`, `OverrideISIN`, optional effective/report date).
+- Step 12B2 boundary gate:
+  - final branch templates require either a full in-statement CTE stack or a validated materialized `{{trades_final_source}}`.
+  - no out-of-scope CTE reference is allowed.
+- Step 5/6 carry-forward gates:
+  - unresolved price/split/movement contracts continue to block Step 12B3 execution even though templates are authored.

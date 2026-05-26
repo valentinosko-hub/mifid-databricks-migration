@@ -4,10 +4,10 @@ This plan defines reconciliation scope and execution order for migration validat
 
 ## Current focus
 
-- Step 12B2 intermediate position/trade population templates only (pre-branch):
-  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report_trade_population` (optional checkpoint)
-  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report_customer_reg_flags` (optional checkpoint)
-  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials_candidates` (optional checkpoint)
+- Step 12B3 final branch projection templates (starting from Step 12B2 boundary):
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
 
 ## Out of scope for this step
 
@@ -88,3 +88,56 @@ This plan defines reconciliation scope and execution order for migration validat
 
 - Step 12B2 ends when intermediate pre-branch templates and validation templates are authored, gated, and documented.
 - Final branch/business logic migration starts in Step 12B3 only.
+
+## Step 12B3 reconciliation coverage
+
+1. Schema parity:
+   - `MIFID2_Report`, `MIFID2_ME_Report`, `MIFID2_Removed_OP_Partials` contracts.
+2. Row counts:
+   - by `ReportDate`, `RegulationReportID`, `RegulationID`, `RegChange`, and branch classification.
+3. Duplicate checks:
+   - report/ME uniqueness intent (`ReportDate`, `RegulationReportID`, `TransactionReferenceNumber`, `BackReportingIndicator`).
+   - removed-partials lifecycle business keys.
+4. Required null checks:
+   - report/ME required keys and economic timestamp/quantity/price fields.
+   - `BackReportingIndicator` population checks.
+5. Branch behavior checks:
+   - EU/CySEC, UK/FCA, FCA-flow-in-EU, Seychelles, ME counts and transaction-reference suffix behavior.
+6. Instrument/futures coverage checks:
+   - category-specific ISIN/CFI population checks:
+     - real stock/ETF rows require ISIN.
+     - expected blank CFI for real stock/ETF rows is not treated as failure.
+     - non-real, non-future CFD CFI checks remain gated until exact branch mapping is ported.
+   - SCD/full-description/special-char conversion coverage.
+   - FuturesMetaData coverage for futures candidates identified from pre-output metadata (`IsFuture = 1`), not output-populated fields.
+7. Exclusion checks:
+   - excluded instruments absent.
+   - excluded positions absent.
+   - UK excluded CID behavior.
+   - optional `MIFID2_Instruments_To_Exclude` parity check once mapping is confirmed.
+8. Removed partial finalization checks:
+   - candidate vs final row counts.
+   - candidate-to-output key reconciliation.
+   - explicit-column insert checklist.
+9. Aggregates:
+   - branch-level quantity/price/economic field aggregates.
+
+## Step 12B3 execution order once gates pass
+
+1. Re-run Step 12B2 boundary validation and confirm trades-final source contract.
+2. Validate Step 12B3 source gates (metadata, exclusions, futures columns, removed-partials candidates).
+   - includes hard gate on exact branch-specific `InstrumentClassification` mapping and required-column contract for `{{isin_for_instrumentid_341_source}}`.
+3. Execute final branch inserts for report and ME tables (report-date scoped).
+4. Execute removed partials finalization insert with explicit target columns.
+5. Run Step 12B3 validation SQL:
+   - `databricks/sql/08_outputs/05_mifid2_report_branch_projection_validation.sql`
+6. Run baseline schema contract checks:
+   - `databricks/sql/08_outputs/03_mifid2_report_validation_foundation.sql`
+7. Record deltas and update:
+   - `docs/known_differences.md`
+   - `docs/unresolved_dependencies.md`
+
+## Stop condition for Step 12B3
+
+- Step 12B3 ends when final branch templates, removed-partials finalization templates, and Step 12B3 validation SQL are authored and documented as gated artifacts.
+- Activation remains blocked until upstream dependency gates are resolved and validation evidence is accepted.
