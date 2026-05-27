@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-13B2)
+# Known Differences (Current Safe + Steps 5B1-13B3)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -40,6 +40,7 @@ This document tracks known or intentional differences for the currently implemen
 - Step 9 includes MIFID2_ext profiling/gating only; no active Step 9 staging DDL is enabled yet.
 - Step 10 includes only `MIFID2_Customer` profiling/gating; no active final-output DDL is enabled yet.
 - Step 11 includes only `MIFID2_RegChange_Customer` profiling/gating; no active final-output DDL is enabled yet.
+- Step 13B3 adds ETORO validation/reconciliation SQL as read-only SELECT templates only; it does not introduce active ETORO load execution.
 - No Hedge EU/UK final report implementation.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
 - No CSV/7z/SFTP/Cappitech/TRAX upload/response handling.
@@ -345,6 +346,26 @@ This document tracks known or intentional differences for the currently implemen
   - `CDE_Execution_timestamp -> OpenTime` parity approval required.
   - `Reg_DWH_StaticPosition` fallback impact must remain conditional unless field impact is proven.
 - Step 13B2 keeps file-delivery/upload/response/deployment logic out of scope:
+  - no CSV/7z/SFTP/TRAX/Cappitech/response handling
+  - no production deployment behavior
+
+## Step 13B3 implementation differences and cautions
+
+- `databricks/sql/08_outputs/07_mifid2_etoro_report_validation.sql` is authored as read-only validation SQL:
+  - SELECT-only checks (no DML/DDL mutation statements).
+  - schema, row-count, duplicate, null, reconciliation, and coverage checks are packaged for ETORO output.
+  - placeholder-dependent checks remain commented/gated.
+- Legacy `dbo.ASIC_Transactions` remains replaced by:
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
+  - as the Step 13 source-of-truth input for ETORO reconciliation checks.
+- `InstrumentClassification` remains hard-gated unless exact `SP_MIFID2_ETORO_Report` mapping parity is ported and approved:
+  - Step 13B3 package does not introduce a simplified fallback mapping.
+- `OpenTime` and `OpenPrice` parity checks are represented, but gate closure is still dependency-bound:
+  - OpenTime semantic timezone checks are optional/gated.
+  - StaticPosition fallback impact remains conditional unless field-impact evidence is produced.
+- Exclusion semantics remain report-scoped:
+  - `table_name = '[MIFID2_ETORO_Report]'` is treated as row-level scope filter and not full-table exclusion.
+- Step 13B3 keeps file-delivery/upload/response/deployment logic out of scope:
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
   - no production deployment behavior
 

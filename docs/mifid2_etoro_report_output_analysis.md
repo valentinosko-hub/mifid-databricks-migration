@@ -1,6 +1,6 @@
-# Step 13A/13B1/13B2 - MIFID2 ETORO Report Output Analysis
+# Step 13A/13B1/13B2/13B3 - MIFID2 ETORO Report Output Analysis
 
-This document captures the Step 13A analysis baseline, Step 13B1 scaffolding boundary, and Step 13B2 gated projection-template scope for `MIFID2_ETORO_Report`.
+This document captures the Step 13A analysis baseline, Step 13B1 scaffolding boundary, Step 13B2 gated projection-template scope, and Step 13B3 validation/reconciliation package scope for `MIFID2_ETORO_Report`.
 
 ## Scope (Step 13B1/13B2)
 
@@ -14,10 +14,30 @@ This document captures the Step 13A analysis baseline, Step 13B1 scaffolding bou
   - Step 8 ASIC2-compatible layer is the source authority for consumed transaction fields.
 - Document activation gates and planned split for Step 13B2/13B3.
 
+## Scope (Step 13B3)
+
+- Step 13B3 introduces a read-only ETORO validation/reconciliation package:
+  - `databricks/sql/08_outputs/07_mifid2_etoro_report_validation.sql`
+- Validation package scope is strictly:
+  - SELECT-only schema/data-quality/reconciliation checks
+  - no activation DML (`INSERT`/`DELETE`/`UPDATE`/`MERGE`) and no DDL.
+- Step 13B3 validates the Step 13B2 ETORO output contract against:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
+- Placeholder-dependent checks remain gated/commented until dependency contracts are confirmed.
+
 ## Out of scope for Step 13B2
 
 - Active / ungated ETORO projection execution.
 - ETORO validation / reconciliation SQL package implementation, which belongs to Step 13B3.
+- `MIFID2_Hedge_Report`.
+- `MIFID2_NPD_TRAX`.
+- File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload, response handling).
+- Production deployment and orchestration activation.
+
+## Out of scope for Step 13B3
+
+- Active ETORO projection execution changes (belongs to Step 13B2 activation path).
 - `MIFID2_Hedge_Report`.
 - `MIFID2_NPD_TRAX`.
 - File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload, response handling).
@@ -225,3 +245,48 @@ Step 13B2 logic is scoped as:
 - OpenPrice remains gated for conditional `Reg_DWH_StaticPosition` fallback impact.
 - `InstrumentClassification` is hard-gated in the Step 13B2 template unless exact SQL Server mapping is confirmed/ported.
 - EMIR Refit UPI remains out of direct dependency scope unless field-impact is proven on the 11 consumed compatibility fields.
+
+## Step 13B3 validation categories (read-only package)
+
+Step 13B3 validation package covers:
+
+- Schema parity checks:
+  - table existence/column-count checks
+  - information-schema column-order/type/nullability snapshots
+  - required-column ordinal/type/nullability checks for ETORO required fields.
+- Row-count checks:
+  - by `ReportDate`, `RegulationReportID`, `RegulationID`, `OpenORClose`, `RegChange`.
+- Duplicate and required-null checks:
+  - uniqueness-intent checks on (`ReportDate`, `RegulationReportID`, `TransactionReferenceNumber`, `BackReportingIndicator`)
+  - optional position/open-close duplicate lens
+  - required-null checks for ETORO mandatory fields.
+- Source-to-output reconciliation:
+  - source/output counts by date
+  - anti-joins by `DateID`, `ReportDate`, `PositionID`, `OpenORClose`
+  - `RegChange` distribution parity checks.
+- OpenTime/TradingDateTime checks:
+  - OpenTime parseability
+  - `TradingDateTime` format checks (`yyyy-MM-ddTHH:mm:ssZ`)
+  - source formatted OpenTime vs output TradingDateTime checks.
+- Quantity/Price parity:
+  - aggregate parity by `ReportDate`, `OpenORClose`, `RegChange`
+  - row-level mismatch checks where practical.
+- Instrument/dictionary/exclusion checks:
+  - SCD, full-description, special-char conversion, dictionary currency/type coverage
+  - `AssetClass` coverage
+  - ETORO report-scoped exclusion behavior checks (`table_name = '[MIFID2_ETORO_Report]'`).
+- History/seed checks:
+  - source/output date-window coverage summaries
+  - placeholder-gated SQL Server baseline reconciliation template.
+
+## Step 13B3 remaining gates
+
+- Step 13B2 ETORO projection activation for requested run windows.
+- Step 8 compatibility source activation and contract acceptance.
+- OpenTime parity acceptance (`CDE_Execution_timestamp -> OpenTime`).
+- OpenPrice parity acceptance; `Reg_DWH_StaticPosition` fallback remains conditional unless proven.
+- Exact ETORO `InstrumentClassification` mapping port or approved hard-gate closure.
+- Instrument metadata and dictionary dependency readiness for requested report dates.
+- ASIC2 seed/history coverage for requested reconciliation windows.
+- Optional baseline gate:
+  - SQL Server ETORO normalized baseline source required for cross-system anti-join checks.

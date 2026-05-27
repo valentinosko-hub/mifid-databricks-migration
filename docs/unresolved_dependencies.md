@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-13B2 - Unresolved Dependencies
+# Phase 1D / Steps 5-13B3 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -189,3 +189,32 @@ The following items remain explicitly unresolved for Step 13 ETORO activation:
 - Exclusion scope semantics gate:
   - exclusion sources must apply row-level filters scoped by `table_name = '[MIFID2_ETORO_Report]'`.
   - this scope marker must not be interpreted as full-table exclusion of ETORO output.
+
+## Step 13B3 carry-forward unresolved dependencies
+
+The following items remain explicitly unresolved for Step 13B3 ETORO validation/reconciliation signoff:
+
+- Step 13B2 activation gate:
+  - ETORO projection template remains gated until upstream activation dependencies are approved.
+  - Step 13B3 validation package is authored, but executable evidence remains blocked until Step 13B2 execution is enabled.
+- OpenTime semantic parity gate:
+  - `CDE_Execution_timestamp -> OpenTime` parseability checks exist, but semantic timezone parity remains optional/gated until accepted.
+- OpenPrice fallback-impact gate:
+  - `Reg_DWH_StaticPosition` fallback remains conditional unless profiling proves field impact on ETORO `OpenPrice`.
+- InstrumentClassification exact mapping gate:
+  - exact `SP_MIFID2_ETORO_Report` mapping still required for full parity closure.
+  - Step 13B3 keeps this as hard-gated; no simplified fallback is accepted.
+- Instrument/dictionary readiness gate:
+  - report-date readiness and required-column contracts for:
+    - `main.regtech.gold_regtech_reg_instruments_scd`
+    - `main.regtech.gold_regtech_reg_instruments_full_description`
+    - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion`
+    - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrency`
+    - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrencytype`
+- Exclusion-source gate:
+  - ETORO exclusions must remain row-level and scoped by `table_name = '[MIFID2_ETORO_Report]'` for instrument/position exclusion sources.
+- ASIC2 history/seed gate:
+  - ETORO parity windows requiring older dates still depend on ASIC2 history seeding policy and available source history.
+- Optional SQL Server baseline gate:
+  - cross-system anti-join/reconciliation placeholders require a normalized SQL Server baseline source.
+  - no baseline source should be invented; keep checks gated until provided.

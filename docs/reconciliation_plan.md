@@ -8,12 +8,15 @@ This plan defines reconciliation scope and execution order for migration validat
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
-- Step 13B1 ETORO scaffold/documentation/output-contract package for:
+- Step 13 ETORO staged package for:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+  - Step 13B1: scaffold/output contract
+  - Step 13B2: gated projection template
+  - Step 13B3: read-only validation/reconciliation package
 
 ## Out of scope for this step
 
-- Step 13B2/13B3 ETORO projection and validation logic
+- Active/ungated Step 13B2 ETORO projection execution
 - `MIFID2_Hedge_Report`
 - `MIFID2_NPD_TRAX`
 - File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload/response handling)
@@ -198,7 +201,66 @@ Step 13 implementation is split as:
 - Step 13B2:
   - ETORO projection implementation from ASIC2-compatible source and ETORO metadata/enrichment joins.
 - Step 13B3:
-  - ETORO read-only validation/reconciliation package.
+  - ETORO read-only validation/reconciliation package:
+    - `databricks/sql/08_outputs/07_mifid2_etoro_report_validation.sql`
+
+## Step 13B3 reconciliation coverage
+
+1. Schema parity:
+   - ETORO table presence/width and required-column contract checks (name/order/type/nullability where available).
+2. Row counts:
+   - by `ReportDate`, `RegulationReportID`, `RegulationID`, `OpenORClose`, `RegChange`.
+3. Duplicate checks:
+   - uniqueness intent (`ReportDate`, `RegulationReportID`, `TransactionReferenceNumber`, `BackReportingIndicator`).
+   - optional `PositionID`/`OpenORClose` duplicate lens.
+4. Required-null checks:
+   - ETORO required fields (`RegulationReportID`, `DateID`, `ReportDate`, `CID`, `RegulationID`, `PositionID`, `InstrumentID`, `OpenORClose`, `BuyORSell`, `TransactionReferenceNumber`, `TradingDateTime`, `Quantity`, `Price`, `PriceCurrency`, `RegChange`).
+5. Source-to-output reconciliation:
+   - source/output count checks from `bi_output_regtechops_vw_mifid2_asic_transactions`.
+   - anti-joins on `DateID`, `ReportDate`, `PositionID`, `OpenORClose`.
+   - `RegChange` count comparison.
+6. OpenTime/TradingDateTime checks:
+   - source OpenTime parseability.
+   - output `TradingDateTime` format (`yyyy-MM-ddTHH:mm:ssZ`).
+   - source-to-output formatted timestamp checks.
+7. Quantity/Price parity:
+   - aggregate and row-level checks (`Volume` vs `Quantity`, `OpenPrice` vs `Price`).
+   - conditional StaticPosition fallback impact remains gated.
+8. Instrument/dictionary/exclusion checks:
+   - SCD/full-description/special-char/dictionary coverage.
+   - `AssetClass` coverage and `InstrumentClassification` hard-gate posture.
+   - report-scoped exclusion checks for `table_name = '[MIFID2_ETORO_Report]'`.
+9. History/seed checks:
+   - source/output date-window coverage.
+   - optional SQL Server baseline reconciliation placeholders.
+
+## Step 13B3 execution order once gates pass
+
+1. Confirm Step 13B2 projection activation and Step 8 compatibility-source readiness for `{{report_date}}`.
+2. Run schema parity and required-column checks.
+3. Run ETORO row-count, duplicate, and required-null checks.
+4. Run source-to-output reconciliation and RegChange distribution checks.
+5. Run OpenTime/TradingDateTime parity checks.
+6. Run Quantity/Price aggregate and row-level parity checks.
+7. Run instrument/dictionary coverage and exclusion-scope checks.
+8. Run history/seed window checks and optional SQL Server baseline comparisons if baseline source is available.
+9. Record deltas and gate outcomes in:
+   - `docs/known_differences.md`
+   - `docs/unresolved_dependencies.md`
+   - `docs/history_seed_requirements.md`
+
+## Planned evidence output for Step 13B3
+
+- SQL result sets from:
+  - `databricks/sql/08_outputs/07_mifid2_etoro_report_validation.sql`
+- Supporting ETORO projection/source references:
+  - `databricks/sql/08_outputs/07_mifid2_etoro_report.sql`
+  - `databricks/sql/06_asic2_subset/05_mifid_asic_compatibility_view.sql`
+- Updated gate/delta documentation:
+  - `docs/mifid2_etoro_report_output_analysis.md`
+  - `docs/known_differences.md`
+  - `docs/unresolved_dependencies.md`
+  - `docs/history_seed_requirements.md`
 
 ## Step 13 gate prerequisites before ETORO activation
 
@@ -216,8 +278,9 @@ Step 13 implementation is split as:
 - Exact `InstrumentClassification` mapping parity from `SP_MIFID2_ETORO_Report`.
 - ASIC2 history seed coverage for requested ETORO reconciliation windows.
 
-## Step 13B1 stop condition
+## Step 13 stop conditions
 
 - Step 13B1 ends when ETORO scaffold and dependency gates are authored and documented.
 - Activation/execution of ETORO projection begins in Step 13B2 only.
-- ETORO validation package implementation begins in Step 13B3 only.
+- Step 13B3 ends when the ETORO read-only validation/reconciliation package is authored and documented.
+- Runtime execution evidence remains gated until Step 13B2 activation and Step 8 compatibility-source gates pass.

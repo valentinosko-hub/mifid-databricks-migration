@@ -275,6 +275,8 @@ Step 13 note (`MIFID2_ETORO_Report`):
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
 - Step 13B2 projection template artifact:
   - `databricks/sql/08_outputs/07_mifid2_etoro_report.sql`
+- Step 13B3 validation/reconciliation artifact:
+  - `databricks/sql/08_outputs/07_mifid2_etoro_report_validation.sql`
 - Legacy `dbo.ASIC_Transactions` is intentionally replaced by Step 8 ASIC2 compatibility objects:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_asic2_transactions`
   - `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`

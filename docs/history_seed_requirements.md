@@ -356,6 +356,31 @@ For a requested Step 13 `ReportDate`, ensure:
 - Historical gaps in instrument metadata conversion/dictionary sources can alter ETORO instrument/currency fields.
 - `Reg_DWH_StaticPosition` fallback remains conditional; if fallback impact appears only in historical windows, OpenPrice parity can drift unless explicitly profiled.
 
+## Step 13B3-specific seed notes (ETORO validation/reconciliation)
+
+Step 13B3 validates ETORO output as read-only SQL and does not create synthetic historical rows.
+
+Additional Step 13B3 seed dependencies:
+
+- Validation source boundary:
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+  - both must cover the requested `ReportDate` windows.
+- Exclusion-source history boundary for ETORO scope checks:
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
+  - use report-scoped filters (`table_name = '[MIFID2_ETORO_Report]'`) for instruments/positions.
+- Instrument/dictionary enrichment history boundary:
+  - report-date-valid windows for SCD/full-description/conversion/dictionary dependencies are required for parity evidence.
+
+Step 13B3 historical caution:
+
+- If Step 8 compatibility history is not seeded for older dates, Step 13B3 source-to-output reconciliation cannot prove parity for those dates.
+- SQL Server baseline parity remains optional and gated:
+  - do not invent a baseline source or synthetic baseline rows;
+  - run baseline anti-join checks only when a normalized baseline dataset is provided.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.
