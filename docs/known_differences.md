@@ -292,6 +292,25 @@ This document tracks known or intentional differences for the currently implemen
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
   - no production deployment behavior
 
+## Step 12B4 implementation differences and cautions
+
+- `databricks/sql/08_outputs/06_mifid2_report_final_reconciliation.sql` is authored as a read-only validation package:
+  - SELECT-only reconciliation queries
+  - no activation/business-write logic
+  - no table creation or mutation statements
+- Step 12B4 consolidates validation evidence across B1/B2/B3 validation artifacts and does not alter prior-step business logic.
+- Source-to-output reconciliation in B4 remains placeholder-gated:
+  - run only after `{{trades_final_source}}` is available/materialized.
+- Removed-partials candidate-vs-output reconciliation remains placeholder-gated:
+  - run only after `{{removed_partial_candidates_source}}` is available/materialized.
+- Split/GBX audit validation in B4 remains gated:
+  - do not treat split/GBX parity as proven until audit fields are materialized.
+- Exact branch-specific `InstrumentClassification` / CFI parity remains a hard gate:
+  - B4 preserves this gating and does not convert hard-gated logic into active parity logic.
+- B4 includes no file-delivery/upload/deployment logic:
+  - no CSV/7z/SFTP/TRAX/Cappitech/response handling
+  - no production deployment behavior
+
 ## Reference-only policy
 
 - NOC artifacts and old Databricks attempt remain reference-only discovery sources and are not authoritative implementation logic.

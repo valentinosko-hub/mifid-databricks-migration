@@ -139,7 +139,7 @@ This document captures Step 12B1 scaffolding, Step 12B2 intermediate position/tr
 - Validation foundation:
   - `databricks/sql/08_outputs/03_mifid2_report_validation_foundation.sql`
 
-Step 12B1 stops here by design. Step 12B2, Step 12B3, and Step 12B4 remain TODO-scaffolded only.
+Step 12B1 stops at scaffolding by design. Step 12B2 and Step 12B3 templates are now authored, and Step 12B4 read-only reconciliation packaging is authored separately.
 
 ## Step 12B2 scope and boundary
 
@@ -397,3 +397,64 @@ Removed partials finalization behavior:
 - exclusion checks (instruments/positions and optional mapped `MIFID2_Instruments_To_Exclude`)
 - removed-partials candidate-to-output reconciliation templates
 - aggregate checks (quantity/price/economic fields by branch)
+
+## Step 12B4 scope and deliverable
+
+Step 12B4 introduces a read-only final validation/reconciliation package:
+
+- `databricks/sql/08_outputs/06_mifid2_report_final_reconciliation.sql`
+
+Step 12B4 does not implement new report logic and does not modify Step 12B1/B2/B3 logic boundaries:
+
+- no schema/business-logic rewrite
+- no intermediate population rewrite
+- no branch projection rewrite
+- no activation/write operations in B4 SQL (SELECT-only validation)
+
+## Step 12B4 consolidation boundary
+
+Step 12B4 consolidates validation evidence across:
+
+- Step 12B1 schema contract baseline (`03_mifid2_report_validation_foundation.sql`)
+- Step 12B2 intermediate/boundary checks (`04_mifid2_report_position_population_validation.sql`)
+- Step 12B3 final-branch checks (`05_mifid2_report_branch_projection_validation.sql`)
+
+Step 12B4 adds final reconciliation packaging for:
+
+- schema summary checks
+- output row-count and branch-count reconciliation
+- source-to-output reconciliation (gated by `{{trades_final_source}}`)
+- removed-partials candidate-vs-output reconciliation (gated by `{{removed_partial_candidates_source}}`)
+- final duplicate/null/aggregate/UpdateDate checks
+
+## Step 12B4 required evidence for final readiness
+
+Final Step 12 module readiness requires accepted Step 12B4 evidence for:
+
+- schema parity summary (with detailed schema parity still anchored in B1/B3 validation files)
+- row counts (`ReportDate`, `RegulationReportID`, `RegulationID`, `RegChange`, branch)
+- duplicate business-key checks
+- required-null checks
+- source-to-output reconciliation
+- removed-partials reconciliation
+- instrument/futures/exclusion checks
+- quantity/price/rate aggregate checks
+- `UpdateDate` nullable/no-default behavior validation
+
+## Step 12B4 gates that remain optional/non-executable until profiling passes
+
+Step 12B4 keeps placeholder-dependent sections gated/commented where required:
+
+- `{{trades_final_source}}`
+- `{{report_metadata_source}}`
+- `{{removed_partial_candidates_source}}`
+- `{{mifid2_instruments_to_exclude_source}}`
+- `{{isin_for_instrumentid_341_source}}`
+
+Carried-forward activation gates remain explicit in Step 12B4:
+
+- FuturesMetaData profiling/required columns
+- exact branch-specific `InstrumentClassification` / CFI mapping hard gate
+- optional B2 checkpoint tables
+- split/GBX audit-field materialization gate
+- upstream Step 5/6/9/10/11 activation gates

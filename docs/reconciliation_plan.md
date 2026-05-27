@@ -4,7 +4,7 @@ This plan defines reconciliation scope and execution order for migration validat
 
 ## Current focus
 
-- Step 12B3 final branch projection templates (starting from Step 12B2 boundary):
+- Step 12B4 final validation/reconciliation package for:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
@@ -141,3 +141,46 @@ This plan defines reconciliation scope and execution order for migration validat
 
 - Step 12B3 ends when final branch templates, removed-partials finalization templates, and Step 12B3 validation SQL are authored and documented as gated artifacts.
 - Activation remains blocked until upstream dependency gates are resolved and validation evidence is accepted.
+
+## Step 12B4 reconciliation package
+
+Step 12B4 introduces read-only final validation/reconciliation packaging only:
+
+- `databricks/sql/08_outputs/06_mifid2_report_final_reconciliation.sql`
+
+Step 12B4 consolidates checks across Step 12B1/B2/B3 validation artifacts and does not implement any new report business logic.
+
+## Step 12B4 execution order
+
+1. Run schema checks.
+2. Run final output row counts.
+3. Run branch counts.
+4. Run duplicate/null checks.
+5. Run source-to-output reconciliation.
+6. Run removed partial reconciliation.
+7. Run instrument/futures/exclusion checks.
+8. Run aggregate checks.
+9. Review gated checks that could not run due to missing materialized sources.
+
+## Step 12B4 gated checks
+
+Keep these sections optional/gated in B4 until dependencies are available:
+
+- `{{trades_final_source}}` source-to-output reconciliation
+- `{{report_metadata_source}}` IsFuture-driven futures coverage
+- `{{removed_partial_candidates_source}}` candidate-to-output removed-partials reconciliation
+- `{{mifid2_instruments_to_exclude_source}}` mapped exclusion parity check
+- `{{isin_for_instrumentid_341_source}}` override-source profile checks
+- split/GBX audit-field checks (`AmountRatioSplit`, `IsSplitAdjusted`, `IsGBX`, before/after GBX rates)
+
+## Planned evidence output for Step 12B4
+
+- SQL result sets from:
+  - `databricks/sql/08_outputs/06_mifid2_report_final_reconciliation.sql`
+- Carry-forward schema/parity references:
+  - `databricks/sql/08_outputs/03_mifid2_report_validation_foundation.sql`
+  - `databricks/sql/08_outputs/04_mifid2_report_position_population_validation.sql`
+  - `databricks/sql/08_outputs/05_mifid2_report_branch_projection_validation.sql`
+- Updated gate/delta documentation:
+  - `docs/known_differences.md`
+  - `docs/unresolved_dependencies.md`

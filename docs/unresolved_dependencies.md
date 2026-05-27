@@ -128,3 +128,36 @@ The following items remain explicitly unresolved for Step 12B3 activation of fin
   - no out-of-scope CTE reference is allowed.
 - Step 5/6 carry-forward gates:
   - unresolved price/split/movement contracts continue to block Step 12B3 execution even though templates are authored.
+
+## Step 12B4 carry-forward unresolved dependencies
+
+The following items remain explicitly unresolved for Step 12B4 final reconciliation evidence signoff:
+
+- `{{trades_final_source}}` availability gate:
+  - source-to-output reconciliation checks in Step 12B4 remain optional until this source is materialized/validated.
+- `{{report_metadata_source}}` availability gate:
+  - IsFuture-driven futures coverage checks remain optional until metadata source contract is validated.
+- `{{removed_partial_candidates_source}}` availability gate:
+  - candidate-vs-output removed-partials reconciliation remains optional until source is materialized/validated.
+- FuturesMetaData profiling gate:
+  - `main.trading.bronze_etoro_trade_futuresmetadata`
+  - required columns still required for final signoff: `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`.
+- InstrumentClassification/CFI hard gate:
+  - exact `SP_MIFID_Report` branch-specific mappings are still required for full parity signoff.
+- InstrumentID 341 override source gate:
+  - `{{isin_for_instrumentid_341_source}}` remains required-column profiling pending (`InstrumentID`, `OverrideISIN`, optional effective/report date).
+- Optional mapped exclusion source gate:
+  - `{{mifid2_instruments_to_exclude_source}}` remains unresolved; exclusion parity check stays optional until mapped source confirmation.
+- Optional Step 12B2 checkpoint gate:
+  - checkpoint-dependent validations remain optional until optional B2 checkpoint tables are materialized with full schemas.
+- Split/GBX audit-field gate:
+  - split/GBX parity checks remain optional until audit fields are materialized:
+    - `AmountRatioSplit`
+    - `IsSplitAdjusted`
+    - `IsGBX`
+    - `InitForexRateBeforeGBX`
+    - `InitForexRateAfterGBX`
+    - `EndForexRateBeforeGBX`
+    - `EndForexRateAfterGBX`
+- Upstream activation gates:
+  - Step 5/6/9/10/11 activation gates remain blocking for final Step 12 report-module reconciliation signoff.
