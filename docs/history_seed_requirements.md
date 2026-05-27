@@ -428,6 +428,7 @@ For a requested Step 14 `ReportDate`, ensure:
 
 - Phase-1 default remains validation-window seeding only.
 - Step 14B1 is scaffold-only and does not execute report DML.
+- Step 14B2 is source-preparation-only and does not execute final output DML.
 - Do not block Step 14B1 authoring on full historical backfill.
 - If older hedge windows are requested later:
   1. expand hedge execution staging windows,
@@ -449,6 +450,28 @@ For a requested Step 14 `ReportDate`, ensure:
   - missing historical exclusion entries can change hedge output composition for older dates.
 - Transaction-reference risk:
   - reference construction uses normalized provider execution id and row ordering; unstable ordering inputs can create cross-run drift without deterministic controls.
+
+## Step 14B2-specific seed notes (hedge source preparation)
+
+Step 14B2 source-preparation templates consume source-day windows and do not create synthetic final output rows.
+
+Additional Step 14B2 seed dependencies:
+
+- Branch source boundary:
+  - `bi_output_regtechops_mifid2_ext_hedgeexecutionlog` (EU/EU-UK candidates),
+  - `bi_output_regtechops_reg_ext_hedgeexecutionlog` + `bi_output_regtechops_reg_ext_hedgehbcorderlog` (UK candidates).
+- Liquidity validity boundary:
+  - `bi_output_regtechops_reg_ext_liquidityaccountid` + `bi_output_regtechops_reg_liquidtyacount_scd` coverage for `ExecutionTime` windows.
+- Enrichment history boundary:
+  - instrument SCD/full-description/special-char and dictionary sources for report-date joins.
+  - EDNF/IB mapping coverage sources for candidate instruments.
+- Exclusion history boundary:
+  - report-scoped exclusion rows where `table_name = '[MIFID2_Hedge_Report]'`.
+
+Step 14B2 historical caution:
+
+- If source-day execution windows are incomplete, branch source-preparation counts can drift before final projection logic is even applied.
+- If exclusion or mapping history is incomplete, Step 14B2 validation can under-report future Step 14B3 branch-level parity issues.
 
 ## Out of scope
 

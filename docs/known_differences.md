@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-14B1)
+# Known Differences (Current Safe + Steps 5B1-14B2)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -27,6 +27,9 @@ This document tracks known or intentional differences for the currently implemen
 - MIFID2_Hedge_Report scaffold/output-contract/dependency gates (Step 14B1):
   - Step 14B1 creates scaffold SQL and documentation only.
   - No active hedge projection/load logic is enabled.
+- MIFID2_Hedge_Report source-preparation templates (Step 14B2):
+  - Step 14B2 adds gated branch-source and enrichment CTE templates plus SELECT-only validation templates.
+  - It does not enable final projection/load logic.
 
 ## Scope and non-goals in this step
 
@@ -44,7 +47,7 @@ This document tracks known or intentional differences for the currently implemen
 - Step 10 includes only `MIFID2_Customer` profiling/gating; no active final-output DDL is enabled yet.
 - Step 11 includes only `MIFID2_RegChange_Customer` profiling/gating; no active final-output DDL is enabled yet.
 - Step 13B3 adds ETORO validation/reconciliation SQL as read-only SELECT templates only; it does not introduce active ETORO load execution.
-- Step 14B1 includes hedge scaffold-only authoring; no active EU/EU-UK/UK report implementation.
+- Step 14B2 includes hedge source-preparation authoring only; no active EU/EU-UK/UK final report implementation.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
 - No CSV/7z/SFTP/Cappitech/TRAX upload/response handling.
 - No production deployment to `main.regtech`.
@@ -388,6 +391,26 @@ This document tracks known or intentional differences for the currently implemen
 - Exclusion semantics are explicitly report-scoped and row-level:
   - `table_name = '[MIFID2_Hedge_Report]'` is not interpreted as full-table suppression.
 - Step 14B1 keeps file-delivery/upload/response/deployment logic out of scope:
+  - no CSV/7z/SFTP/TRAX/Cappitech/response handling
+  - no production deployment behavior
+
+## Step 14B2 implementation differences and cautions
+
+- `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation.sql` is authored as gated source-preparation SQL only:
+  - includes `run_parameters`, branch-source CTEs (`EU`, `EU-UK`, `UK`), and enrichment CTEs (`liquidity_scd_enriched`, `ednf_ib_enriched`, `instrument_metadata_enriched`).
+  - includes exclusion-source preparation (`source_exclusion_candidates`) with report-scoped semantics.
+  - does not include final `MIFID2_Hedge_Report` projection DML.
+- `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation_validation.sql` is authored as read-only validation SQL:
+  - source counts/date-window/filter checks,
+  - required-column checks,
+  - liquidity/LEI/SCD, EDNF/IB, instrument/dictionary, and exclusion-source checks,
+  - expected-vs-prepared branch count checks.
+- Transaction reference behavior in Step 14B2:
+  - source fields are prepared only (`ProviderExecID` normalization, `RowID`, report-date token, fallback inputs),
+  - final parity construction remains hard-gated for Step 14B3.
+- RecordID behavior in Step 14B2:
+  - remains unresolved and gated; no final strategy implementation is enabled.
+- Step 14B2 keeps file-delivery/upload/response/deployment logic out of scope:
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
   - no production deployment behavior
 

@@ -1,6 +1,6 @@
-# Step 14A/14B1 - MIFID2 Hedge Report Output Analysis
+# Step 14A/14B1/14B2 - MIFID2 Hedge Report Output Analysis
 
-This document captures the Step 14 analysis baseline and Step 14B1 scaffolding boundary for `MIFID2_Hedge_Report`.
+This document captures the Step 14 analysis baseline, Step 14B1 scaffolding boundary, and Step 14B2 source-preparation boundary for `MIFID2_Hedge_Report`.
 
 ## Scope (Step 14B1)
 
@@ -12,6 +12,20 @@ This document captures the Step 14 analysis baseline and Step 14B1 scaffolding b
 - Author scaffold SQL artifact:
   - `databricks/sql/08_outputs/08_mifid2_hedge_report_scaffolding.sql`
 
+## Scope (Step 14B2)
+
+- Author gated source-preparation templates only (no final output load) for:
+  - EU branch source candidates
+  - EU-UK branch source candidates
+  - UK branch source candidates
+  - liquidity/LEI/SCD enrichment
+  - instrument/FIRDS/dictionary enrichment
+  - EDNF/IB enrichment
+  - exclusion-source preparation
+- Author Step 14B2 SQL artifacts:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation.sql`
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation_validation.sql`
+
 ## Out of scope for Step 14B1
 
 - Actual EU branch projection.
@@ -19,6 +33,16 @@ This document captures the Step 14 analysis baseline and Step 14B1 scaffolding b
 - Actual UK branch projection.
 - Final `DELETE`/`INSERT` report load logic.
 - Final `RecordID` implementation behavior.
+- `MIFID2_NPD_TRAX`.
+- File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload, response handling).
+- Production deployment/orchestration activation.
+
+## Out of scope for Step 14B2
+
+- Final `MIFID2_Hedge_Report` projection rows.
+- Active/ungated report-date `DELETE`/`INSERT` logic.
+- Final `TransactionReferenceNumber` parity closure.
+- Final `RecordID` strategy implementation.
 - `MIFID2_NPD_TRAX`.
 - File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload, response handling).
 - Production deployment/orchestration activation.
@@ -130,6 +154,15 @@ Both SQL Server hedge procedures derive `TransactionReferenceNumber` from:
 
 Step 14B1 documents this behavior only. Final implementation is deferred to Step 14B2/14B3.
 
+Step 14B2 prepares required source fields only:
+
+- normalized `ProviderExecID`,
+- `RowID`,
+- report-date token,
+- liquidity provider fallback inputs.
+
+Final parity logic remains hard-gated for Step 14B3.
+
 ## Output schema summary
 
 - DDL contract source: `MIFID2_Hedge_Report.sql`
@@ -168,12 +201,55 @@ Non-deterministic identity behavior is not accepted by default in Step 14B1.
 - Transaction-reference derivation parity signoff.
 - RecordID strategy signoff.
 
+## Step 14B2 source preparation sections
+
+Step 14B2 source-preparation template includes these logical sections:
+
+1. `run_parameters`
+   - `{{report_date}}`, `start_ts`, `end_ts`.
+2. `eu_execution_source`
+   - from `bi_output_regtechops_mifid2_ext_hedgeexecutionlog`, filtered to EU-flow rows (`ExecutionFlow = 'EU'`), `RegulationReportID = 1`, `rowSource = 'EU'`.
+3. `eu_uk_execution_source`
+   - from `bi_output_regtechops_mifid2_ext_hedgeexecutionlog`, filtered to UK-flow real-stock rows (`ExecutionFlow = 'UK' AND IsReal = 1`), `RegulationReportID = 1`, `rowSource = 'EU-UK'`.
+4. `uk_execution_source`
+   - from `bi_output_regtechops_reg_ext_hedgeexecutionlog` with HBC order enrichment, UK entity filtering, and FCA MiFID eligibility, `RegulationReportID = 2`, `rowSource = 'UK'`.
+5. `liquidity_scd_enriched`
+   - joins `bi_output_regtechops_reg_ext_liquidityaccountid` and `bi_output_regtechops_reg_liquidtyacount_scd` with `ExecutionTime` validity-window logic.
+6. `ednf_ib_enriched`
+   - prepares EDNF/IB join coverage fields (`ContractDesc`, `ContractLongName`, `IB_UnderlyingSymbol`, mapped `InstrumentID`).
+7. `instrument_metadata_enriched`
+   - joins instrument SCD/full-description, special-character conversion, dictionary currency, and dictionary currency type.
+8. `source_exclusion_candidates`
+   - prepares report-scoped exclusion candidates for instrument and generated position/transaction-reference keys.
+
+## Step 14B2 exclusion-source semantics
+
+- `table_name = '[MIFID2_Hedge_Report]'` remains row-level report scoping only.
+- Source preparation in Step 14B2 does not interpret this marker as full-table suppression.
+- Final exclusion application semantics are deferred to Step 14B3 projection implementation.
+
+## Step 14B2 validation coverage
+
+Step 14B2 validation SQL (`08_mifid2_hedge_report_source_preparation_validation.sql`) covers:
+
+- source row counts by branch (`EU`, `EU-UK`, `UK`),
+- date-window checks (`ExecutionTime >= report_date`, `< report_date + 1 day`),
+- source filter checks (`Units > 0`, `Success = 1`, UK `EMSOrderID IS NULL`, UK entity, FCA MiFID eligibility),
+- required-column contract checks across hedge/liquidity/SCD/HBC/EDNF/IB/instrument/dictionary dependencies,
+- liquidity/LEI/SCD validity coverage checks,
+- EDNF/IB join coverage and duplicate mapping checks,
+- instrument/dictionary/special-char enrichment coverage checks,
+- exclusion-source scope checks for `[MIFID2_Hedge_Report]`,
+- source-to-branch-preparation expected-vs-prepared count checks,
+- OPTIONAL/gated checkpoint validations only when optional checkpoint tables are explicitly materialized.
+
 ## Planned implementation split
 
 - Step 14B1 (this step):
   - hedge output analysis + scaffold + output contract + gate documentation.
 - Step 14B2:
   - source preparation and branch source CTE authoring (still gated).
+  - no final branch projection or final report load execution.
 - Step 14B3:
   - final EU/EU-UK/UK projection template and report-date load template (gated until dependencies pass).
 - Step 14B4:

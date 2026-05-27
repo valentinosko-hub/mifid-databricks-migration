@@ -16,6 +16,7 @@ This plan defines reconciliation scope and execution order for migration validat
 - Step 14 Hedge staged package for:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
   - Step 14B1: scaffold/output contract/dependency gates
+  - Step 14B2: source-preparation templates + SELECT-only source-preparation validation
 
 ## Out of scope for this step
 
@@ -305,6 +306,46 @@ Step 14 implementation is split as:
 
 Hedge report validation is intentionally deferred to Step 14B4.
 
+## Step 14B2 source-preparation validation evidence requirements
+
+Step 14B2 evidence is read-only and limited to source-preparation scope:
+
+1. Source row counts:
+   - EU source rows, EU-UK source rows, UK source rows.
+2. Source date-window checks:
+   - `ExecutionTime >= report_date` and `< report_date + 1 day` for EU/UK source families.
+3. Source filter checks:
+   - `Units > 0`, `Success = 1`,
+   - UK `EMSOrderID IS NULL`,
+   - EU/EU-UK execution-flow conditions,
+   - UK entity and FCA MiFID eligibility path.
+4. Required-column/source-contract checks:
+   - hedge execution, liquidity account/SCD, HBC order, EDNF/IB, instrument/dictionary dependencies.
+5. Coverage checks:
+   - liquidity account and LEI coverage,
+   - SCD validity-window coverage at `ExecutionTime`,
+   - EDNF/IB mapping and join coverage,
+   - instrument/dictionary/special-char coverage.
+6. Exclusion-source scope checks:
+   - instrument and position/transaction-reference exclusion sources with `table_name = '[MIFID2_Hedge_Report]'`,
+   - explicit evidence that scope is row-level report filtering, not full-table suppression.
+7. Source-to-branch-preparation checks:
+   - expected branch source rows versus prepared EU / EU-UK / UK counts.
+8. Optional checkpoint checks (gated):
+   - run only if optional checkpoint objects are explicitly materialized with full schemas.
+
+## Step 14B2 planned evidence output
+
+- SQL result sets from:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation_validation.sql`
+- Supporting source-preparation artifact:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation.sql`
+- Updated gate/delta documentation:
+  - `docs/mifid2_hedge_report_output_analysis.md`
+  - `docs/unresolved_dependencies.md`
+  - `docs/known_differences.md`
+  - `docs/history_seed_requirements.md`
+
 ## Step 14B4 reconciliation coverage (planned)
 
 1. Schema parity:
@@ -335,7 +376,10 @@ Hedge report validation is intentionally deferred to Step 14B4.
 - SQL result sets from planned Step 14 hedge validation package (to be authored in Step 14B4).
 - Supporting hedge source/projection artifacts:
   - `databricks/sql/08_outputs/08_mifid2_hedge_report_scaffolding.sql`
-  - Step 14B2/14B3 hedge SQL artifacts (to be authored).
+  - Step 14B2 hedge source-preparation artifacts:
+    - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation.sql`
+    - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation_validation.sql`
+  - Step 14B3 hedge final projection/load artifacts (planned).
 - Updated gate/delta documentation:
   - `docs/mifid2_hedge_report_output_analysis.md`
   - `docs/known_differences.md`

@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-14B1 - Unresolved Dependencies
+# Phase 1D / Steps 5-14B2 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -11,6 +11,8 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 | `Reg_Ext_CurrencyPriceMaxDateWithSplit` source selection | Two candidate mappings are documented and both are plausible | Price/split parity differences in MiFID and movement outputs | Choose source after candidate comparison checks (columns, run-window row counts, min/max dates, duplicate `PriceRateID`, `InstrumentID` coverage, freshness) | Yes (for full parity) |
 | `Reg_Ext_T_PriceCandle60Min` source shape confirmation | Candidate mapping exists, but required columns are not yet runtime-validated in target environment | Latest-price extraction may fail if source schema differs | Confirm `InstrumentID`, `BidLast`, `AskLast`, `DateFrom` via profiling before execution | Yes |
 | `MIFID2_Hedge_Report.RecordID` identity behavior | SQL Server uses `IDENTITY(100000001,1)` but Databricks has no direct equivalent behavior by default | Record sequencing drift and potential downstream mismatch | Decide deterministic generation strategy and document it | Yes |
+| Step 14 generated transaction-reference parity (`ProviderExecID` + `RowID` + report-date + fallback) | Step 14B2 prepares source fields, but exact SQL Server parity logic is not yet fully closed in final projection | Exclusion-key matching and uniqueness behavior can drift between SQL Server and Databricks | Keep Step 14B2 as source-prep only and finalize transaction-reference parity in Step 14B3 with dedicated validation evidence | Yes |
+| Step 14 report-scoped exclusion parity (`table_name = '[MIFID2_Hedge_Report]'`) | Step 14B2 prepares exclusion candidates, but final row-level application in projections is deferred | Incorrect interpretation could produce full-table suppression or missed row-level exclusions | Keep semantics hard-gated and apply only row-level scoped filtering in Step 14B3 projection templates | Yes |
 | ASIC2 replacement for legacy `ASIC_Transactions` | `SP_MIFID2_ETORO_Report` still references legacy object shape | MiFID ETORO output may not match intended ASIC2 source-of-truth | Keep Step 8 compatibility projection/view gated until validation SQL proves field-contract parity | Yes |
 | `Trade.PositionForExternalUse` and `History.PositionForExternalUse` source contract for ASIC2 ext open positions | Step 8 expects these as primary ASIC2 open-position inputs but runtime column/access profiling is still pending | `ASIC2_ext_OpenPositions_PositionsReport` may fail or drift if source shapes differ from package assumptions | Run `databricks/sql/06_asic2_subset/01_asic2_source_profiling.sql` and confirm required columns before un-gating Step 8 ext staging SQL | Yes |
 | `History.BackOfficeCustomer` / customer-history source contract for ASIC2 customer profile | ASIC2 customer-position shaping needs historical customer/regulation enrichment, but final source-column contract is not confirmed | `ASIC2_Customer_PositionReport` parity can diverge and propagate into `ASIC2_Transactions` | Confirm source mapping and required-column contract before un-gating customer-profile staging template | Yes |
@@ -107,6 +109,7 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 32. Clear Step 14 hedge source gates for `MIFID2_ext_HedgeExecutionLog`, `Reg_Ext_HedgeExecutionLog`, and `Reg_Ext_HedgeHBCOrderLog`.
 33. Validate Step 14 liquidity-account SCD and LEI coverage readiness for hedge report-date windows.
 34. Validate Step 14 EDNF/IB mapping coverage and report-scoped exclusion semantics for hedge branches.
+35. Finalize Step 14 generated transaction-reference parity and exclusion-key application against report-scoped position/transaction-reference exclusions.
 
 ## Step 12B3 carry-forward unresolved dependencies
 
@@ -223,7 +226,7 @@ The following items remain explicitly unresolved for Step 13B3 ETORO validation/
   - cross-system anti-join/reconciliation placeholders require a normalized SQL Server baseline source.
   - no baseline source should be invented; keep checks gated until provided.
 
-## Step 14B1 carry-forward unresolved dependencies
+## Step 14B2 carry-forward unresolved dependencies
 
 The following items remain explicitly unresolved for Step 14 hedge activation and parity signoff:
 
@@ -255,3 +258,6 @@ The following items remain explicitly unresolved for Step 14 hedge activation an
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
   - report-scoped semantics (`table_name = '[MIFID2_Hedge_Report]'`) must remain row-level and not full-table suppression.
+- Generated transaction-reference parity gate:
+  - Step 14B2 prepares `ProviderExecID` normalization + `RowID` + report-date + liquidity-provider fallback source fields only.
+  - final reference construction and exclusion-key parity remains deferred to Step 14B3.

@@ -306,6 +306,9 @@ Step 14 note (`MIFID2_Hedge_Report`):
 
 - Step 14B1 scaffold artifact:
   - `databricks/sql/08_outputs/08_mifid2_hedge_report_scaffolding.sql`
+- Step 14B2 source-preparation artifacts:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation.sql`
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation_validation.sql`
 - Step 14 target object is:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
 - Step 14 direct dependency mappings represented in scaffold:
@@ -329,12 +332,26 @@ Step 14 note (`MIFID2_Hedge_Report`):
   - `main.general.gold_ib_u1059976_open_positions_all`
   - `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro`
   - `main.regtech_ops_stg.bi_output_regtechops_vw_ednf_to_instrumentid`
+- Step 14B2 source-preparation CTE contract:
+  - `run_parameters`
+  - `eu_execution_source`
+  - `eu_uk_execution_source`
+  - `uk_execution_source`
+  - `liquidity_scd_enriched`
+  - `ednf_ib_enriched`
+  - `instrument_metadata_enriched`
+  - `source_exclusion_candidates`
+- Step 14B2 transaction-reference policy:
+  - source fields are prepared (`ProviderExecID` normalization, `RowID`, report-date token, liquidity-provider fallback inputs),
+  - final parity construction is hard-gated and deferred to Step 14B3.
 - Step 14 exclusion mappings:
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
   - scope rule: `table_name = '[MIFID2_Hedge_Report]'` is row-level report scoping, not full-table suppression.
 - Step 14 RecordID policy:
   - SQL Server `IDENTITY(100000001,1)` behavior remains unresolved and is explicitly carried as an activation gate.
+- Step 14B2 remains source-preparation only:
+  - no final branch projection and no final `MIFID2_Hedge_Report` DML.
 
 ## Mappings not to use (legacy/reference-only)
 
