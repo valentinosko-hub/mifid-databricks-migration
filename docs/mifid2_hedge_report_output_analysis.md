@@ -1,6 +1,6 @@
-# Step 14A/14B1/14B2 - MIFID2 Hedge Report Output Analysis
+# Step 14A/14B1/14B2/14B3 - MIFID2 Hedge Report Output Analysis
 
-This document captures the Step 14 analysis baseline, Step 14B1 scaffolding boundary, and Step 14B2 source-preparation boundary for `MIFID2_Hedge_Report`.
+This document captures the Step 14 analysis baseline, Step 14B1 scaffolding boundary, Step 14B2 source-preparation boundary, and Step 14B3 final projection-template boundary for `MIFID2_Hedge_Report`.
 
 ## Scope (Step 14B1)
 
@@ -26,6 +26,15 @@ This document captures the Step 14 analysis baseline, Step 14B1 scaffolding boun
   - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation.sql`
   - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation_validation.sql`
 
+## Scope (Step 14B3)
+
+- Author gated final branch projection/load template for:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
+- Author Step 14B3 SQL artifact:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report.sql`
+- Include EU / EU-UK / UK branch projection templates and explicit insert-column contract.
+- Keep final report-date `DELETE` / `INSERT` statements commented/gated until dependency approval.
+
 ## Out of scope for Step 14B1
 
 - Actual EU branch projection.
@@ -43,6 +52,14 @@ This document captures the Step 14 analysis baseline, Step 14B1 scaffolding boun
 - Active/ungated report-date `DELETE`/`INSERT` logic.
 - Final `TransactionReferenceNumber` parity closure.
 - Final `RecordID` strategy implementation.
+- `MIFID2_NPD_TRAX`.
+- File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload, response handling).
+- Production deployment/orchestration activation.
+
+## Out of scope for Step 14B3
+
+- Active/ungated execution of final report-date `DELETE` / `INSERT`.
+- Step 14B4 validation/reconciliation execution evidence.
 - `MIFID2_NPD_TRAX`.
 - File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload, response handling).
 - Production deployment/orchestration activation.
@@ -243,6 +260,67 @@ Step 14B2 validation SQL (`08_mifid2_hedge_report_source_preparation_validation.
 - source-to-branch-preparation expected-vs-prepared count checks,
 - OPTIONAL/gated checkpoint validations only when optional checkpoint tables are explicitly materialized.
 
+## Step 14B3 final branch projection behavior
+
+Step 14B3 final projection template defines three branch outputs:
+
+1. EU direct branch:
+   - source path: `MIFID2_ext_HedgeExecutionLog` lineage.
+   - filters: `ExecutionFlow = 'EU'`, `Units > 0`, `Success = 1`, report-date execution window.
+   - output identity: `RegulationReportID = 1`, `rowSource = 'EU'`.
+2. EU-reportable UK real-stock branch:
+   - source path: `MIFID2_ext_HedgeExecutionLog` lineage.
+   - filters: `ExecutionFlow = 'UK' AND IsReal = 1`, `Units > 0`, `Success = 1`, report-date execution window.
+   - output identity: `RegulationReportID = 1`, `rowSource = 'EU-UK'`.
+3. UK branch:
+   - source path: `Reg_Ext_HedgeExecutionLog` lineage with HBC order enrichment.
+   - filters: `EMSOrderID IS NULL`, `LP.eToroEntity = '213800FLAB1OVA8OHT72'`, `IsMifidByFCA = 1`, `Units > 0`, `Success = 1`, report-date execution window.
+   - output identity: `RegulationReportID = 2`, `rowSource = 'UK'`.
+
+## Step 14B3 TransactionReferenceNumber strategy
+
+- Step 14B3 template ports the SQL Server expression pattern:
+  - `ISNULL(CONCAT(UPPER(ProviderExecID), RowID, yyyymmdd), CONCAT(UPPER(LiquidityProvider), yyyymmdd, RowID))`
+- Databricks template keeps this parity expression in the gated projection CTE and applies it for:
+  - final `TransactionReferenceNumber`,
+  - row-level exclusion-key matching against report-scoped excluded position/reference source.
+- Activation remains gated until parity validation confirms exact behavior for requested windows.
+
+## Step 14B3 RecordID strategy/gate
+
+- SQL Server source behavior: `RecordID INT IDENTITY(100000001,1)`.
+- Step 14B3 template includes a preferred deterministic strategy (approval-gated):
+  - `RecordID = 100000000 + row_number() over (ReportDate, RegulationReportID, rowSource, TransactionReferenceNumber, ExecutionID, LiquidityAccountID, InstrumentID)`.
+- Final activation remains gated until this deterministic ordering strategy is explicitly approved in reconciliation.
+
+## Step 14B3 exclusion semantics
+
+- Exclusion inputs remain:
+  - `regtech_excluded_instruments` scoped by `table_name = '[MIFID2_Hedge_Report]'`.
+  - `regtech_excluded_position_ids` scoped by `table_name = '[MIFID2_Hedge_Report]'`.
+- Step 14B3 applies row-level report-scoped exclusions only:
+  - InstrumentID-based exclusion.
+  - Generated TransactionReferenceNumber / position-equivalent key exclusion.
+- Scope marker is not interpreted as full-table suppression.
+
+## Step 14B3 gated inputs and carry-forward gates
+
+- Step 14B3 template remains dependency-gated on:
+  - Step 7 liquidity/SCD readiness.
+  - Step 9 `MIFID2_ext_HedgeExecutionLog` readiness.
+  - Step 5B2 `Reg_Ext_HedgeExecutionLog` / `Reg_Ext_HedgeHBCOrderLog` readiness.
+  - EDNF/IB mapping coverage.
+  - instrument special-char conversion readiness.
+  - dictionary currency/type contracts.
+  - LEI completeness.
+  - TransactionReferenceNumber parity signoff.
+  - RecordID deterministic strategy signoff.
+
+## Step 14B4 boundary
+
+- Step 14B3 delivers gated final projection/load templates only.
+- Runtime validation/reconciliation evidence remains deferred to Step 14B4.
+
 ## Planned implementation split
 
 - Step 14B1 (this step):
@@ -252,5 +330,6 @@ Step 14B2 validation SQL (`08_mifid2_hedge_report_source_preparation_validation.
   - no final branch projection or final report load execution.
 - Step 14B3:
   - final EU/EU-UK/UK projection template and report-date load template (gated until dependencies pass).
+  - no active/ungated execution in this step.
 - Step 14B4:
   - read-only validation/reconciliation package for schema, row counts, duplicates, branch evidence, exclusions, and aggregate checks.

@@ -309,6 +309,8 @@ Step 14 note (`MIFID2_Hedge_Report`):
 - Step 14B2 source-preparation artifacts:
   - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation.sql`
   - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation_validation.sql`
+- Step 14B3 final projection artifact (gated template):
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report.sql`
 - Step 14 target object is:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
 - Step 14 direct dependency mappings represented in scaffold:
@@ -344,14 +346,22 @@ Step 14 note (`MIFID2_Hedge_Report`):
 - Step 14B2 transaction-reference policy:
   - source fields are prepared (`ProviderExecID` normalization, `RowID`, report-date token, liquidity-provider fallback inputs),
   - final parity construction is hard-gated and deferred to Step 14B3.
+- Step 14B3 transaction-reference policy:
+  - template ports SQL Server expression pattern for `TransactionReferenceNumber`:
+    - `ISNULL(CONCAT(UPPER(ProviderExecID), RowID, yyyymmdd), CONCAT(UPPER(LiquidityProvider), yyyymmdd, RowID))`
+  - parity acceptance remains validation-gated before activation.
 - Step 14 exclusion mappings:
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
   - scope rule: `table_name = '[MIFID2_Hedge_Report]'` is row-level report scoping, not full-table suppression.
 - Step 14 RecordID policy:
   - SQL Server `IDENTITY(100000001,1)` behavior remains unresolved and is explicitly carried as an activation gate.
-- Step 14B2 remains source-preparation only:
-  - no final branch projection and no final `MIFID2_Hedge_Report` DML.
+- Step 14B3 RecordID strategy template:
+  - deterministic candidate strategy is authored and gated:
+    - `100000000 + row_number() over (ReportDate, RegulationReportID, rowSource, TransactionReferenceNumber, ExecutionID, LiquidityAccountID, InstrumentID)`.
+  - activation remains approval-gated.
+- Step 14B3 remains gated:
+  - final branch projection/load DML exists as commented template only (not active).
 
 ## Mappings not to use (legacy/reference-only)
 

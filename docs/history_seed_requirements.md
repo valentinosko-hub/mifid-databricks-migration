@@ -429,6 +429,7 @@ For a requested Step 14 `ReportDate`, ensure:
 - Phase-1 default remains validation-window seeding only.
 - Step 14B1 is scaffold-only and does not execute report DML.
 - Step 14B2 is source-preparation-only and does not execute final output DML.
+- Step 14B3 is final projection/load template authoring only and keeps final DML commented/gated.
 - Do not block Step 14B1 authoring on full historical backfill.
 - If older hedge windows are requested later:
   1. expand hedge execution staging windows,
@@ -472,6 +473,27 @@ Step 14B2 historical caution:
 
 - If source-day execution windows are incomplete, branch source-preparation counts can drift before final projection logic is even applied.
 - If exclusion or mapping history is incomplete, Step 14B2 validation can under-report future Step 14B3 branch-level parity issues.
+
+## Step 14B3-specific seed notes (hedge final projection template)
+
+Step 14B3 templates consume Step 14B2-prepared branch source contracts and still do not produce active final output rows until gates pass.
+
+Additional Step 14B3 seed dependencies:
+
+- Final branch projection boundary:
+  - report-date-complete EU / EU-UK / UK prepared source contracts.
+- Transaction reference parity boundary:
+  - stable provider execution id normalization and row id determinism for requested windows.
+- Deterministic RecordID boundary:
+  - stable ordering fields available for each requested report date:
+    - `ReportDate`, `RegulationReportID`, `rowSource`, `TransactionReferenceNumber`, `ExecutionID`, `LiquidityAccountID`, `InstrumentID`.
+- Exclusion parity boundary:
+  - report-scoped instrument and position/reference exclusion sources must contain expected historical entries for requested dates.
+
+Step 14B3 historical caution:
+
+- If transaction-reference seed inputs are unstable across reruns, deterministic RecordID ordering can drift even with a fixed ordering specification.
+- If exclusion history is incomplete, Step 14B3 projection template parity may appear correct while branch-level exclusion evidence fails in Step 14B4.
 
 ## Out of scope
 

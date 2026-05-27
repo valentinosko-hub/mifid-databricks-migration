@@ -301,6 +301,7 @@ Step 14 implementation is split as:
   - source preparation and branch source CTE authoring (EU, EU-UK, UK candidate sets), still dependency-gated.
 - Step 14B3:
   - final hedge projection/load templates for EU/EU-UK/UK branches (still gated until dependencies pass).
+  - output validation execution is deferred to Step 14B4 (no Step 14B3 runtime validation package).
 - Step 14B4:
   - hedge read-only validation/reconciliation package.
 
@@ -346,6 +347,38 @@ Step 14B2 evidence is read-only and limited to source-preparation scope:
   - `docs/known_differences.md`
   - `docs/history_seed_requirements.md`
 
+## Step 14B3 projection-template evidence requirements
+
+Step 14B3 evidence is template-level and gating-focused:
+
+1. Branch projection templates:
+   - EU direct branch template (`ExecutionFlow='EU'`, `RegulationReportID=1`, `rowSource='EU'`).
+   - EU-UK branch template (`ExecutionFlow='UK' AND IsReal=1`, `RegulationReportID=1`, `rowSource='EU-UK'`).
+   - UK branch template (`EMSOrderID IS NULL`, UK entity filter, FCA eligibility, `RegulationReportID=2`, `rowSource='UK'`).
+2. Transaction reference template parity:
+   - SQL Server-style expression pattern included and clearly documented as approval-gated before activation.
+3. RecordID deterministic template:
+   - deterministic ordering key is explicitly defined for `row_number()`-based strategy.
+   - activation remains gate-controlled pending approval.
+4. Exclusion template parity:
+   - instrument and generated transaction-reference/position-key exclusions are scoped by `table_name = '[MIFID2_Hedge_Report]'`.
+   - no full-table suppression behavior.
+5. DML gating:
+   - final report-date `DELETE` / `INSERT` remains commented/non-active.
+
+## Step 14B3 planned evidence output
+
+- SQL/template artifact:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report.sql`
+- Supporting source-preparation artifacts:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation.sql`
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation_validation.sql`
+- Updated gate/delta documentation:
+  - `docs/mifid2_hedge_report_output_analysis.md`
+  - `docs/unresolved_dependencies.md`
+  - `docs/known_differences.md`
+  - `docs/history_seed_requirements.md`
+
 ## Step 14B4 reconciliation coverage (planned)
 
 1. Schema parity:
@@ -379,7 +412,8 @@ Step 14B2 evidence is read-only and limited to source-preparation scope:
   - Step 14B2 hedge source-preparation artifacts:
     - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation.sql`
     - `databricks/sql/08_outputs/08_mifid2_hedge_report_source_preparation_validation.sql`
-  - Step 14B3 hedge final projection/load artifacts (planned).
+  - Step 14B3 hedge final projection/load artifact (gated template authored):
+    - `databricks/sql/08_outputs/08_mifid2_hedge_report.sql`
 - Updated gate/delta documentation:
   - `docs/mifid2_hedge_report_output_analysis.md`
   - `docs/known_differences.md`

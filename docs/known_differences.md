@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-14B2)
+# Known Differences (Current Safe + Steps 5B1-14B3)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -30,6 +30,9 @@ This document tracks known or intentional differences for the currently implemen
 - MIFID2_Hedge_Report source-preparation templates (Step 14B2):
   - Step 14B2 adds gated branch-source and enrichment CTE templates plus SELECT-only validation templates.
   - It does not enable final projection/load logic.
+- MIFID2_Hedge_Report final projection/load template (Step 14B3):
+  - Step 14B3 adds gated EU / EU-UK / UK final projection and load template.
+  - Final report-date DML remains commented/non-active until dependency and parity gates pass.
 
 ## Scope and non-goals in this step
 
@@ -411,6 +414,25 @@ This document tracks known or intentional differences for the currently implemen
 - RecordID behavior in Step 14B2:
   - remains unresolved and gated; no final strategy implementation is enabled.
 - Step 14B2 keeps file-delivery/upload/response/deployment logic out of scope:
+  - no CSV/7z/SFTP/TRAX/Cappitech/response handling
+  - no production deployment behavior
+
+## Step 14B3 implementation differences and cautions
+
+- `databricks/sql/08_outputs/08_mifid2_hedge_report.sql` is authored as a gated final projection/load template:
+  - includes EU / EU-UK / UK branch projection templates.
+  - includes explicit target insert column list for `MIFID2_Hedge_Report`.
+  - keeps final report-date `DELETE` / `INSERT` statements commented/non-active.
+- Transaction reference behavior in Step 14B3:
+  - template ports SQL Server-style expression pattern using normalized provider execution id, row id, and report-date token with liquidity-provider fallback expression.
+  - activation remains gated until parity evidence is accepted.
+- RecordID behavior in Step 14B3:
+  - deterministic candidate strategy is authored (`100000000 + row_number()` over stable ordering key),
+  - activation remains approval-gated; no non-deterministic identity behavior is introduced.
+- Exclusion semantics in Step 14B3:
+  - report scope remains row-level via `table_name = '[MIFID2_Hedge_Report]'`.
+  - exclusion is applied to matching instrument ids and generated transaction-reference/position-equivalent keys only.
+- Step 14B3 keeps file-delivery/upload/response/deployment logic out of scope:
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
   - no production deployment behavior
 
