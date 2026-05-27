@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-13B1 - Unresolved Dependencies
+# Phase 1D / Steps 5-13B2 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -162,7 +162,7 @@ The following items remain explicitly unresolved for Step 12B4 final reconciliat
 - Upstream activation gates:
   - Step 5/6/9/10/11 activation gates remain blocking for final Step 12 report-module reconciliation signoff.
 
-## Step 13B1 carry-forward unresolved dependencies
+## Step 13B2 carry-forward unresolved dependencies
 
 The following items remain explicitly unresolved for Step 13 ETORO activation:
 
@@ -186,3 +186,6 @@ The following items remain explicitly unresolved for Step 13 ETORO activation:
     - `main.regtech.gold_regtech_reg_instruments_full_description`
 - ETORO classification hard gate:
   - exact `SP_MIFID2_ETORO_Report` `InstrumentClassification` mapping must be ported; simplified mapping is not parity-safe.
+- Exclusion scope semantics gate:
+  - exclusion sources must apply row-level filters scoped by `table_name = '[MIFID2_ETORO_Report]'`.
+  - this scope marker must not be interpreted as full-table exclusion of ETORO output.

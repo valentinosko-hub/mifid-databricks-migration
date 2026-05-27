@@ -273,6 +273,8 @@ Step 13 note (`MIFID2_ETORO_Report`):
 
 - Step 13 target object is:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+- Step 13B2 projection template artifact:
+  - `databricks/sql/08_outputs/07_mifid2_etoro_report.sql`
 - Legacy `dbo.ASIC_Transactions` is intentionally replaced by Step 8 ASIC2 compatibility objects:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_asic2_transactions`
   - `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
@@ -288,6 +290,11 @@ Step 13 note (`MIFID2_ETORO_Report`):
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
+- Exclusion scope semantics:
+  - `table_name = '[MIFID2_ETORO_Report]'` scopes exclusion rows to ETORO report filters.
+  - it does not mean "exclude all ETORO rows".
+- Step 13B2 exclusion behavior (required):
+  - Exclude matching instruments/positions for this report based on `table_name = '[MIFID2_ETORO_Report]'`.
 - Step 13 conditional mapping rule:
   - `Reg_DWH_StaticPosition` remains conditional/non-blocking unless fallback impact is proven for consumed fields.
 - UPI governance rule:

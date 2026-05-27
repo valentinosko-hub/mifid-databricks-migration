@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-13B1)
+# Known Differences (Current Safe + Steps 5B1-13B2)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -326,6 +326,25 @@ This document tracks known or intentional differences for the currently implemen
 - SQL Server `GETUTCDATE()` behavior for ETORO `UpdateDate` is documented but not activated in Step 13B1:
   - Databricks current-UTC timestamp parity must be applied only when Step 13B2 projection is activated.
 - Step 13B1 includes no delivery/upload/response/deployment logic:
+  - no CSV/7z/SFTP/TRAX/Cappitech/response handling
+  - no production deployment behavior
+
+## Step 13B2 implementation differences and cautions
+
+- `databricks/sql/08_outputs/07_mifid2_etoro_report.sql` is authored as a gated projection template only:
+  - source is Step 8 ASIC2 compatibility object (`{{asic_compatibility_source}}`)
+  - final delete/insert statements remain fully commented/gated
+  - template includes no active validation-package implementation
+- Legacy `dbo.ASIC_Transactions` remains replaced by ASIC2 compatibility sources for ETORO projection behavior.
+- Exclusion reference semantics are explicit in Step 13B2 template:
+  - `table_name = '[MIFID2_ETORO_Report]'` scopes exclusion rows to this report.
+  - it does not imply full-table exclusion of ETORO output.
+  - exclusion behavior is row-level (`InstrumentID`/`PositionID` match + table_name scope).
+- `InstrumentClassification` remains hard-gated unless exact `SP_MIFID2_ETORO_Report` mapping is ported/approved.
+- `OpenTime` and `OpenPrice` remain parity-gated:
+  - `CDE_Execution_timestamp -> OpenTime` parity approval required.
+  - `Reg_DWH_StaticPosition` fallback impact must remain conditional unless field impact is proven.
+- Step 13B2 keeps file-delivery/upload/response/deployment logic out of scope:
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
   - no production deployment behavior
 

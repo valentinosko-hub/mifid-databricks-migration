@@ -1,20 +1,23 @@
-# Step 13A/13B1 - MIFID2 ETORO Report Output Analysis
+# Step 13A/13B1/13B2 - MIFID2 ETORO Report Output Analysis
 
-This document captures the Step 13A analysis baseline and Step 13B1 scaffolding boundary for `MIFID2_ETORO_Report`.
+This document captures the Step 13A analysis baseline, Step 13B1 scaffolding boundary, and Step 13B2 gated projection-template scope for `MIFID2_ETORO_Report`.
 
-## Scope (Step 13B1)
+## Scope (Step 13B1/13B2)
 
 - Scaffold/output-contract/dependency-gate authoring only for:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+- Gated Step 13B2 projection template authoring from Step 8 ASIC2 compatibility source:
+  - `databricks/sql/08_outputs/07_mifid2_etoro_report.sql`
+- Step 13B2 includes gated ETORO projection-template authoring and does not include active execution.
 - Document source replacement rule:
   - Legacy `dbo.ASIC_Transactions` is not the source of truth for migration implementation.
   - Step 8 ASIC2-compatible layer is the source authority for consumed transaction fields.
 - Document activation gates and planned split for Step 13B2/13B3.
 
-## Out of scope (Step 13B1)
+## Out of scope for Step 13B2
 
-- Final ETORO projection implementation (`INSERT` business logic).
-- ETORO validation/reconciliation SQL package implementation.
+- Active / ungated ETORO projection execution.
+- ETORO validation / reconciliation SQL package implementation, which belongs to Step 13B3.
 - `MIFID2_Hedge_Report`.
 - `MIFID2_NPD_TRAX`.
 - File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload, response handling).
@@ -141,6 +144,84 @@ Field mapping contract:
   - Documentation updates + SQL scaffolding + output contract + explicit gates.
   - No active projection SQL and no active validation package.
 - Step 13B2:
-  - Final ETORO projection template implementation from ASIC2 compatibility + metadata/enrichment joins + exact classification mapping + `UpdateDate` UTC parity activation.
+  - Gated ETORO projection-template authoring from ASIC2 compatibility + metadata/enrichment joins + exact classification mapping + `UpdateDate` UTC parity representation.
+  - No active/ungated execution in Step 13B2.
 - Step 13B3:
   - ETORO read-only validation/reconciliation package (schema, row-count, duplicates, nulls, field-level parity, exclusion parity, and gate closure evidence).
+
+## Step 13B2 projection template artifact
+
+- SQL artifact:
+  - `databricks/sql/08_outputs/07_mifid2_etoro_report.sql`
+- Target output object:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+- Source object (compatibility layer):
+  - `{{asic_compatibility_source}}` (expected mapping: `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`)
+- Report-date parameter placeholder:
+  - `{{report_date}}`
+- Exclusion placeholders:
+  - `{{excluded_cids_source}}`
+  - `{{excluded_instruments_source}}`
+  - `{{excluded_position_ids_source}}`
+
+## Step 13B2 exact source-to-target mappings represented
+
+The Step 13B2 template explicitly represents the required mappings:
+
+| target field | Step 13B2 mapping |
+| --- | --- |
+| `RegulationReportID` | `1` |
+| `RegulationID` | `1` |
+| `DateID` | source `DateID` |
+| `ReportDate` | source `ReportDate` |
+| `CID` | source `CID` |
+| `PositionID` | source `PositionID` |
+| `InstrumentID` | source `InstrumentID` |
+| `OpenORClose` | source `OpenORClose` |
+| `BuyORSell` | source `IsBuy` |
+| `TransactionReferenceNumber` | `PositionID + OpenORClose + 'AUS' + DateID` |
+| `TradingDateTime` | source `OpenTime` formatted `yyyy-MM-ddTHH:mm:ssZ` |
+| `Quantity` | source `Volume` |
+| `Price` | source `OpenPrice` |
+| `RegChange` | source `RegChange` |
+| `PriceType` | `'BSPS'` when `CurrencyTypeID = 4`, else `'MNTR'` |
+| `PriceCurrency` | `SUBSTRING(SellAbbreviation, 1, 3)` |
+| `InstrumentFullName` | `LEFT(InstrumentFullName, 50) + ' CFD'` |
+| `UnderlyingInstrumentCode` | `ISINCode` |
+| `AssetClass` | `'Equity'` for currency types `4,5,6`, else dictionary currency type name |
+| `UpdateDate` | current UTC timestamp equivalent (gated final template only) |
+
+## Step 13B2 dependencies and filters represented
+
+- Compatibility source filter:
+  - source `ReportDate = {{report_date}}`
+- Instrument metadata eligibility filters:
+  - `IsMifid = 1`
+  - `Tradable = 1`
+  - `{{report_date}} >= ValidFrom`
+  - `{{report_date}} < ValidTo`
+- Dependency joins:
+  - `main.regtech.gold_regtech_reg_instruments_scd`
+  - `main.regtech.gold_regtech_reg_instruments_full_description`
+  - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrency`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrencytype`
+
+## Exclusion table semantics (critical clarification)
+
+`table_name = '[MIFID2_ETORO_Report]'` scopes exclusion rows to this report. It does not exclude the entire ETORO output table.
+
+Step 13B2 logic is scoped as:
+
+- Exclude matching instruments for this report based on:
+  - `InstrumentID` match and `table_name = '[MIFID2_ETORO_Report]'`
+- Exclude matching positions for this report based on:
+  - `PositionID` match and `table_name = '[MIFID2_ETORO_Report]'`
+- Excluded CIDs are removed using the excluded-CIDs source contract.
+
+## Step 13B2 hard gates carried forward
+
+- `CDE_Execution_timestamp -> OpenTime` parity remains a blocking activation gate.
+- OpenPrice remains gated for conditional `Reg_DWH_StaticPosition` fallback impact.
+- `InstrumentClassification` is hard-gated in the Step 13B2 template unless exact SQL Server mapping is confirmed/ported.
+- EMIR Refit UPI remains out of direct dependency scope unless field-impact is proven on the 11 consumed compatibility fields.
