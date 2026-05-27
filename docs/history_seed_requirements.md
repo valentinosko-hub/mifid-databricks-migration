@@ -309,6 +309,53 @@ Step 12B3 historical caution:
 
 - If Step 12B2 intermediate snapshots are not reproducible for older windows, Step 12B3 branch outputs cannot be parity-reconstructed for those windows.
 
+## Step 13 - MIFID2_ETORO_Report
+
+Primary Step 13 target:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+
+Supporting Step 13 source dependencies:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_asic2_transactions`
+- `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
+- `main.regtech.gold_regtech_reg_instruments_scd`
+- `main.regtech.gold_regtech_reg_instruments_full_description`
+- `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion` (gated)
+- `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrency` (gated)
+- `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrencytype` (gated)
+
+### Minimum seed requirements for Step 13 parity windows
+
+For a requested Step 13 `ReportDate`, ensure:
+
+- Step 8 compatibility outputs are available for that date with full 11-field contract coverage.
+- Source rows required for ETORO exclusions are available/current for ETORO table scope:
+  - excluded CIDs
+  - excluded instruments
+  - excluded position IDs
+- Instrument SCD/full-description report-date coverage exists for all ETORO candidate instruments.
+- Step 8 parity checks are accepted for:
+  - `CDE_Execution_timestamp -> OpenTime`
+  - `Quantity -> Volume`
+  - `OpenPrice`
+
+### Seed/cutover policy for Step 13
+
+- Phase-1 default remains validation-window seeding only.
+- Do not block Step 13B1 scaffold authoring on full historical backfill.
+- If older ETORO windows are requested:
+  1. expand Step 8 compatibility seed for the required dates,
+  2. re-validate OpenTime/Volume/OpenPrice parity,
+  3. run ETORO reconciliation for those dates.
+
+### Known Step 13 history risks
+
+- Missing Step 8 history windows can break ETORO row-count parity for older dates.
+- Historical format variation in `CDE_Execution_timestamp` can alter `OpenTime` parsing parity across windows.
+- Historical gaps in instrument metadata conversion/dictionary sources can alter ETORO instrument/currency fields.
+- `Reg_DWH_StaticPosition` fallback remains conditional; if fallback impact appears only in historical windows, OpenPrice parity can drift unless explicitly profiled.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.

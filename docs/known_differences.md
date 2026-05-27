@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-12B3)
+# Known Differences (Current Safe + Steps 5B1-13B1)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -308,6 +308,24 @@ This document tracks known or intentional differences for the currently implemen
 - Exact branch-specific `InstrumentClassification` / CFI parity remains a hard gate:
   - B4 preserves this gating and does not convert hard-gated logic into active parity logic.
 - B4 includes no file-delivery/upload/deployment logic:
+  - no CSV/7z/SFTP/TRAX/Cappitech/response handling
+  - no production deployment behavior
+
+## Step 13B1 implementation differences and cautions
+
+- `databricks/sql/08_outputs/07_mifid2_etoro_report_scaffolding.sql` is authored as a gated scaffolding/template only:
+  - includes report-date scaffold and dependency-gate checklist
+  - includes commented DDL contract for `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+  - includes Step 13B2/13B3 TODO anchors only
+  - includes no active ETORO projection or validation SQL
+- Legacy `dbo.ASIC_Transactions` is intentionally replaced by Step 8 ASIC2-compatible sources:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_asic2_transactions`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
+- EMIR Refit UPI remains excluded from direct ETORO dependency scope unless profiling proves impact on one of the 11 consumed compatibility fields.
+- `Reg_DWH_StaticPosition` remains conditional/non-blocking unless fallback-impact profiling proves it changes consumed ETORO fields (for example `OpenPrice`).
+- SQL Server `GETUTCDATE()` behavior for ETORO `UpdateDate` is documented but not activated in Step 13B1:
+  - Databricks current-UTC timestamp parity must be applied only when Step 13B2 projection is activated.
+- Step 13B1 includes no delivery/upload/response/deployment logic:
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
   - no production deployment behavior
 

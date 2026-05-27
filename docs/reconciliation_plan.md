@@ -8,10 +8,12 @@ This plan defines reconciliation scope and execution order for migration validat
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
+- Step 13B1 ETORO scaffold/documentation/output-contract package for:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
 
 ## Out of scope for this step
 
-- `MIFID2_ETORO_Report`
+- Step 13B2/13B3 ETORO projection and validation logic
 - `MIFID2_Hedge_Report`
 - `MIFID2_NPD_TRAX`
 - File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload/response handling)
@@ -184,3 +186,38 @@ Keep these sections optional/gated in B4 until dependencies are available:
 - Updated gate/delta documentation:
   - `docs/known_differences.md`
   - `docs/unresolved_dependencies.md`
+
+## Step 13 planned split and reconciliation boundary
+
+Step 13 implementation is split as:
+
+- Step 13B1:
+  - ETORO documentation + scaffold + output contract + dependency gates only.
+  - No active ETORO projection SQL.
+  - No ETORO validation package SQL.
+- Step 13B2:
+  - ETORO projection implementation from ASIC2-compatible source and ETORO metadata/enrichment joins.
+- Step 13B3:
+  - ETORO read-only validation/reconciliation package.
+
+## Step 13 gate prerequisites before ETORO activation
+
+- Step 8 compatibility activation for:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_asic2_transactions`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
+- Accepted field-level parity for ETORO-consumed compatibility fields:
+  - `CDE_Execution_timestamp -> OpenTime`
+  - `Quantity -> Volume`
+  - `OpenPrice`
+- `InstrumentMetaData_SpecialChar_Conversion` readiness for ETORO report-date windows.
+- `Reg_Ext_DictionaryCurrency` and `Reg_Ext_DictionaryCurrencyType` contract readiness.
+- `Reg_Instruments_SCD` / `Reg_Instruments_Full_Description` coverage for ETORO windows.
+- Exclusion source freshness/contract parity for ETORO table scope.
+- Exact `InstrumentClassification` mapping parity from `SP_MIFID2_ETORO_Report`.
+- ASIC2 history seed coverage for requested ETORO reconciliation windows.
+
+## Step 13B1 stop condition
+
+- Step 13B1 ends when ETORO scaffold and dependency gates are authored and documented.
+- Activation/execution of ETORO projection begins in Step 13B2 only.
+- ETORO validation package implementation begins in Step 13B3 only.

@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-12B3 - Unresolved Dependencies
+# Phase 1D / Steps 5-13B1 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -161,3 +161,28 @@ The following items remain explicitly unresolved for Step 12B4 final reconciliat
     - `EndForexRateAfterGBX`
 - Upstream activation gates:
   - Step 5/6/9/10/11 activation gates remain blocking for final Step 12 report-module reconciliation signoff.
+
+## Step 13B1 carry-forward unresolved dependencies
+
+The following items remain explicitly unresolved for Step 13 ETORO activation:
+
+- Step 8 compatibility activation gate:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_asic2_transactions`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
+- OpenTime parity gate:
+  - `CDE_Execution_timestamp -> OpenTime` parsing and semantic parity must be accepted for ETORO windows.
+- ASIC2 history/seed gate:
+  - requested ETORO reconciliation windows require confirmed ASIC2 seed coverage.
+- OpenPrice conditional fallback gate:
+  - `Reg_DWH_StaticPosition` remains conditional/non-blocking unless profiling proves fallback impact on consumed fields (especially `OpenPrice`).
+- Instrument metadata conversion gate:
+  - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion` must be report-date ready for ETORO joins.
+- Dictionary currency gates:
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrency`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrencytype`
+- Instrument coverage gate:
+  - report-date coverage/contract validation for:
+    - `main.regtech.gold_regtech_reg_instruments_scd`
+    - `main.regtech.gold_regtech_reg_instruments_full_description`
+- ETORO classification hard gate:
+  - exact `SP_MIFID2_ETORO_Report` `InstrumentClassification` mapping must be ported; simplified mapping is not parity-safe.

@@ -269,6 +269,30 @@ Step 12B3 note (final branch projections):
   - `{{isin_for_instrumentid_341_source}}` (normalized logical columns required: `InstrumentID`, `OverrideISIN`, optional effective/report date)
   - `MIFID2_Instruments_To_Exclude` mapped equivalent (still unresolved)
 
+Step 13 note (`MIFID2_ETORO_Report`):
+
+- Step 13 target object is:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+- Legacy `dbo.ASIC_Transactions` is intentionally replaced by Step 8 ASIC2 compatibility objects:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_asic2_transactions`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`
+- Required 11-field compatibility contract consumed by ETORO:
+  - `DateID`, `ReportDate`, `CID`, `PositionID`, `InstrumentID`, `OpenORClose`, `IsBuy`, `OpenTime`, `Volume`, `OpenPrice`, `RegChange`
+- ETORO metadata/enrichment dependencies remain profiling-gated:
+  - `main.regtech.gold_regtech_reg_instruments_scd`
+  - `main.regtech.gold_regtech_reg_instruments_full_description`
+  - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrency`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrencytype`
+- Exclusion mappings reused for ETORO:
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
+- Step 13 conditional mapping rule:
+  - `Reg_DWH_StaticPosition` remains conditional/non-blocking unless fallback impact is proven for consumed fields.
+- UPI governance rule:
+  - EMIR Refit UPI remains out of direct ETORO dependency scope unless profiling proves impact on the 11 consumed fields.
+
 ## Mappings not to use (legacy/reference-only)
 
 - Do not use optional/reference package artifacts as current mapping authority:
