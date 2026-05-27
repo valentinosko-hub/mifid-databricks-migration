@@ -302,6 +302,40 @@ Step 13 note (`MIFID2_ETORO_Report`):
 - UPI governance rule:
   - EMIR Refit UPI remains out of direct ETORO dependency scope unless profiling proves impact on the 11 consumed fields.
 
+Step 14 note (`MIFID2_Hedge_Report`):
+
+- Step 14B1 scaffold artifact:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_scaffolding.sql`
+- Step 14 target object is:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
+- Step 14 direct dependency mappings represented in scaffold:
+  - EU path:
+    - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_hedgeexecutionlog`
+    - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid`
+    - `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd`
+  - UK path:
+    - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_hedgeexecutionlog`
+    - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_hedgehbcorderlog`
+    - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid`
+    - `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd`
+- Step 14 shared instrument/dictionary mappings remain dependency-gated:
+  - `main.regtech.gold_regtech_reg_instruments_scd`
+  - `main.regtech.gold_regtech_reg_instruments_full_description`
+  - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrency`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrencytype`
+- Step 14 EDNF/IB enrichment mappings remain dependency-gated:
+  - `main.general.gold_ednf_coretrades`
+  - `main.general.gold_ib_u1059976_open_positions_all`
+  - `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_ednf_to_instrumentid`
+- Step 14 exclusion mappings:
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
+  - scope rule: `table_name = '[MIFID2_Hedge_Report]'` is row-level report scoping, not full-table suppression.
+- Step 14 RecordID policy:
+  - SQL Server `IDENTITY(100000001,1)` behavior remains unresolved and is explicitly carried as an activation gate.
+
 ## Mappings not to use (legacy/reference-only)
 
 - Do not use optional/reference package artifacts as current mapping authority:

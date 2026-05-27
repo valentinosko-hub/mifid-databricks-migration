@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-13B3 - Unresolved Dependencies
+# Phase 1D / Steps 5-14B1 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -103,6 +103,10 @@ This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are
 28. Keep FuturesMetaData validation strictly in Step 12B3 final-branch activation checks.
 29. Confirm Step 12B2 dictionary-currency source/profile parity for pre-branch metadata and GBX handling.
 30. Materialize Step 12B2 split/GBX audit fields before declaring parity checks as passed.
+31. Finalize Step 14 RecordID deterministic strategy and acceptance criteria for `MIFID2_Hedge_Report`.
+32. Clear Step 14 hedge source gates for `MIFID2_ext_HedgeExecutionLog`, `Reg_Ext_HedgeExecutionLog`, and `Reg_Ext_HedgeHBCOrderLog`.
+33. Validate Step 14 liquidity-account SCD and LEI coverage readiness for hedge report-date windows.
+34. Validate Step 14 EDNF/IB mapping coverage and report-scoped exclusion semantics for hedge branches.
 
 ## Step 12B3 carry-forward unresolved dependencies
 
@@ -218,3 +222,36 @@ The following items remain explicitly unresolved for Step 13B3 ETORO validation/
 - Optional SQL Server baseline gate:
   - cross-system anti-join/reconciliation placeholders require a normalized SQL Server baseline source.
   - no baseline source should be invented; keep checks gated until provided.
+
+## Step 14B1 carry-forward unresolved dependencies
+
+The following items remain explicitly unresolved for Step 14 hedge activation and parity signoff:
+
+- RecordID strategy gate:
+  - SQL Server `MIFID2_Hedge_Report` uses `RecordID INT IDENTITY(100000001,1)`.
+  - Databricks strategy remains unresolved and must be explicitly approved before activation.
+- Liquidity SCD seed/cutover gate:
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd` seed/rebuild vs incremental cutover policy remains unresolved.
+- LEI coverage gate:
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid` coverage for active/report-relevant liquidity accounts must be validated.
+- Hedge execution staging activation gates:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_hedgeexecutionlog`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_hedgeexecutionlog`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_hedgehbcorderlog`
+  - required-column/access and report-date window parity remain pending.
+- EDNF / IB mapping coverage gate:
+  - `main.general.gold_ednf_coretrades`
+  - `main.general.gold_ib_u1059976_open_positions_all`
+  - `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_ednf_to_instrumentid`
+  - join coverage and fallback behavior remain profiling-gated.
+- Instrument metadata conversion gate:
+  - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion` remains a dependency gate for hedge projection readiness.
+- Dictionary gates:
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrency`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrencytype`
+  - source contract and report-date coverage remain unresolved.
+- Exclusion mapping gates:
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
+  - report-scoped semantics (`table_name = '[MIFID2_Hedge_Report]'`) must remain row-level and not full-table suppression.

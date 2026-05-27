@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-13B3)
+# Known Differences (Current Safe + Steps 5B1-14B1)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -24,6 +24,9 @@ This document tracks known or intentional differences for the currently implemen
   - Step 12B2 adds gated pre-branch population templates only.
   - It stops at unified intermediate trade pool (`#tradesFinal` equivalent).
   - Final branch inserts remain deferred to Step 12B3.
+- MIFID2_Hedge_Report scaffold/output-contract/dependency gates (Step 14B1):
+  - Step 14B1 creates scaffold SQL and documentation only.
+  - No active hedge projection/load logic is enabled.
 
 ## Scope and non-goals in this step
 
@@ -41,7 +44,7 @@ This document tracks known or intentional differences for the currently implemen
 - Step 10 includes only `MIFID2_Customer` profiling/gating; no active final-output DDL is enabled yet.
 - Step 11 includes only `MIFID2_RegChange_Customer` profiling/gating; no active final-output DDL is enabled yet.
 - Step 13B3 adds ETORO validation/reconciliation SQL as read-only SELECT templates only; it does not introduce active ETORO load execution.
-- No Hedge EU/UK final report implementation.
+- Step 14B1 includes hedge scaffold-only authoring; no active EU/EU-UK/UK report implementation.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
 - No CSV/7z/SFTP/Cappitech/TRAX upload/response handling.
 - No production deployment to `main.regtech`.
@@ -366,6 +369,25 @@ This document tracks known or intentional differences for the currently implemen
 - Exclusion semantics remain report-scoped:
   - `table_name = '[MIFID2_ETORO_Report]'` is treated as row-level scope filter and not full-table exclusion.
 - Step 13B3 keeps file-delivery/upload/response/deployment logic out of scope:
+  - no CSV/7z/SFTP/TRAX/Cappitech/response handling
+  - no production deployment behavior
+
+## Step 14B1 implementation differences and cautions
+
+- `databricks/sql/08_outputs/08_mifid2_hedge_report_scaffolding.sql` is authored as scaffold/gate SQL only:
+  - report-date scaffold and dependency-gate checklist are included.
+  - output DDL contract is included as commented template only.
+  - TODO anchors are included for Step 14B2 (source CTEs), Step 14B3 (final projection), and Step 14B4 (validation/reconciliation).
+- Step 14B1 does not include active hedge report load execution:
+  - no active EU branch projection
+  - no active EU-UK branch projection
+  - no active UK branch projection
+  - no active final report-date delete/insert logic
+- `RecordID` remains unresolved in Step 14B1:
+  - SQL Server has `IDENTITY(100000001,1)` and Databricks deterministic strategy is still gated.
+- Exclusion semantics are explicitly report-scoped and row-level:
+  - `table_name = '[MIFID2_Hedge_Report]'` is not interpreted as full-table suppression.
+- Step 14B1 keeps file-delivery/upload/response/deployment logic out of scope:
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
   - no production deployment behavior
 

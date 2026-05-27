@@ -13,11 +13,15 @@ This plan defines reconciliation scope and execution order for migration validat
   - Step 13B1: scaffold/output contract
   - Step 13B2: gated projection template
   - Step 13B3: read-only validation/reconciliation package
+- Step 14 Hedge staged package for:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
+  - Step 14B1: scaffold/output contract/dependency gates
 
 ## Out of scope for this step
 
 - Active/ungated Step 13B2 ETORO projection execution
-- `MIFID2_Hedge_Report`
+- Active/ungated Step 14B2 source CTE execution
+- Active/ungated Step 14B3 hedge branch projection/load execution
 - `MIFID2_NPD_TRAX`
 - File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload/response handling)
 - Production deployment
@@ -284,3 +288,56 @@ Step 13 implementation is split as:
 - Activation/execution of ETORO projection begins in Step 13B2 only.
 - Step 13B3 ends when the ETORO read-only validation/reconciliation package is authored and documented.
 - Runtime execution evidence remains gated until Step 13B2 activation and Step 8 compatibility-source gates pass.
+
+## Step 14 planned split and reconciliation boundary
+
+Step 14 implementation is split as:
+
+- Step 14B1:
+  - hedge documentation + scaffold + output contract + dependency gates only.
+  - no active hedge branch projection/load execution.
+- Step 14B2:
+  - source preparation and branch source CTE authoring (EU, EU-UK, UK candidate sets), still dependency-gated.
+- Step 14B3:
+  - final hedge projection/load templates for EU/EU-UK/UK branches (still gated until dependencies pass).
+- Step 14B4:
+  - hedge read-only validation/reconciliation package.
+
+Hedge report validation is intentionally deferred to Step 14B4.
+
+## Step 14B4 reconciliation coverage (planned)
+
+1. Schema parity:
+   - `MIFID2_Hedge_Report` column contract, type/nullability expectations, and RecordID handling acceptance.
+2. Row counts:
+   - by `ReportDate`, `RegulationReportID`, and `rowSource` (`EU`, `EU-UK`, `UK`).
+3. Duplicate checks:
+   - uniqueness intent (`ReportDate`, `RegulationReportID`, `TransactionReferenceNumber`).
+4. Required-null checks:
+   - hedge required identifiers and branch-critical fields (`TransactionReferenceNumber`, `RegulationReportID`, `rowSource`).
+5. EU/UK branch evidence requirements:
+   - EU branch evidence for `ExecutionFlow='EU'`.
+   - EU-UK branch evidence for `ExecutionFlow='UK' AND IsReal=1` under `RegulationReportID=1`.
+   - UK branch evidence for UK-specific source path and filters (`EMSOrderID IS NULL`, UK entity filter, FCA eligibility path).
+6. Exclusion checks:
+   - report-scoped exclusions for instruments and generated position/transaction reference keys with `table_name = '[MIFID2_Hedge_Report]'`.
+7. Coverage checks:
+   - liquidity-account/LEI coverage.
+   - instrument/dictionary coverage.
+   - EDNF/IB mapping and join coverage.
+8. Aggregate checks:
+   - quantity/price aggregates by branch and report date.
+9. RecordID deterministic behavior checks:
+   - evidence that approved strategy is stable across reruns for the same `ReportDate`.
+
+## Planned evidence output for Step 14B4
+
+- SQL result sets from planned Step 14 hedge validation package (to be authored in Step 14B4).
+- Supporting hedge source/projection artifacts:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_scaffolding.sql`
+  - Step 14B2/14B3 hedge SQL artifacts (to be authored).
+- Updated gate/delta documentation:
+  - `docs/mifid2_hedge_report_output_analysis.md`
+  - `docs/known_differences.md`
+  - `docs/unresolved_dependencies.md`
+  - `docs/history_seed_requirements.md`

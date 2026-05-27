@@ -381,6 +381,75 @@ Step 13B3 historical caution:
   - do not invent a baseline source or synthetic baseline rows;
   - run baseline anti-join checks only when a normalized baseline dataset is provided.
 
+## Step 14 - MIFID2_Hedge_Report
+
+Primary Step 14 target:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
+
+Supporting Step 14 dependencies:
+
+- EU branch direct inputs:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_hedgeexecutionlog`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd`
+- UK branch direct inputs:
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_hedgeexecutionlog`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_hedgehbcorderlog`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd`
+- Shared enrichment dependencies:
+  - `main.regtech.gold_regtech_reg_instruments_scd`
+  - `main.regtech.gold_regtech_reg_instruments_full_description`
+  - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrency`
+  - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrencytype`
+  - `main.general.gold_ednf_coretrades`
+  - `main.general.gold_ib_u1059976_open_positions_all`
+  - `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_ednf_to_instrumentid`
+
+### Minimum seed requirements for Step 14 parity windows
+
+For a requested Step 14 `ReportDate`, ensure:
+
+- Hedge execution staging inputs cover execution rows in the report-day window:
+  - `ExecutionTime >= ReportDate`
+  - `ExecutionTime < ReportDate + 1 day`
+- Liquidity account and SCD validity windows are available for all candidate rows.
+- LEI mapping coverage is available for active/report-relevant liquidity accounts.
+- Exclusion inputs are available/current for hedge report scope:
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
+- Instrument and dictionary enrichment dependencies are available for all candidate instruments.
+- EDNF/IB mapping inputs are available where hedge enrichment/join behavior depends on these links.
+
+### Seed/cutover policy for Step 14
+
+- Phase-1 default remains validation-window seeding only.
+- Step 14B1 is scaffold-only and does not execute report DML.
+- Do not block Step 14B1 authoring on full historical backfill.
+- If older hedge windows are requested later:
+  1. expand hedge execution staging windows,
+  2. confirm liquidity SCD/LEI historical coverage,
+  3. confirm exclusion history for hedge table scope,
+  4. run branch-level reconciliation checks by `RegulationReportID`.
+
+### Known Step 14 history risks
+
+- RecordID risk:
+  - unresolved deterministic strategy can block parity signoff across reruns.
+- Hedge source activation risk:
+  - incomplete activation or history gaps in `MIFID2_ext_HedgeExecutionLog` / `Reg_Ext_HedgeExecutionLog` / `Reg_Ext_HedgeHBCOrderLog` can alter branch row counts.
+- Liquidity SCD/LEI risk:
+  - incomplete SCD or LEI history can alter buyer/seller LEI fields and branch eligibility.
+- EDNF/IB mapping risk:
+  - missing mapping history can reduce enrichment coverage in specific date windows.
+- Exclusion history risk:
+  - missing historical exclusion entries can change hedge output composition for older dates.
+- Transaction-reference risk:
+  - reference construction uses normalized provider execution id and row ordering; unstable ordering inputs can create cross-run drift without deterministic controls.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.
