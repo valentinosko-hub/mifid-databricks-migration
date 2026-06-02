@@ -537,12 +537,15 @@ For a requested Step 15 `ReportDate`, ensure:
 
 ### Seed/cutover policy for Step 15
 
+- Step 15B2 table-generation template is authored in:
+  - `databricks/sql/08_outputs/09_mifid2_npd_trax.sql`
+  - it remains commented/non-active until seed and upstream gates pass.
 - Step 15 can start forward-only for current validation windows without full historical backfill.
 - Forward-only first run changes exact SQL Server parity behavior for:
   - new-vs-existing combination detection,
   - retry logic for rejected/null prior rows,
   - `REPL` behavior for accepted rows with changed identity fields.
-- For historical parity windows, seed prior latest NPD rows by `(CID, RegulationID)` before Step 15B2 execution.
+- For historical parity windows, seed prior latest NPD rows by `(CID, RegulationID)` before activating Step 15B2 template execution.
 - Because Step 9 `MIFID2_Failed_TRAX` depends on latest NPD history, Step 9 and Step 15 must use one explicit shared seed/cutover policy.
 
 ### SQL Server baseline parity note for Step 15

@@ -482,7 +482,7 @@ Step 14B3 evidence is template-level and gating-focused:
   - scaffold/output contract/dependency-gate authoring only for `bi_output_regtechops_mifid2_npd_trax`.
   - no active NPD DML execution.
 - Step 15B2:
-  - gated/commented table-generation template for `SP_MIFID2_NPD_TRAX` parity flow.
+  - gated/commented table-generation template for `SP_MIFID2_NPD_TRAX` parity flow is authored in `databricks/sql/08_outputs/09_mifid2_npd_trax.sql`.
   - report-date DML remains commented/non-active until gates pass.
 - Step 15B3:
   - read-only validation/reconciliation package for schema/count/duplicate/null/source-to-output/AcceptedTRAX/history checks.
@@ -502,6 +502,19 @@ Step 14B3 evidence is template-level and gating-focused:
   - `MIFID2_Failed_TRAX` latest-row behavior depends on `MIFID2_NPD_TRAX` history.
 - Response boundary gate:
   - response import/update and `SP_MIFID2_NPD_TRAX_Response_Update` remain out of Step 15B1/B2 table-generation scope.
+
+Step 15B2 CTE/template coverage (authored, non-active):
+
+- `run_parameters`
+- `prior_latest_ids` + latest-row history join
+- `failed_retry_candidates`
+- `reg_change_customers`
+- `customer_all_candidates`
+- `new_candidates`
+- `existing_changed_candidates`
+- `retry_candidates`/union
+- `final_candidates` + sendable-row `RowNum`
+- commented report-date `DELETE` + CTE-attached `INSERT`
 
 ## Step 15B3 reconciliation coverage (planned)
 

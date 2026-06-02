@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-15B1 - Unresolved Dependencies
+# Phase 1D / Steps 5-15B2 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -73,7 +73,7 @@ Latest source profiling integration:
 | `Reg_DWH_StaticPosition` dependency treatment | Referenced in ASIC2 SPs but investigated as stale/legacy; OpenPrice fallback impact still unproven | Incorrect inclusion/exclusion policy can change `OpenPrice` parity in some windows | Keep conditional by default and activate only if fallback-impact validation proves MiFID-field effect | No (unless OpenPrice impact is proven) |
 | Audit/control persistence scope (`Reg_SSIS_Log`, `Reports_Control`, SQL Agent metadata) | Needed for lineage and reconciliation governance but not always required for table generation | Reduced observability and harder run diagnostics | Decide minimum audit/control artifacts to replicate in phase 1 | No |
 
-## Step 15B1 carry-forward unresolved dependencies (`MIFID2_NPD_TRAX`)
+## Step 15B2 carry-forward unresolved dependencies (`MIFID2_NPD_TRAX`)
 
 - Upstream final-output gate:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer`
@@ -91,9 +91,12 @@ Latest source profiling integration:
   - `MIFID2_Failed_TRAX` latest-row behavior depends on `MIFID2_NPD_TRAX` history.
   - Step 9 and Step 15 require one explicit seed/cutover policy.
 - Step 15 response boundary gate:
-  - response import/update (`MIFID2_NPD_TRAX_Response`, `SP_MIFID2_NPD_TRAX_Response_Update`) is out of Step 15B1/B2 table-generation scope.
+  - response import/update (`MIFID2_NPD_TRAX_Response`, `SP_MIFID2_NPD_TRAX_Response_Update`) is out of Step 15B2 table-generation scope.
 - Step 15 delivery boundary gate:
   - CSV/export/upload/SFTP/7z/Cappitech flows remain out of phase-1 table-generation scope.
+- Step 15B2 activation status gate:
+  - `databricks/sql/08_outputs/09_mifid2_npd_trax.sql` is authored as a gated template only.
+  - final report-date DELETE/INSERT remains commented/non-active until all Step 15 gates pass.
 
 ## Profiling-improved items (no longer access-blocked)
 

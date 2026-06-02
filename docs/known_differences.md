@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-15B1)
+# Known Differences (Current Safe + Steps 5B1-15B2)
 
 Latest source profiling integration:
 - Profiling summary: `docs/source_profiling_results.md`
@@ -45,6 +45,10 @@ This document tracks known or intentional differences for the currently implemen
   - Step 15B1 adds scaffold SQL and documentation only.
   - No active NPD table-generation DML is enabled.
   - File/upload/response handling remains out of scope.
+- MIFID2_NPD_TRAX gated table-generation template (Step 15B2):
+  - Step 15B2 adds CTE-structured table-generation template only.
+  - Final report-date DELETE/INSERT remains commented/non-active.
+  - Response and delivery flows remain out of scope.
 
 ## Scope and non-goals in this step
 
@@ -490,6 +494,22 @@ This document tracks known or intentional differences for the currently implemen
   - no TRAX response import/update logic
   - no CSV/export/upload/SFTP/7z/Cappitech/response handling
   - no production deployment behavior
+
+## Step 15B2 implementation differences and cautions
+
+- `databricks/sql/08_outputs/09_mifid2_npd_trax.sql` is authored as a gated table-generation template:
+  - includes CTE flow for `run_parameters`, prior latest ids/history rows, failed-retry candidates, reg-change customer set, customer-union candidates, new/existing/retry branching, final candidate assembly, and sendable-row RowNum assignment.
+  - keeps report-date DELETE/INSERT statements commented/non-active.
+  - preserves CTE scope rule by attaching the CTE stack directly to the INSERT in one commented block.
+- Step 15B2 does not activate business execution:
+  - no active report-date load into `bi_output_regtechops_mifid2_npd_trax`.
+  - no active response update path and no `SP_MIFID2_NPD_TRAX_Response_Update` implementation.
+  - no active file/export/upload/SFTP/7z/Cappitech logic.
+  - no production deployment behavior.
+- Step 15B2 history behavior remains gated:
+  - prior latest NPD seed policy is required for exact new-vs-existing/retry/REPL parity.
+  - forward-only behavior remains a coverage-limited mode and is not treated as historical parity.
+  - Step 9 `MIFID2_Failed_TRAX` remains coupled to Step 15 history availability.
 
 ## Reference-only policy
 

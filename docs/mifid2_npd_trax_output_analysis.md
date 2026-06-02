@@ -1,10 +1,10 @@
-# Step 15 - MIFID2_NPD_TRAX Output Analysis (Step 15B1 Scaffold)
+# Step 15 - MIFID2_NPD_TRAX Output Analysis (Steps 15B1-15B2)
 
 This document defines Step 15B1 scope for `MIFID2_NPD_TRAX` migration into:
 
 - `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax`
 
-Step 15B1 is scaffold-only and documents output contract, dependency gates, and split plan.
+Step 15B1/15B2 are template-only and document output contract, dependency gates, and staged generation flow.
 
 ## Scope
 
@@ -116,11 +116,57 @@ Additional open platform blockers that still affect upstream closure:
 ## Planned Step 15 Split
 
 - Step 15B1: Scaffold, output contract, dependency gates (this document + gated SQL scaffold)
-- Step 15B2: Gated table-generation template (still commented/non-active)
+- Step 15B2: Gated table-generation template (authored, fully commented/non-active)
 - Step 15B3: Validation/reconciliation package for schema, counts, duplicates, nulls, AcceptedTRAX state, source-to-output checks, and seed-window checks
 
-## Step 15B1 Deliverables
+## Step 15B2 Gated CTE Template
+
+Step 15B2 template artifact:
+
+- `databricks/sql/08_outputs/09_mifid2_npd_trax.sql`
+
+CTE flow authored in Step 15B2 (commented/non-active):
+
+1. `run_parameters` (`{{report_date}}`)
+2. `prior_latest_ids` and `prior_latest_rows` (history-aware latest row per `CID`/`RegulationID`)
+3. `failed_retry_candidates` (prior `AcceptedTRAX = 0` or `NULL`)
+4. `reg_change_customers` (from `MIFID2_Report` where `RegChange IN (1,2)` and report-date match)
+5. `customer_all_candidates` (customer + reg-change customer union with exclusion filtering)
+6. `new_candidates` (`NEWM` candidates absent from prior latest ids)
+7. `existing_changed_candidates` (existing rows with identity-field changes, `REPL`/prior action behavior)
+8. `retry_candidates` + `candidate_union`
+9. `final_candidates` (invalid-name handling, AcceptedTRAX/ErrorDescription behavior)
+10. `final_candidates_with_rownum` (sendable rows only, `AcceptedTRAX IS NULL`)
+
+Step 15B2 history-aware behavior documented in template:
+
+- Uses prior latest NPD state for new-vs-existing/retry/`REPL`.
+- Keeps history/cutover parity hard-gated until seed policy is approved.
+- Does not fabricate prior NPD history.
+
+Step 15B2 AcceptedTRAX/invalid-name behavior documented in template:
+
+- Invalid rows set `AcceptedTRAX = 0` and `ErrorDescription = 'Not Sent. Invalid Name detected'`.
+- Sendable rows retain `AcceptedTRAX = NULL`.
+- RowNum is assigned only to sendable rows.
+- RowNum ordering remains hard-gated pending exact SQL Server parity confirmation.
+
+Step 15B2 response/delivery boundaries:
+
+- `SP_MIFID2_NPD_TRAX_Response_Update` is out of scope.
+- Response import/status updates are out of scope.
+- File/export/upload/SFTP/7z/Cappitech flows are out of scope.
+
+Step 15B2 activation gates:
+
+- Upstream customer/report outputs must be available and gate-cleared.
+- PII source-access blockers must be resolved or approved alternative formally accepted.
+- Prior/current NPD history seed policy must be approved.
+- Final DML remains commented until all gates pass.
+
+## Step 15 Deliverables
 
 - `docs/mifid2_npd_trax_output_analysis.md`
 - `databricks/sql/08_outputs/09_mifid2_npd_trax_scaffolding.sql`
+- `databricks/sql/08_outputs/09_mifid2_npd_trax.sql`
 
