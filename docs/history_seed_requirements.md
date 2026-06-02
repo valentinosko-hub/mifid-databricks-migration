@@ -578,3 +578,20 @@ Step 15B3 seed limitations:
 - Full historical backfill of hedge liquidity SCD history.
 - Production deployment/cutover workflows.
 - File-delivery and response handling flows.
+
+## Step 16B1 consolidated seed/readiness view
+
+Cross-module seed dependencies that remain open before execution:
+
+- `MIFID2_NPD_TRAX`:
+  - prior latest-row seed by `(CID, RegulationID)` remains required for historical parity windows.
+- `MIFID2_Failed_TRAX`:
+  - must share the same NPD seed/cutover policy because failed-customer supplementation depends on NPD latest-row state.
+- `ASIC2_Transactions`:
+  - older ETORO parity windows remain dependent on approved seed/history boundaries.
+- `Reg_LiquidtyAcount_SCD`:
+  - seed/rebuild vs incremental cutover policy is required before activation.
+- `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData`:
+  - materialization policy affects deterministic replay and history-window validation behavior.
+
+Until these seed dependencies are closed, execution-readiness should remain blocked and history-sensitive validations must be treated as coverage-limited.

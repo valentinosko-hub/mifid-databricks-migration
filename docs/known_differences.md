@@ -539,3 +539,18 @@ This document tracks known or intentional differences for the currently implemen
 
 - NOC artifacts and old Databricks attempt remain reference-only discovery sources and are not authoritative implementation logic.
 
+## Step 16B1 consolidation differences
+
+- Step 16B1 adds readiness and validation consolidation artifacts only:
+  - `docs/final_readiness_assessment.md`
+  - `docs/final_validation_execution_plan.md`
+  - `docs/open_blockers_for_execution.md`
+  - `databricks/sql/09_validation/07_phase1_readiness_summary.sql`
+  - `databricks/sql/09_validation/08_cross_module_validation_manifest.sql`
+  - `databricks/sql/09_validation/09_cross_module_dependency_gate_checks.sql`
+- Step 16B1 does not add new business transformation logic and does not modify existing report-generation logic.
+- Step 16B1 SQL is SELECT-only and used for readiness/checklist validation packaging.
+- Execution posture remains unchanged:
+  - modules remain gated until blocker categories in `docs/open_blockers_for_execution.md` are resolved,
+  - workflow/orchestration, delivery/upload, response handling, and production deployment remain out of scope.
+

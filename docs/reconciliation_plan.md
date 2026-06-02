@@ -568,3 +568,19 @@ Step 15B2 CTE/template coverage (authored, non-active):
 3. Grant schema access to `main.pii_data` customer tables or approve a masked/alternative customer source for MiFID customer modules.
 4. Grant `USE CATALOG dwh_daily_process` so fallback customer-history and split-price candidate objects can be profiled, or formally retire those candidates in favor of accessible alternatives.
 5. Confirm whether `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` should be promoted from accessible candidate to certified source for `Reg_Ext_CurrencyPriceMaxDateWithSplit`.
+
+## Step 16 final consolidation gate
+
+- Step 16 consolidates all validation layers across:
+  - static references / UDFs
+  - Pre_Regulation staging
+  - regulation movements
+  - hedge liquidity/SCD
+  - ASIC2-compatible subset
+  - `MIFID2_ext` staging
+  - final MiFID output modules (`Customer`, `RegChange_Customer`, `Report`, `ME_Report`, `Removed_OP_Partials`, `ETORO_Report`, `Hedge_Report`, `NPD_TRAX`)
+- Step 16 does not add or activate business transformation logic.
+- Step 16 is the readiness gate before:
+  - any execution un-gating,
+  - workflow/orchestration implementation,
+  - deployment and operational run sequencing.

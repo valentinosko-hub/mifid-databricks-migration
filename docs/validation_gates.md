@@ -94,3 +94,50 @@ Must be true:
 
 Evidence:
 - `docs/open_questions_and_decisions.md`
+
+## Step 16 final gate categories
+
+The consolidated gate categories for cross-module execution readiness are:
+
+### Source access
+
+- Confirmed visibility for required upstream objects.
+- No unresolved no-schema-access or no-catalog-access blockers for active execution paths.
+
+### Source quality
+
+- No unresolved storage/data scan failures on required execution inputs.
+- Required-column contracts are certified for each module activation path.
+
+### Schema parity
+
+- Target output contracts match SQL Server intent (column presence/order/type/nullability/precision).
+- Schema differences are documented and explicitly approved before activation.
+
+### Row-count parity
+
+- Module-level row counts and key distributions are validated by `ReportDate` and regulation dimensions.
+- Cross-output reconciliation checks are complete for dependent modules.
+
+### History seed
+
+- Stateful modules have explicit seed/cutover policy:
+  - `MIFID2_NPD_TRAX`
+  - `MIFID2_Failed_TRAX`
+  - `ASIC2_Transactions`
+  - `Reg_LiquidtyAcount_SCD`
+
+### Business decision
+
+- Open business/SME parity decisions are closed (for example hedge `RecordID` and transaction-reference parity).
+- Classification and parity-sensitive rules are approved where currently gated.
+
+### Execution readiness
+
+- All module validation packages pass in execution order.
+- Placeholder-dependent checks are either resolved with materialized sources or remain explicitly gated and excluded from go/no-go.
+
+### Deployment readiness
+
+- Production deployment remains blocked until execution-readiness gates pass and deployment-specific approvals are complete.
+- Step 16B1 itself is documentation/validation consolidation only and does not perform deployment actions.

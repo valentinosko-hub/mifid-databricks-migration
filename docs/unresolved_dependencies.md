@@ -353,3 +353,33 @@ The following items remain explicitly unresolved for Step 14 hedge activation an
 - Step 14B4 optional branch-source reconciliation gate:
   - placeholder sources (`{{hedge_eu_source}}`, `{{hedge_eu_uk_source}}`, `{{hedge_uk_source}}`) may be unavailable.
   - source-to-output branch reconciliation remains optional/gated until these are materialized and validated.
+
+## Step 16B1 consolidated unresolved dependencies
+
+This section is the cross-module unresolved set for readiness consolidation and should be treated as the go/no-go dependency list before execution is enabled.
+
+- Access blockers:
+  - `main.pii_data.bronze_etoro_customer_customer` (no schema access)
+  - `main.pii_data.bronze_etoro_history_customer` (no schema access)
+  - `dwh_daily_process.daily_snapshot.etoro_history_customer` (no catalog access)
+  - `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` (no catalog access)
+- Storage/data scan blockers:
+  - `main.trading.bronze_etoro_trade_currencyprice`
+  - `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`
+- History/seed blockers:
+  - `MIFID2_NPD_TRAX` prior-latest seed/cutover policy
+  - `MIFID2_Failed_TRAX` shared seed dependency on NPD history
+  - `ASIC2_Transactions` parity window seed policy
+  - `Reg_LiquidtyAcount_SCD` seed/rebuild vs incremental policy
+  - `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData` materialization policy
+- Business/SME blockers:
+  - final source certification for `Reg_Ext_CurrencyPriceMaxDateWithSplit`
+  - exact CFI / InstrumentClassification parity where still gated
+  - `MIFID2_Hedge_Report` `RecordID` strategy
+  - `MIFID2_Hedge_Report` transaction reference parity
+  - required-column certification for confirmed-accessible but still-pending sources
+
+Resolved static-reference availability remains unchanged:
+- `main.regtech_ops_stg.bi_output_regtechops_dbo_internal_accounts`
+- `main.regtech_ops_stg.bi_output_regtechops_dictionary_ext_specialchar`
+- `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro`
