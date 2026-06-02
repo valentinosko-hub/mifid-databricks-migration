@@ -430,6 +430,7 @@ For a requested Step 14 `ReportDate`, ensure:
 - Step 14B1 is scaffold-only and does not execute report DML.
 - Step 14B2 is source-preparation-only and does not execute final output DML.
 - Step 14B3 is final projection/load template authoring only and keeps final DML commented/gated.
+- Step 14B4 is validation-only authoring and does not execute hedge business DML.
 - Do not block Step 14B1 authoring on full historical backfill.
 - If older hedge windows are requested later:
   1. expand hedge execution staging windows,
@@ -494,6 +495,21 @@ Step 14B3 historical caution:
 
 - If transaction-reference seed inputs are unstable across reruns, deterministic RecordID ordering can drift even with a fixed ordering specification.
 - If exclusion history is incomplete, Step 14B3 projection template parity may appear correct while branch-level exclusion evidence fails in Step 14B4.
+
+## Step 14B4-specific seed notes (hedge validation/reconciliation)
+
+Step 14B4 validation can run for requested report windows without full historical backfill.
+
+- No full historical seed is required by default for Step 14B4.
+- Expand history only when requested parity windows require:
+  - deeper liquidity SCD validity history,
+  - older LEI/exclusion history,
+  - SQL Server baseline comparisons for older report dates.
+
+Step 14B4 SCD/cutover caution:
+
+- Liquidity SCD seed/cutover decisions can change hedge parity outcomes even for validation windows.
+- If SCD history is incomplete for requested windows, validation results must be marked as coverage-limited rather than parity-failed.
 
 ## Out of scope
 

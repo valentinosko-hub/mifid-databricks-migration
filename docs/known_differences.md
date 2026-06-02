@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-14B3)
+# Known Differences (Current Safe + Steps 5B1-14B4)
 
 This document tracks known or intentional differences for the currently implemented scope:
 
@@ -33,6 +33,9 @@ This document tracks known or intentional differences for the currently implemen
 - MIFID2_Hedge_Report final projection/load template (Step 14B3):
   - Step 14B3 adds gated EU / EU-UK / UK final projection and load template.
   - Final report-date DML remains commented/non-active until dependency and parity gates pass.
+- MIFID2_Hedge_Report validation/reconciliation package (Step 14B4):
+  - Step 14B4 adds SELECT-only validation/reconciliation SQL.
+  - Step 14B4 does not add/alter hedge business logic.
 
 ## Scope and non-goals in this step
 
@@ -433,6 +436,21 @@ This document tracks known or intentional differences for the currently implemen
   - report scope remains row-level via `table_name = '[MIFID2_Hedge_Report]'`.
   - exclusion is applied to matching instrument ids and generated transaction-reference/position-equivalent keys only.
 - Step 14B3 keeps file-delivery/upload/response/deployment logic out of scope:
+  - no CSV/7z/SFTP/TRAX/Cappitech/response handling
+  - no production deployment behavior
+
+## Step 14B4 implementation differences and cautions
+
+- `databricks/sql/08_outputs/08_mifid2_hedge_report_validation.sql` is authored as validation-only SQL:
+  - SELECT-only checks for schema, row counts, duplicates, nulls, branch behavior, source-to-output reconciliation, coverage, exclusions, and aggregates.
+  - no CREATE/INSERT/UPDATE/DELETE/MERGE/DROP statements.
+- RecordID in Step 14B4:
+  - validation gate checks are included.
+  - RecordID remains activation-gated unless deterministic strategy approval is provided.
+- TransactionReferenceNumber in Step 14B4:
+  - output-level checks are included.
+  - deep exact parity checks remain optional/gated unless source placeholders/materialized sources are available.
+- Step 14B4 keeps file-delivery/upload/response/deployment logic out of scope:
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
   - no production deployment behavior
 

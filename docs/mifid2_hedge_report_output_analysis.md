@@ -1,6 +1,6 @@
-# Step 14A/14B1/14B2/14B3 - MIFID2 Hedge Report Output Analysis
+# Step 14A/14B1/14B2/14B3/14B4 - MIFID2 Hedge Report Output Analysis
 
-This document captures the Step 14 analysis baseline, Step 14B1 scaffolding boundary, Step 14B2 source-preparation boundary, and Step 14B3 final projection-template boundary for `MIFID2_Hedge_Report`.
+This document captures the Step 14 analysis baseline, Step 14B1 scaffolding boundary, Step 14B2 source-preparation boundary, Step 14B3 final projection-template boundary, and Step 14B4 validation/reconciliation boundary for `MIFID2_Hedge_Report`.
 
 ## Scope (Step 14B1)
 
@@ -35,6 +35,14 @@ This document captures the Step 14 analysis baseline, Step 14B1 scaffolding boun
 - Include EU / EU-UK / UK branch projection templates and explicit insert-column contract.
 - Keep final report-date `DELETE` / `INSERT` statements commented/gated until dependency approval.
 
+## Scope (Step 14B4)
+
+- Author read-only validation/reconciliation SQL package for:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
+- Author Step 14B4 SQL artifact:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_validation.sql`
+- Include SELECT-only checks for schema, row counts, duplicates, nulls, branch behavior, source-to-output reconciliation, coverage, exclusions, and aggregates.
+
 ## Out of scope for Step 14B1
 
 - Actual EU branch projection.
@@ -60,6 +68,15 @@ This document captures the Step 14 analysis baseline, Step 14B1 scaffolding boun
 
 - Active/ungated execution of final report-date `DELETE` / `INSERT`.
 - Step 14B4 validation/reconciliation execution evidence.
+- `MIFID2_NPD_TRAX`.
+- File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload, response handling).
+- Production deployment/orchestration activation.
+
+## Out of scope for Step 14B4
+
+- New hedge business-logic implementation.
+- Changes to Step 14B2 source-preparation logic.
+- Changes to Step 14B3 final projection logic.
 - `MIFID2_NPD_TRAX`.
 - File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload, response handling).
 - Production deployment/orchestration activation.
@@ -319,7 +336,62 @@ Step 14B3 final projection template defines three branch outputs:
 ## Step 14B4 boundary
 
 - Step 14B3 delivers gated final projection/load templates only.
-- Runtime validation/reconciliation evidence remains deferred to Step 14B4.
+- Step 14B4 delivers read-only validation/reconciliation SQL only (no DML/DDL).
+
+## Step 14B4 validation package scope and categories
+
+Step 14B4 package (`08_mifid2_hedge_report_validation.sql`) covers:
+
+- run-parameter and gate-summary checks,
+- schema parity checks (count/name/order/type/nullability snapshot + required-column contract),
+- row-count and branch-count checks (`EU`, `EU-UK`, `UK`),
+- duplicate and required-null checks,
+- source-to-output branch reconciliation (OPTIONAL/gated by source placeholders),
+- EDNF/IB coverage checks,
+- liquidity/LEI/SCD coverage and validity-window checks,
+- RecordID validation gate checks,
+- TransactionReferenceNumber validation gate checks,
+- exclusion-scope and exclusion-absence checks,
+- instrument/dictionary coverage checks,
+- quantity/price aggregate checks,
+- GBX validation as OPTIONAL/gated when audit fields are unavailable.
+
+## Step 14B4 branch-source reconciliation boundary
+
+- Step 14B4 includes optional/gated branch-source reconciliation placeholders:
+  - `{{hedge_eu_source}}`
+  - `{{hedge_eu_uk_source}}`
+  - `{{hedge_uk_source}}`
+- These checks remain non-blocking until sources are materialized and validated.
+
+## Step 14B4 RecordID and TransactionReferenceNumber validation gates
+
+- RecordID:
+  - validate null/populated status, floor (`>= 100000001`) when populated, duplicate checks, and deterministic ordering comparison when populated.
+  - approval remains required before activation of deterministic strategy.
+- TransactionReferenceNumber:
+  - validate non-null and duplicate behavior by `ReportDate`/`RegulationReportID`.
+  - keep deep source-expression parity checks optional/gated until source placeholders are available for exact comparison.
+
+## Step 14B4 exclusion semantics
+
+- Exclusion checks in Step 14B4 enforce report-scoped row-level semantics:
+  - instrument-level exclusions for `table_name = '[MIFID2_Hedge_Report]'`,
+  - generated transaction-reference/position-equivalent exclusions for `table_name = '[MIFID2_Hedge_Report]'`.
+- Step 14B4 does not interpret exclusion scope markers as full-table suppression.
+
+## Step 14B4 remaining unresolved gates
+
+Step 14B4 keeps unresolved dependencies as explicit validation gates, including:
+
+- Step 7 liquidity/SCD profiling and seed/cutover decisions,
+- LEI coverage completeness,
+- Step 9/Step 5B2 hedge source activation,
+- EDNF/IB coverage evidence,
+- instrument special-char and dictionary readiness,
+- RecordID deterministic strategy signoff,
+- TransactionReferenceNumber exact parity signoff,
+- exclusion-mapping parity signoff.
 
 ## Planned implementation split
 
@@ -333,3 +405,4 @@ Step 14B3 final projection template defines three branch outputs:
   - no active/ungated execution in this step.
 - Step 14B4:
   - read-only validation/reconciliation package for schema, row counts, duplicates, branch evidence, exclusions, and aggregate checks.
+  - no business-logic changes to Step 14B2/14B3 templates.

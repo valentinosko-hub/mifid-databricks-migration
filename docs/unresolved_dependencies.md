@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-14B3 - Unresolved Dependencies
+# Phase 1D / Steps 5-14B4 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -226,9 +226,9 @@ The following items remain explicitly unresolved for Step 13B3 ETORO validation/
   - cross-system anti-join/reconciliation placeholders require a normalized SQL Server baseline source.
   - no baseline source should be invented; keep checks gated until provided.
 
-## Step 14B3 carry-forward unresolved dependencies
+## Step 14B4 carry-forward unresolved dependencies
 
-The following items remain explicitly unresolved for Step 14 hedge activation and parity signoff after Step 14B3 template authoring:
+The following items remain explicitly unresolved for Step 14 hedge activation and parity signoff after Step 14B4 validation package authoring:
 
 - RecordID strategy gate:
   - SQL Server `MIFID2_Hedge_Report` uses `RecordID INT IDENTITY(100000001,1)`.
@@ -264,3 +264,6 @@ The following items remain explicitly unresolved for Step 14 hedge activation an
 - Step 14B3 template activation gate:
   - `databricks/sql/08_outputs/08_mifid2_hedge_report.sql` is authored as commented/gated final projection/load template only.
   - final report-date DML remains blocked until all source/readiness gates are approved.
+- Step 14B4 optional branch-source reconciliation gate:
+  - placeholder sources (`{{hedge_eu_source}}`, `{{hedge_eu_uk_source}}`, `{{hedge_uk_source}}`) may be unavailable.
+  - source-to-output branch reconciliation remains optional/gated until these are materialized and validated.

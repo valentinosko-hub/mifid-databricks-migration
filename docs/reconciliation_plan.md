@@ -379,7 +379,7 @@ Step 14B3 evidence is template-level and gating-focused:
   - `docs/known_differences.md`
   - `docs/history_seed_requirements.md`
 
-## Step 14B4 reconciliation coverage (planned)
+## Step 14B4 reconciliation coverage
 
 1. Schema parity:
    - `MIFID2_Hedge_Report` column contract, type/nullability expectations, and RecordID handling acceptance.
@@ -404,9 +404,33 @@ Step 14B3 evidence is template-level and gating-focused:
 9. RecordID deterministic behavior checks:
    - evidence that approved strategy is stable across reruns for the same `ReportDate`.
 
-## Planned evidence output for Step 14B4
+## Step 14B4 validation execution order
 
-- SQL result sets from planned Step 14 hedge validation package (to be authored in Step 14B4).
+1. Run Step 14 gate-summary block and confirm dependency status visibility.
+2. Run schema/required-column parity checks for hedge output contract.
+3. Run row-count and branch-count checks by `ReportDate`, `RegulationReportID`, and `rowSource`.
+4. Run duplicate and required-null checks.
+5. Run liquidity/LEI/SCD validity and coverage checks.
+6. Run EDNF/IB and instrument/dictionary coverage checks.
+7. Run exclusion-scope and exclusion-absence checks.
+8. Run RecordID and TransactionReferenceNumber gate checks.
+9. Run aggregate checks by branch/instrument/liquidity dimensions.
+10. Run optional/gated source-to-output branch reconciliation only when branch-source placeholders are materialized.
+
+## Step 14B4 SQL Server baseline comparison
+
+- SQL Server baseline comparison remains optional and gated in Step 14B4.
+- When a normalized SQL Server baseline source is provided, compare at minimum:
+  - row counts by branch and report date,
+  - duplicate-key behavior,
+  - TransactionReferenceNumber parity,
+  - aggregate quantity/price metrics.
+- Do not invent a baseline source; keep baseline checks optional/gated until provided.
+
+## Evidence output for Step 14B4
+
+- SQL result sets from Step 14 hedge validation package:
+  - `databricks/sql/08_outputs/08_mifid2_hedge_report_validation.sql`
 - Supporting hedge source/projection artifacts:
   - `databricks/sql/08_outputs/08_mifid2_hedge_report_scaffolding.sql`
   - Step 14B2 hedge source-preparation artifacts:
