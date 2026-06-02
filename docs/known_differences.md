@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-14B4)
+# Known Differences (Current Safe + Steps 5B1-15B1)
 
 Latest source profiling integration:
 - Profiling summary: `docs/source_profiling_results.md`
@@ -41,6 +41,10 @@ This document tracks known or intentional differences for the currently implemen
 - MIFID2_Hedge_Report validation/reconciliation package (Step 14B4):
   - Step 14B4 adds SELECT-only validation/reconciliation SQL.
   - Step 14B4 does not add/alter hedge business logic.
+- MIFID2_NPD_TRAX scaffold/output-contract/dependency gates (Step 15B1):
+  - Step 15B1 adds scaffold SQL and documentation only.
+  - No active NPD table-generation DML is enabled.
+  - File/upload/response handling remains out of scope.
 
 ## Scope and non-goals in this step
 
@@ -59,6 +63,7 @@ This document tracks known or intentional differences for the currently implemen
 - Step 11 includes only `MIFID2_RegChange_Customer` profiling/gating; no active final-output DDL is enabled yet.
 - Step 13B3 adds ETORO validation/reconciliation SQL as read-only SELECT templates only; it does not introduce active ETORO load execution.
 - Step 14B2 includes hedge source-preparation authoring only; no active EU/EU-UK/UK final report implementation.
+- Step 15B1 includes NPD scaffold authoring only; no active `MIFID2_NPD_TRAX` generation DML is enabled yet.
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
 - No CSV/7z/SFTP/Cappitech/TRAX upload/response handling.
 - No production deployment to `main.regtech`.
@@ -132,7 +137,8 @@ This document tracks known or intentional differences for the currently implemen
 - `databricks/sql/03_pre_regulation_ext/05_non_price_staging_gates.sql` intentionally contains no `CREATE OR REPLACE TABLE` statements; it records why each non-price object is still gated.
 - `databricks/sql/03_pre_regulation_ext/06_non_price_validation.sql` contains validation templates for later execution after staging tables are materialized.
 - `Reg_Instruments_ext` is planned to use certified instrument gold/FIRDS sources if parity to the SSIS raw join output is confirmed.
-- Dictionary and trade instrument sources are marked expected source / access pending; columns are not assumed.
+- `Trade.GetInstrument`, `Trade.InstrumentMetaData`, `Dictionary.Currency`, and `Dictionary.CurrencyType` are now confirmed accessible in latest profiling, but Step 5B2 required-column certification is still pending before activation.
+- `Reg_Ext_CustomerLatinName` remains expected-source/access-pending and keeps Step 5B2 non-price activation gated.
 
 ## Step 6 implementation differences and cautions
 
@@ -463,6 +469,26 @@ This document tracks known or intentional differences for the currently implemen
   - deep exact parity checks remain optional/gated unless source placeholders/materialized sources are available.
 - Step 14B4 keeps file-delivery/upload/response/deployment logic out of scope:
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
+  - no production deployment behavior
+
+## Step 15B1 implementation differences and cautions
+
+- `databricks/sql/08_outputs/09_mifid2_npd_trax_scaffolding.sql` is authored as scaffold/gate SQL only:
+  - report-date scaffold and dependency-gate checklist are included.
+  - output DDL contract is included as commented template only.
+  - TODO anchors are included for Step 15B2 (table-generation template) and Step 15B3 (validation/reconciliation).
+- Step 15B1 does not include active NPD DML execution:
+  - no active report-date `DELETE` / `INSERT` for `bi_output_regtechops_mifid2_npd_trax`.
+  - no active retry/new-vs-existing generation logic.
+  - no active RowNum assignment logic.
+- Step 15 history/cutover behavior remains gated:
+  - exact parity needs prior latest `MIFID2_NPD_TRAX` rows by `(CID, RegulationID)`.
+  - forward-only start is allowed for current windows but is not historical parity-equivalent.
+  - Step 9 `MIFID2_Failed_TRAX` remains coupled to Step 15 through NPD history dependency.
+- Step 15 response and delivery boundaries remain out of scope:
+  - no `SP_MIFID2_NPD_TRAX_Response_Update` implementation
+  - no TRAX response import/update logic
+  - no CSV/export/upload/SFTP/7z/Cappitech/response handling
   - no production deployment behavior
 
 ## Reference-only policy

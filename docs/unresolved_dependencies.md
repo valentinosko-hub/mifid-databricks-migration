@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-14B4 - Unresolved Dependencies
+# Phase 1D / Steps 5-15B1 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -72,6 +72,28 @@ Latest source profiling integration:
 | `dbo.ReplaceChar` parity implementation | Function behavior is strict (trim-before-replace, specific character map) | Customer identifier/name outputs can drift from SQL Server | SQL authored in Step 4; execute targeted unit tests and compare against SQL Server outputs | Yes |
 | `Reg_DWH_StaticPosition` dependency treatment | Referenced in ASIC2 SPs but investigated as stale/legacy; OpenPrice fallback impact still unproven | Incorrect inclusion/exclusion policy can change `OpenPrice` parity in some windows | Keep conditional by default and activate only if fallback-impact validation proves MiFID-field effect | No (unless OpenPrice impact is proven) |
 | Audit/control persistence scope (`Reg_SSIS_Log`, `Reports_Control`, SQL Agent metadata) | Needed for lineage and reconciliation governance but not always required for table generation | Reduced observability and harder run diagnostics | Decide minimum audit/control artifacts to replicate in phase 1 | No |
+
+## Step 15B1 carry-forward unresolved dependencies (`MIFID2_NPD_TRAX`)
+
+- Upstream final-output gate:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+  - remain gated until Step 9/10/11/12 dependencies pass.
+- PII source-access gate for customer parity:
+  - `main.pii_data.bronze_etoro_customer_customer` (no schema access)
+  - `main.pii_data.bronze_etoro_history_customer` (no schema access)
+  - customer outputs and NPD customer-shaping remain access-blocked until schema grant or approved alternative.
+- NPD history/cutover gate:
+  - exact new-vs-existing/retry/REPL behavior requires prior latest `MIFID2_NPD_TRAX` rows.
+  - forward-only cutover can start clean but is not historical parity-equivalent.
+- Step 9 dependency loop gate:
+  - `MIFID2_Failed_TRAX` latest-row behavior depends on `MIFID2_NPD_TRAX` history.
+  - Step 9 and Step 15 require one explicit seed/cutover policy.
+- Step 15 response boundary gate:
+  - response import/update (`MIFID2_NPD_TRAX_Response`, `SP_MIFID2_NPD_TRAX_Response_Update`) is out of Step 15B1/B2 table-generation scope.
+- Step 15 delivery boundary gate:
+  - CSV/export/upload/SFTP/7z/Cappitech flows remain out of phase-1 table-generation scope.
 
 ## Profiling-improved items (no longer access-blocked)
 

@@ -409,6 +409,35 @@ Step 14 note (`MIFID2_Hedge_Report`):
 - Step 14B3 remains gated:
   - final branch projection/load DML exists as commented template only (not active).
 
+Step 15 note (`MIFID2_NPD_TRAX`):
+
+- Step 15B1 scaffold artifact:
+  - `databricks/sql/08_outputs/09_mifid2_npd_trax_scaffolding.sql`
+- Step 15 target object is:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax`
+- Step 15 table-generation boundary:
+  - `SP_MIFID2_NPD_TRAX(@StartDate)` is the table-generation authority.
+  - `MIFID2 TRAX.dtsx` executes this SP before file/upload/response tasks.
+  - `SP_MIFID2_NPD_TRAX_Response_Update` and response import/update are out of Step 15B1 scope.
+- Step 15 direct inputs represented in scaffold:
+  - prior/current `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax` history
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_vw_internal_accounts`
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
+- Step 15 not-direct inputs (unless later evidence proves otherwise):
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_etoro_report`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
+- Step 15 gate posture:
+  - customer-shaping parity remains gated by no schema access on unmasked `main.pii_data` customer sources.
+  - exact NPD new-vs-existing/retry parity remains gated by unresolved history/cutover seed policy.
+  - `MIFID2_Failed_TRAX` and Step 15 remain coupled through `MIFID2_NPD_TRAX` history dependency.
+  - Step 15B1/15B2 exclude all file delivery/export/upload/response logic.
+
 ## Mappings not to use (legacy/reference-only)
 
 - Do not use optional/reference package artifacts as current mapping authority:

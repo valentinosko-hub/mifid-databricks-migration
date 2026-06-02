@@ -22,13 +22,19 @@ Latest source profiling integration:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
   - Step 14B1: scaffold/output contract/dependency gates
   - Step 14B2: source-preparation templates + SELECT-only source-preparation validation
+- Step 15 NPD TRAX staged package for:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax`
+  - Step 15B1: scaffold/output contract/dependency gates
+  - Step 15B2: gated table-generation template (planned)
+  - Step 15B3: read-only validation/reconciliation package (planned)
 
 ## Out of scope for this step
 
 - Active/ungated Step 13B2 ETORO projection execution
 - Active/ungated Step 14B2 source CTE execution
 - Active/ungated Step 14B3 hedge branch projection/load execution
-- `MIFID2_NPD_TRAX`
+- Active/ungated Step 15B2 NPD table-generation execution
+- TRAX response import/status updates (`SP_MIFID2_NPD_TRAX_Response_Update`)
 - File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload/response handling)
 - Production deployment
 
@@ -469,6 +475,52 @@ Step 14B3 evidence is template-level and gating-focused:
   - `docs/history_seed_requirements.md`
   - `docs/source_profiling_results.md`
   - `docs/access_blockers.md`
+
+## Step 15 planned split and reconciliation boundary
+
+- Step 15B1:
+  - scaffold/output contract/dependency-gate authoring only for `bi_output_regtechops_mifid2_npd_trax`.
+  - no active NPD DML execution.
+- Step 15B2:
+  - gated/commented table-generation template for `SP_MIFID2_NPD_TRAX` parity flow.
+  - report-date DML remains commented/non-active until gates pass.
+- Step 15B3:
+  - read-only validation/reconciliation package for schema/count/duplicate/null/source-to-output/AcceptedTRAX/history checks.
+
+## Step 15 gate prerequisites before activation
+
+- Upstream output gates:
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer`
+  - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+- PII source-access gates:
+  - `main.pii_data.bronze_etoro_customer_customer` (no schema access)
+  - `main.pii_data.bronze_etoro_history_customer` (no schema access)
+- History/cutover gate:
+  - prior/latest `MIFID2_NPD_TRAX` seed policy for exact new-vs-existing/retry/REPL parity.
+- Step 9 coupling gate:
+  - `MIFID2_Failed_TRAX` latest-row behavior depends on `MIFID2_NPD_TRAX` history.
+- Response boundary gate:
+  - response import/update and `SP_MIFID2_NPD_TRAX_Response_Update` remain out of Step 15B1/B2 table-generation scope.
+
+## Step 15B3 reconciliation coverage (planned)
+
+1. Schema parity:
+   - contract parity to `dbo.MIFID2_NPD_TRAX.sql` including response-related columns present in DDL.
+2. Row counts:
+   - counts by `ReportDate`, `Entity`, `Action`, `AcceptedTRAX`.
+3. Duplicate checks:
+   - uniqueness intent on (`ReportDate`,`Entity`,`CID`).
+4. Required null checks:
+   - required identity/report columns and key TRAX fields.
+5. Source-to-output checks:
+   - new/existing/retry/failed/excluded-path contribution counts.
+6. AcceptedTRAX checks:
+   - sendable rows (`NULL`), invalid-name rows (`0`), retry posture for prior rejected/null rows.
+7. History/seed checks:
+   - prior latest-row availability by `(CID, RegulationID)` and coverage warnings for forward-only windows.
+8. SQL Server baseline comparison:
+   - optional/gated and only when normalized baseline source is provided.
 
 ## DE/Data Platform action list (from latest profiling)
 

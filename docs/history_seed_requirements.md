@@ -511,6 +511,45 @@ Step 14B4 SCD/cutover caution:
 - Liquidity SCD seed/cutover decisions can change hedge parity outcomes even for validation windows.
 - If SCD history is incomplete for requested windows, validation results must be marked as coverage-limited rather than parity-failed.
 
+## Step 15 - MIFID2_NPD_TRAX
+
+Primary Step 15 target:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax`
+
+Supporting Step 15 direct dependencies:
+
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_customer`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_customer`
+- `main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_regchange_customer`
+- `main.regtech_ops_stg.bi_output_regtechops_vw_internal_accounts`
+- `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
+
+### Minimum seed requirements for Step 15 parity windows
+
+For a requested Step 15 `ReportDate`, ensure:
+
+- Prior/latest `MIFID2_NPD_TRAX` rows exist for `(CID, RegulationID)` combinations participating in historical parity checks.
+- Upstream final/staging inputs for the same report-date window are available and dependency-gate complete.
+- Exclusion source (`regulation_report_excluded_cids`) is current for the same reporting window.
+
+### Seed/cutover policy for Step 15
+
+- Step 15 can start forward-only for current validation windows without full historical backfill.
+- Forward-only first run changes exact SQL Server parity behavior for:
+  - new-vs-existing combination detection,
+  - retry logic for rejected/null prior rows,
+  - `REPL` behavior for accepted rows with changed identity fields.
+- For historical parity windows, seed prior latest NPD rows by `(CID, RegulationID)` before Step 15B2 execution.
+- Because Step 9 `MIFID2_Failed_TRAX` depends on latest NPD history, Step 9 and Step 15 must use one explicit shared seed/cutover policy.
+
+### SQL Server baseline parity note for Step 15
+
+- SQL Server baseline comparison for older windows requires seeded prior latest NPD rows.
+- Without seed coverage, baseline differences must be classified as expected history-coverage deltas, not business-logic parity failures.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.
