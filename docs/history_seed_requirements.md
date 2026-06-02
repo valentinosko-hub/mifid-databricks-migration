@@ -553,6 +553,25 @@ For a requested Step 15 `ReportDate`, ensure:
 - SQL Server baseline comparison for older windows requires seeded prior latest NPD rows.
 - Without seed coverage, baseline differences must be classified as expected history-coverage deltas, not business-logic parity failures.
 
+## Step 15B3-specific seed notes (validation/reconciliation)
+
+Step 15B3 validation artifact:
+
+- `databricks/sql/08_outputs/09_mifid2_npd_trax_validation.sql`
+
+Step 15B3 seed-dependent validation categories:
+
+- prior latest-row coverage by `(CID, RegulationID)`
+- retry-eligibility checks tied to prior `AcceptedTRAX` state
+- missing-seed and forward-only warnings
+- optional SQL Server baseline deltas for older parity windows
+
+Step 15B3 seed limitations:
+
+- If prior NPD seed history is absent, Step 15B3 can still validate current-window structural checks, but history/retry/REPL parity checks must be treated as coverage-limited.
+- Forward-only windows must be explicitly labeled as non-historical parity runs.
+- Exact RowNum ordering parity should remain gated until history coverage and ordering contract evidence are available.
+
 ## Out of scope
 
 - Full historical backfill of all movement dates.

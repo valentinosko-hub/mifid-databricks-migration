@@ -1,6 +1,6 @@
-# Step 15 - MIFID2_NPD_TRAX Output Analysis (Steps 15B1-15B2)
+# Step 15 - MIFID2_NPD_TRAX Output Analysis (Steps 15B1-15B3)
 
-This document defines Step 15B1 scope for `MIFID2_NPD_TRAX` migration into:
+This document defines Step 15B1-15B3 scope for `MIFID2_NPD_TRAX` migration into:
 
 - `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax`
 
@@ -8,7 +8,7 @@ Step 15B1/15B2 are template-only and document output contract, dependency gates,
 
 ## Scope
 
-In scope for Step 15B1:
+In scope for Step 15B1-15B3:
 
 - Output target contract for `bi_output_regtechops_mifid2_npd_trax`
 - SQL Server procedure boundary for table generation
@@ -16,7 +16,7 @@ In scope for Step 15B1:
 - History/cutover dependency notes
 - Step split definition for 15B2/15B3
 
-Out of scope for Step 15B1:
+Out of scope for Step 15B1-15B3:
 
 - Full NPD_TRAX table-generation SQL implementation
 - TRAX file generation/export
@@ -164,9 +164,67 @@ Step 15B2 activation gates:
 - Prior/current NPD history seed policy must be approved.
 - Final DML remains commented until all gates pass.
 
+## Step 15B3 Validation and Reconciliation Package
+
+Step 15B3 validation artifact:
+
+- `databricks/sql/08_outputs/09_mifid2_npd_trax_validation.sql`
+
+Step 15B3 package scope:
+
+- SELECT-only validation for `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax`
+- no CREATE/INSERT/UPDATE/DELETE/MERGE/DROP behavior
+- no response handling/file delivery logic
+
+Validation categories covered:
+
+1. Schema parity:
+   - column names, order, type/nullability checks
+   - precision/scale checks where relevant
+   - response columns (`ErrorColumn`, `FailedSinceDate`, `DateFixedTRAX`) included in contract checks
+2. Duplicate checks:
+   - PK intent `(ReportDate, Entity, CID)`
+3. Required null checks:
+   - `ReportDate`, `CID`, `ReportTypeID`, `Entity`
+4. Row counts:
+   - by `ReportDate`, `Entity`, `RegulationID`, `Action`, `AcceptedTRAX`
+5. AcceptedTRAX checks:
+   - sendable rows (`AcceptedTRAX IS NULL`)
+   - invalid rows (`AcceptedTRAX = 0`, expected invalid-name error text)
+   - prior rejected/null retry-eligibility posture
+6. RowNum checks:
+   - RowNum assigned only for sendable rows
+   - RowNum nullability for non-sendable rows
+   - partition summaries by `Entity`
+   - exact SQL Server ordering parity remains gated
+7. History/seed checks:
+   - prior latest row coverage by `(CID, RegulationID)`
+   - missing-seed and forward-only warnings
+   - seed coverage via max prior `ReportDate`
+8. Exclusion checks:
+   - excluded CIDs absent
+   - exclusion source bound to `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
+9. Source-to-output checks:
+   - customer-all/new/existing-changed/failed-retry/final-output counts as gated placeholders
+10. Optional SQL Server baseline comparison:
+    - gated placeholder for normalized SQL Server baseline
+    - key and row-count deltas when available
+
+Gated/deferred checks in Step 15B3:
+
+- Placeholder-dependent candidate-source checks:
+  - `{{npd_customer_all_source}}`
+  - `{{npd_new_candidates_source}}`
+  - `{{npd_existing_changed_source}}`
+  - `{{npd_failed_retry_source}}`
+- Optional baseline placeholder:
+  - `{{sqlserver_npd_trax_baseline_source}}`
+- Exact SQL Server RowNum ordering parity remains hard-gated until explicit ordering contract approval.
+
 ## Step 15 Deliverables
 
 - `docs/mifid2_npd_trax_output_analysis.md`
 - `databricks/sql/08_outputs/09_mifid2_npd_trax_scaffolding.sql`
 - `databricks/sql/08_outputs/09_mifid2_npd_trax.sql`
+- `databricks/sql/08_outputs/09_mifid2_npd_trax_validation.sql`
 

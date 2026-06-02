@@ -1,4 +1,4 @@
-# Known Differences (Current Safe + Steps 5B1-15B2)
+# Known Differences (Current Safe + Steps 5B1-15B3)
 
 Latest source profiling integration:
 - Profiling summary: `docs/source_profiling_results.md`
@@ -49,6 +49,9 @@ This document tracks known or intentional differences for the currently implemen
   - Step 15B2 adds CTE-structured table-generation template only.
   - Final report-date DELETE/INSERT remains commented/non-active.
   - Response and delivery flows remain out of scope.
+- MIFID2_NPD_TRAX validation/reconciliation package (Step 15B3):
+  - Step 15B3 adds SELECT-only validation/reconciliation SQL only.
+  - It does not activate NPD output DML or response/delivery logic.
 
 ## Scope and non-goals in this step
 
@@ -510,6 +513,27 @@ This document tracks known or intentional differences for the currently implemen
   - prior latest NPD seed policy is required for exact new-vs-existing/retry/REPL parity.
   - forward-only behavior remains a coverage-limited mode and is not treated as historical parity.
   - Step 9 `MIFID2_Failed_TRAX` remains coupled to Step 15 history availability.
+
+## Step 15B3 implementation differences and cautions
+
+- `databricks/sql/08_outputs/09_mifid2_npd_trax_validation.sql` is authored as validation-only SQL:
+  - SELECT-only checks for schema parity, duplicates, required nulls, row counts, source-to-output coverage, AcceptedTRAX behavior, RowNum behavior, exclusions, and history/seed coverage.
+  - no CREATE/INSERT/UPDATE/DELETE/MERGE/DROP statements.
+- Step 15B3 response and delivery boundaries remain out of scope:
+  - no `SP_MIFID2_NPD_TRAX_Response_Update` implementation
+  - no TRAX response import/update logic
+  - no CSV/export/upload/SFTP/7z/Cappitech handling
+  - no production deployment behavior
+- Step 15B3 history/seed posture remains gated:
+  - prior/latest NPD seed coverage is required for exact parity windows
+  - forward-only windows are treated as coverage-limited
+  - exact RowNum ordering parity remains hard-gated until SQL Server ordering contract is explicitly approved
+- Step 15B3 placeholder-dependent checks remain gated:
+  - `{{npd_customer_all_source}}`
+  - `{{npd_new_candidates_source}}`
+  - `{{npd_existing_changed_source}}`
+  - `{{npd_failed_retry_source}}`
+  - optional baseline source `{{sqlserver_npd_trax_baseline_source}}`
 
 ## Reference-only policy
 

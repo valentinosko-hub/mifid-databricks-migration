@@ -1,4 +1,4 @@
-# Phase 1D / Steps 5-15B2 - Unresolved Dependencies
+# Phase 1D / Steps 5-15B3 - Unresolved Dependencies
 
 This file tracks dependencies from `docs/dependency_coverage_matrix.md` that are not yet fully resolved for phase-1 implementation and validation.
 
@@ -97,6 +97,16 @@ Latest source profiling integration:
 - Step 15B2 activation status gate:
   - `databricks/sql/08_outputs/09_mifid2_npd_trax.sql` is authored as a gated template only.
   - final report-date DELETE/INSERT remains commented/non-active until all Step 15 gates pass.
+- Step 15B3 validation-source gate:
+  - placeholder candidate-source checks remain gated until sources/checkpoints are materialized:
+    - `{{npd_customer_all_source}}`
+    - `{{npd_new_candidates_source}}`
+    - `{{npd_existing_changed_source}}`
+    - `{{npd_failed_retry_source}}`
+- Step 15B3 SQL Server baseline gate:
+  - normalized SQL Server baseline comparison remains optional/gated until a baseline source is provided (`{{sqlserver_npd_trax_baseline_source}}`).
+- Step 15B3 RowNum ordering parity gate:
+  - exact SQL Server RowNum ordering parity remains hard-gated pending explicit ordering-contract approval.
 
 ## Profiling-improved items (no longer access-blocked)
 

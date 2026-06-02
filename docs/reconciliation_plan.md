@@ -25,8 +25,8 @@ Latest source profiling integration:
 - Step 15 NPD TRAX staged package for:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax`
   - Step 15B1: scaffold/output contract/dependency gates
-  - Step 15B2: gated table-generation template (planned)
-  - Step 15B3: read-only validation/reconciliation package (planned)
+  - Step 15B2: gated table-generation template (authored)
+  - Step 15B3: read-only validation/reconciliation package (authored)
 
 ## Out of scope for this step
 
@@ -516,7 +516,7 @@ Step 15B2 CTE/template coverage (authored, non-active):
 - `final_candidates` + sendable-row `RowNum`
 - commented report-date `DELETE` + CTE-attached `INSERT`
 
-## Step 15B3 reconciliation coverage (planned)
+## Step 15B3 reconciliation coverage (authored)
 
 1. Schema parity:
    - contract parity to `dbo.MIFID2_NPD_TRAX.sql` including response-related columns present in DDL.
@@ -534,6 +534,32 @@ Step 15B2 CTE/template coverage (authored, non-active):
    - prior latest-row availability by `(CID, RegulationID)` and coverage warnings for forward-only windows.
 8. SQL Server baseline comparison:
    - optional/gated and only when normalized baseline source is provided.
+
+## Step 15B3 validation execution order
+
+1. Run Step 15 gate-summary block and confirm dependency status visibility.
+2. Run schema parity checks (column presence/order/type/nullability/precision/scale).
+3. Run duplicate and required-null checks.
+4. Run row-count summaries by `ReportDate`, `Entity`, `RegulationID`, `Action`, and `AcceptedTRAX`.
+5. Run AcceptedTRAX/invalid-name behavior checks.
+6. Run RowNum checks (sendable-only assignment, non-sendable nullability, entity partition summaries).
+7. Run history/seed checks (prior latest-row coverage and forward-only warnings).
+8. Run exclusion checks against report-date output.
+9. Run placeholder-dependent source-to-output checks only when candidate sources are materialized.
+10. Run optional SQL Server baseline comparison only when a normalized baseline source is provided.
+
+## Step 15B3 evidence requirements
+
+- SQL result sets from:
+  - `databricks/sql/08_outputs/09_mifid2_npd_trax_validation.sql`
+- Supporting Step 15 artifacts:
+  - `databricks/sql/08_outputs/09_mifid2_npd_trax_scaffolding.sql`
+  - `databricks/sql/08_outputs/09_mifid2_npd_trax.sql`
+- Updated gate/delta documentation:
+  - `docs/mifid2_npd_trax_output_analysis.md`
+  - `docs/unresolved_dependencies.md`
+  - `docs/known_differences.md`
+  - `docs/history_seed_requirements.md`
 
 ## DE/Data Platform action list (from latest profiling)
 
