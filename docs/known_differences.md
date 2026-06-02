@@ -1,5 +1,10 @@
 # Known Differences (Current Safe + Steps 5B1-14B4)
 
+Latest source profiling integration:
+- Profiling summary: `docs/source_profiling_results.md`
+- Access blockers: `docs/access_blockers.md`
+- Profiling input: `MiFID_Source_Profiling (1).csv`
+
 This document tracks known or intentional differences for the currently implemented scope:
 
 - Environment/config/naming helpers
@@ -61,10 +66,11 @@ This document tracks known or intentional differences for the currently implemen
 
 ## Implementation-phase assumptions
 
-- Existing static sources are treated as available:
-  - `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro`
-  - `main.regtech_ops_stg.bi_output_regtechops_dbo_internal_accounts`
-  - `main.regtech_ops_stg.bi_output_regtechops_dictionary_ext_specialchar`
+- Static reference tables in `main.regtech_ops_stg` are resolved as external Delta tables with explicit LOCATION under `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/`:
+  - `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro` -> `.../ed_f_to_istrument_id_e_toro`
+  - `main.regtech_ops_stg.bi_output_regtechops_dbo_internal_accounts` -> `.../dbo_internal_accounts`
+  - `main.regtech_ops_stg.bi_output_regtechops_dictionary_ext_specialchar` -> `.../dictionary_ext_specialchar`
+- These are RegTech static/reference tables, not raw DE source tables.
 - Country compatibility source for MiFID customer logic is exposed from:
   - `main.general.bronze_etoro_dictionary_country`
   - through view `main.regtech_ops_stg.bi_output_regtechops_vw_ext_country`.
@@ -90,11 +96,14 @@ This document tracks known or intentional differences for the currently implemen
   - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_trade_instrumentmetadata`
 - Deferred artifact note:
   - `databricks/sql/02_udfs/02_instrumentmetadata_specialchar_conversion_deferred.sql`
-- `Reg_Ext_CurrencyPriceMaxDateWithSplit` final source and staging materialization are deferred until candidate profiling evidence selects one authoritative Databricks source.
+- `Reg_Ext_CurrencyPriceMaxDateWithSplit` final source and staging materialization are deferred until candidate comparison evidence selects one authoritative Databricks source; `dwh_daily_process` candidate has no catalog access and `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` is confirmed accessible but not yet certified.
+- `Reg_CurrencyPrice_Ext` remains gated because latest profiling reports storage/data scan failure on `main.trading.bronze_etoro_trade_currencyprice`.
+- `Reg_Ext_Trade_GetInstrument`, `Reg_Ext_Trade_InstrumentMetaData`, `Reg_Ext_DictionaryCurrency`, and `Reg_Ext_DictionaryCurrencyType` now have confirmed accessible raw sources; staging required-column certification remains pending before active non-price staging SQL is enabled.
+- `Reg_Ext_Trade_InstrumentMetaData` staging population remains gated until required-column certification passes; this continues to block `InstrumentMetaData_SpecialChar_Conversion` population.
 - `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` remain gated until row-count/schema parity determines whether prefixed snapshots should be materialized from certified gold or recreated from SSIS-compatible logic.
-- `Reg_Ext_Trade_InstrumentMetaData` remains gated until its source schema is confirmed; this continues to block `InstrumentMetaData_SpecialChar_Conversion` population.
 - Step 6 enrichment for `Reg_Regulation_Movments_Positions` remains gated until split-price parity (`Reg_Ext_CurrencyPriceMaxDateWithSplit`) is resolved.
-- Step 7 `Reg_LiquidtyAcount_SCD` activation remains gated until seed/cutover strategy is explicitly approved.
+- Step 7 `Reg_LiquidtyAcount_SCD` activation remains gated until seed/cutover strategy is explicitly approved and hedge-server storage failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is resolved.
+- Customer and NPD_TRAX customer-dependent paths remain gated because latest profiling reports no schema access on `main.pii_data.bronze_etoro_customer_customer` and `main.pii_data.bronze_etoro_history_customer`.
 - Step 8 compatibility view activation remains gated until `CDE_Execution_timestamp -> OpenTime` semantics are validated.
 - Step 8 keeps `SP_ASIC2_Instrument_Automation` and `SP_ASIC2_PositionReport_Agg` as conditional dependencies only; they are not activated unless profiling proves direct feed into required Step 8 outputs.
 - Step 8 keeps `Reg_DWH_StaticPosition` conditional/legacy and non-blocking unless OpenPrice fallback impact is proven for MiFID-consumed fields.
@@ -112,7 +121,7 @@ This document tracks known or intentional differences for the currently implemen
 
 ## Step 5B1 implementation differences and cautions
 
-- `Reg_CurrencyPrice_Ext` and `Reg_Ext_DailyMaxPrices` SQL is authored as provisional and must not be executed until required-column parity checks pass.
+- `Reg_CurrencyPrice_Ext` and `Reg_Ext_DailyMaxPrices` SQL is authored as provisional and must not be executed until required-column parity checks pass; `Reg_CurrencyPrice_Ext` additionally requires resolution of the storage/data scan failure on its candidate source.
 - `Reg_Ext_CurrencyPriceMaxDateWithSplit` is intentionally left as profiling/comparison-only in Step 5B1; no silent source choice was made.
 - `Reg_Ext_T_PriceCandle60Min` staging SQL preserves SSIS-style logic (`DateFrom < report_date + 1 day`, latest row per `InstrumentID`, `InstrumentID < 100000`) and materializes to Delta.
 - All Step 5B1 targets are prefixed and scoped to `main.regtech_ops_stg`.
@@ -249,7 +258,7 @@ This document tracks known or intentional differences for the currently implemen
 - No final branch projections (EU/CySEC, UK/FCA, FCA-flow-in-EU, Seychelles, ME) are activated in Step 12B1.
 - `MIFID2_Report` and `MIFID2_ME_Report` keep `UpdateDate` nullable with no invented default.
 - `MIFID2_Removed_OP_Partials` requires explicit target column lists for inserts; implicit-order SQL Server pattern is not acceptable for Databricks parity safety.
-- Futures metadata is treated as expected mapping (`main.trading.bronze_etoro_trade_futuresmetadata`) and remains profiling-gated, not unknown.
+- Futures metadata source `main.trading.bronze_etoro_trade_futuresmetadata` is confirmed accessible and remains required-column certification-gated, not unknown.
 - Step 12B1 intentionally excludes:
   - `MIFID2_ETORO_Report`
   - `MIFID2_Hedge_Report`
@@ -293,14 +302,16 @@ This document tracks known or intentional differences for the currently implemen
 - `InstrumentClassification` / CFI in Step 12B3 branch projections is hard-gated:
   - simplified fallback mapping is intentionally removed.
   - templates keep `InstrumentClassification = NULL` until exact `SP_MIFID_Report` branch-specific mappings are ported.
-- `InstrumentID = 341` UK override source remains placeholder-gated:
-  - branch template uses `{{isin_for_instrumentid_341_source}}`.
-  - required normalized logical columns (`InstrumentID`, `OverrideISIN`, optional effective/report date) are still profiling-pending.
+- `InstrumentID = 341` UK override source is confirmed accessible, not access-pending:
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_isin_for_instrumentid_341`
+  - remaining gate is required-column validation, certification, and report-specific usage confirmation (`InstrumentID`, `OverrideISIN`, optional effective/report date)
+  - branch templates may still reference adapter placeholders until certification is complete; it is not fully activated until validation/certification is confirmed
 - `UpdateDate` is intentionally not populated in final branch templates:
   - templates keep `UpdateDate` nullable (`NULL`) and do not use `current_timestamp` or any default synthesis
-- FuturesMetaData remains Step 12B3 profiling-gated:
-  - expected source is `main.trading.bronze_etoro_trade_futuresmetadata`
-  - activation remains blocked until required columns are verified
+- FuturesMetaData is confirmed accessible; Step 12/13 final logic remains gated until required columns and parity are validated:
+  - `Trade.FuturesMetaData` -> `main.trading.bronze_etoro_trade_futuresmetadata`
+  - status: confirmed accessible; required-column validation and certification pending (`InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`)
+  - it is no longer unknown or merely expected; it is not fully activated until validation/certification is confirmed
 - No file-delivery/upload/deployment logic is included in Step 12B3 artifacts:
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
   - no production deployment behavior

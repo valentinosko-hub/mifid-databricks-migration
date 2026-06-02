@@ -1,5 +1,10 @@
 # Phase 1B - Source to Databricks Mapping Review
 
+Latest source profiling integration:
+- Profiling input: `MiFID_Source_Profiling (1).csv`
+- Profiling summary: `docs/source_profiling_results.md`
+- Access blockers and DE actions: `docs/access_blockers.md`
+
 Source scope used for this review:
 - `reference/mifid_databricks_migration_context/04_sql_agent_jobs`
 - `reference/mifid_databricks_migration_context/05_ssis/selected_packages`
@@ -18,8 +23,8 @@ These mappings are explicitly documented as established in `06_mappings`:
 - `[SYNAPSE-DWH-PROD]...[LP_IB_U1059976_Open_Positions_All]` -> `main.general.gold_ib_u1059976_open_positions_all`
 - `Dictionary.Country` -> `main.general.bronze_etoro_dictionary_country`
 - `Dictionary.Label` -> `main.general.bronze_etoro_dictionary_label`
-- `Customer.Customer` -> `main.general.bronze_etoro_customer_customer`
-- `History.Customer` -> `main.pii_data.bronze_etoro_history_customer`
+- `Customer.Customer` -> authoritative expected source: `main.pii_data.bronze_etoro_customer_customer` (no schema access; gated). Visible/reference path: `main.general.bronze_etoro_customer_customer` (masked/general; fallback/reference only unless business approves).
+- `History.Customer` -> authoritative expected source: `main.pii_data.bronze_etoro_history_customer` (no schema access; gated). Masked/general variants are fallback/reference only unless business approves.
 - `History.BackOfficeCustomer` -> `main.general.bronze_etoro_history_backofficecustomer`
 - `Customer.ExtendedUserField` -> `main.dwh.gold_sql_dp_prod_we_dwh_dbo_dim_extendeduserfield`
 - `Dictionary.ExtendedUserValueType` -> `main.compliance.bronze_userapidb_dictionary_extendeduservaluetype`
@@ -40,7 +45,38 @@ These mappings are explicitly documented as established in `06_mappings`:
 - `ThirdParty_Fivetran...regulation_report_excluded_cids` -> `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids`
 - `ThirdParty_Fivetran...regtech_excluded_instruments` -> `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
 - `ThirdParty_Fivetran...regtech_excluded_position_ids` -> `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
-- `ThirdParty_Fivetran...isin_for_instrumentid_341` -> `{{isin_for_instrumentid_341_source}}` (mapped source table expected, but required-column contract for Step 12B3 override adapter is still pending)
+- `ThirdParty_Fivetran...isin_for_instrumentid_341` -> `main.regtech_stg.silver_sharepoint_transactionreporting_isin_for_instrumentid_341` (confirmed accessible; required-column contract for Step 12B3 override adapter still pending)
+- `Trade.GetInstrument` -> `main.trading.bronze_etoro_trade_getinstrument` (confirmed accessible; staging required-column certification pending)
+- `Trade.InstrumentMetaData` -> `main.trading.bronze_etoro_trade_instrumentmetadata` (confirmed accessible; staging required-column certification pending)
+- `Dictionary.Currency` -> `main.general.bronze_etoro_dictionary_currency` (confirmed accessible; staging required-column certification pending)
+- `Dictionary.CurrencyType` -> `main.general.bronze_etoro_dictionary_currencytype` (confirmed accessible; staging required-column certification pending)
+- `Trade.FuturesMetaData` -> `main.trading.bronze_etoro_trade_futuresmetadata` (confirmed accessible; required-column certification pending for Step 12B3)
+
+## Profiling status overrides (latest run)
+
+| Databricks object | Profiling status | Migration impact |
+| --- | --- | --- |
+| `main.trading.bronze_etoro_trade_currencyprice` | Storage/data scan failure | `Reg_CurrencyPrice_Ext` remains gated |
+| `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` | Storage/data scan failure | Step 7 hedge-server mapping and Step 14 hedge liquidity SCD remain gated |
+| `main.pii_data.bronze_etoro_customer_customer` | No schema access | Unmasked customer paths remain gated |
+| `main.pii_data.bronze_etoro_history_customer` | No schema access | Customer as-of/history enrichment remains gated |
+| `dwh_daily_process.daily_snapshot.etoro_history_customer` | No catalog access | Fallback customer-history candidate cannot be profiled |
+| `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` | No catalog access | Split-price candidate comparison blocked |
+| `main.regtech_ops_stg.bi_output_regtechops_dbo_internal_accounts` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/dbo_internal_accounts` |
+| `main.regtech_ops_stg.bi_output_regtechops_dictionary_ext_specialchar` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/dictionary_ext_specialchar` |
+| `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/ed_f_to_istrument_id_e_toro` |
+
+## Customer source path policy (profiling reconciliation)
+
+- `main.general.bronze_etoro_customer_customer` or other masked/general customer variants may be visible or usable for reference-only discovery, but they are not the authoritative source for final MiFID customer output.
+- The authoritative expected source for final MiFID customer output is the unmasked PII table:
+  - `Customer.Customer` -> `main.pii_data.bronze_etoro_customer_customer`
+- Current status: access blocked / no schema access on `main.pii_data.bronze_etoro_customer_customer`.
+- Do not use masked/general customer data for final MiFID customer output unless business explicitly approves.
+- For customer as-of/history enrichment, the authoritative expected unmasked source is:
+  - `History.Customer` -> `main.pii_data.bronze_etoro_history_customer`
+- Current status: access blocked / no schema access on `main.pii_data.bronze_etoro_history_customer`.
+- Masked/general history customer paths are fallback/reference only unless business approves.
 
 ## Candidate mappings
 
@@ -55,15 +91,15 @@ These are valid mappings but should be used conditionally based on package logic
 
 - `Reg_CurrencyPrice_Ext source` -> `main.trading.bronze_etoro_trade_currencyprice`  
   Use as an SSIS-created dynamic extract input, not as a one-time static replacement.  
-  Step 5B1 status: provisional staging SQL authored; required-column parity profiling still pending.
+  Step 5B1 status: provisional staging SQL authored; latest profiling reports storage/data scan failure on the candidate source. Keep gated until DE/Data Platform resolves storage or certifies an alternative.
 - `Reg_Ext_T_PriceCandle60Min source` -> `main.dealing.bronze_candles_candles_t_pricecandle60min`  
   Conditional on exact package-side filtering/column logic.  
   Step 5B1 status: staging SQL authored with latest-row-per-`InstrumentID` logic; runtime source-shape check still required.
 - `History.CurrencyPriceMaxDate source` -> `main.dealing.bronze_pricelog_history_currencypricemaxdate`  
   Conditional on run-window and column-level parity to SSIS-selected fields.  
-  Step 5B1 status: provisional staging SQL authored; required-column profiling still pending.
+  Step 5B1 status: source confirmed accessible; required-column certification still pending.
 - `ThirdParty_Fivetran...ed_n_f_to_istrumentid_etoro` -> `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro`  
-  Documented as manually uploaded static reference; keep as compatibility/static input.
+  RegTech static/reference table recreated as external Delta with explicit LOCATION under `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/ed_f_to_istrument_id_e_toro`; keep as compatibility/static input.
 - `regtech.si_reporting_configurations` -> `main.bi_db.bronze_fivetran_regtech_si_reporting_configurations`  
   Mapped in inventory, but usage should be confirmed per package/procedure dependency.
 - `Dictionary.Ext_TradeFund` -> expected source/access pending  
@@ -80,8 +116,9 @@ Step 5B2 note:
 - `Reg_MigrationInOut_Population` -> `main.regtech.gold_regtech_reg_migrationinout_population` remains a confirmed gold source mapping, but the phase-1 staging object should be a prefixed materialized snapshot only after row-count and schema parity are accepted.
 - `Reg_RegulationInOutDailyData` -> `main.regtech.gold_regtech_reg_regulationinoutdailydata` remains a confirmed gold source mapping, but output-column parity is gated because the procedure output schema is not visible in `Pre_Regulation_Ext.dtsx`.
 - `Reg_Ext_HistorySplitRatio` -> `main.dealing.bronze_pricelog_history_splitratio` is a candidate/expected source with required-column and `IsCompletedOpenPositions = 1` filter validation pending.
-- `Reg_Ext_HedgeExecutionLog` -> `main.dealing.bronze_etoro_hedge_executionlog`, `Reg_Ext_HedgeHBCExecutionLog` -> `main.dealing.bronze_etoro_hedge_hbcexecutionlog`, and `Reg_Ext_HedgeHBCOrderLog` -> `main.dealing.bronze_etoro_hedge_hbcorderlog` are confirmed raw sources; package-side date filters, casts, and required columns still require profiling before staging SQL is executable.
-- `Reg_Ext_CustomerLatinName`, `Reg_Ext_Trade_GetInstrument`, `Reg_Ext_Trade_InstrumentMetaData`, `Reg_Ext_DictionaryCurrency`, and `Reg_Ext_DictionaryCurrencyType` are expected source / access pending until the corresponding Databricks source tables and required columns are confirmed.
+- `Reg_Ext_HedgeExecutionLog` -> `main.dealing.bronze_etoro_hedge_executionlog`, `Reg_Ext_HedgeHBCExecutionLog` -> `main.dealing.bronze_etoro_hedge_hbcexecutionlog`, and `Reg_Ext_HedgeHBCOrderLog` -> `main.dealing.bronze_etoro_hedge_hbcorderlog` are confirmed accessible raw sources; package-side date filters, casts, and required columns still require certification before staging SQL is executable.
+- `Reg_Ext_Trade_GetInstrument`, `Reg_Ext_Trade_InstrumentMetaData`, `Reg_Ext_DictionaryCurrency`, and `Reg_Ext_DictionaryCurrencyType` now have confirmed accessible Databricks sources (`main.trading.bronze_etoro_trade_getinstrument`, `main.trading.bronze_etoro_trade_instrumentmetadata`, `main.general.bronze_etoro_dictionary_currency`, `main.general.bronze_etoro_dictionary_currencytype`); staging required-column certification remains pending.
+- `Reg_Ext_CustomerLatinName` remains expected source / access pending.
 - `Reg_Instruments_ext` should be shaped from certified FIRDS/instrument gold sources (`main.regtech.gold_regtech_reg_instruments_scd` and `main.regtech.gold_regtech_reg_instruments_full_description`) only after parity to the SSIS raw join output is validated.
 
 Step 6 note (Regulation movement staging):
@@ -105,7 +142,8 @@ Step 7 note (Hedge liquidity mapping staging):
   - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid`
   - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityproviders`
   - `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd`
-- Execution remains gated until Step 7 source profiling confirms required columns and access in runtime schema.
+- `Hedge.HedgeServerToLiquidityAccount` candidate source reports storage/data scan failure in latest profiling; Step 7 hedge-server mapping remains gated until resolved.
+- Other Step 7 liquidity sources are confirmed accessible; execution remains gated until required-column certification passes.
 - Sensitive source fields from `Trade.LiquidityAccounts` (`Username`, `Password`, `SettingsXML`) are intentionally excluded/masked for phase-1 normal staging objects.
 - `Reg_LiquidtyAcount_SCD` activation is gated by seed/cutover decision; removed-account `IsLast` behavior follows SQL Server parity by default (no silent correction).
 
@@ -114,8 +152,8 @@ Step 8 note (ASIC2-compatible MiFID subset):
   - `History.PositionChangeLog` -> `main.trading.bronze_etoro_history_positionchangelog`
   - `Trade.PositionForExternalUse` -> `main.bi_db.bronze_etoro_trade_positionforexternaluse`
   - `History.PositionForExternalUse` -> `main.trading.bronze_etoro_history_position_datafactory`
-  - `Customer.Customer` -> `main.general.bronze_etoro_customer_customer`
-  - `History.Customer` -> `main.pii_data.bronze_etoro_history_customer`
+  - `Customer.Customer` -> authoritative expected source: `main.pii_data.bronze_etoro_customer_customer` (no schema access; gated; see Customer source path policy)
+  - `History.Customer` -> authoritative expected source: `main.pii_data.bronze_etoro_history_customer` (no schema access; gated; see Customer source path policy)
   - `Dictionary.Country` -> `main.general.bronze_etoro_dictionary_country`
   - `Dictionary.Label` -> `main.general.bronze_etoro_dictionary_label`
   - `Reg_Instruments_SCD` -> `main.regtech.gold_regtech_reg_instruments_scd`
@@ -139,19 +177,24 @@ Step 8 note (ASIC2-compatible MiFID subset):
   - `Reg_DWH_StaticPosition` remains conditional/legacy and non-blocking unless OpenPrice fallback impact is proven.
   - EMIR Refit UPI remains non-blocking unless profiling proves effect on the 11 MiFID compatibility fields.
 - Expected source/access pending for Step 8:
-  - Step 5 gated dependencies consumed by ASIC2 logic (`Reg_Ext_CustomerLatinName`, `Reg_Ext_DictionaryCurrency`, `Reg_Ext_CurrencyPriceMaxDateWithSplit`, `Reg_Ext_DailyMaxPrices`, `Reg_RegulationInOutDailyData`, `Reg_Instruments_ext`)
-  - `Trade.GetInstrument`, `Trade.InstrumentMetaData`, `Trade.Instrument`, `Trade.ProviderToInstrument`, `Dictionary.Currency`
+  - Step 5 gated dependencies consumed by ASIC2 logic (`Reg_Ext_CustomerLatinName`, `Reg_Ext_CurrencyPriceMaxDateWithSplit`, `Reg_RegulationInOutDailyData`, `Reg_Instruments_ext`)
+  - `Trade.Instrument`, `Trade.ProviderToInstrument`
+- Confirmed accessible from latest profiling (staging certification still pending where noted):
+  - `Trade.GetInstrument` -> `main.trading.bronze_etoro_trade_getinstrument`
+  - `Trade.InstrumentMetaData` -> `main.trading.bronze_etoro_trade_instrumentmetadata`
+  - `Dictionary.Currency` -> `main.general.bronze_etoro_dictionary_currency`
+  - `Reg_Ext_DailyMaxPrices` source -> `main.dealing.bronze_pricelog_history_currencypricemaxdate`
 
 Step 9 note (MIFID2_ext staging):
 - Confirmed mappings for Step 9 include:
-  - `History.BackOfficeCustomer` -> `main.general.bronze_etoro_history_backofficecustomer` (required-column profiling pending)
+  - `History.BackOfficeCustomer` -> `main.general.bronze_etoro_history_backofficecustomer` (confirmed accessible; Step 9 required-column certification pending)
   - `Trade.PositionForExternalUse` -> `main.bi_db.bronze_etoro_trade_positionforexternaluse`
   - `History.PositionForExternalUse` -> `main.trading.bronze_etoro_history_position_datafactory`
   - `History.PositionChangeLog` -> `main.trading.bronze_etoro_history_positionchangelog`
   - `History.Mirror` -> `main.trading.bronze_etoro_history_mirror`
   - `Hedge.ExecutionLog` -> `main.dealing.bronze_etoro_hedge_executionlog`
-  - `Customer.Customer` -> `main.general.bronze_etoro_customer_customer`
-  - `History.Customer` -> `main.pii_data.bronze_etoro_history_customer`
+  - `Customer.Customer` -> authoritative expected source: `main.pii_data.bronze_etoro_customer_customer` (no schema access; gated; see Customer source path policy)
+  - `History.Customer` -> authoritative expected source: `main.pii_data.bronze_etoro_history_customer` (no schema access; gated; see Customer source path policy)
   - `Customer.ExtendedUserField` -> `main.dwh.gold_sql_dp_prod_we_dwh_dbo_dim_extendeduserfield`
   - `Dictionary.ExtendedUserValueType` -> `main.compliance.bronze_userapidb_dictionary_extendeduservaluetype`
   - `Dictionary.Country` -> `main.general.bronze_etoro_dictionary_country`
@@ -221,18 +264,20 @@ Step 12 note (`MIFID2_Report` / `MIFID2_ME_Report` / `MIFID2_Removed_OP_Partials
   - `main.regtech.gold_regtech_reg_instruments_scd`
   - `main.regtech.gold_regtech_reg_instruments_full_description`
   - `main.regtech_ops_stg.bi_output_regtechops_instrumentmetadata_specialchar_conversion` (if available and report-date covered)
+- Step 12 staging targets with confirmed accessible raw sources (required-column certification still pending):
+  - `bi_output_regtechops_reg_ext_trade_getinstrument` <- `main.trading.bronze_etoro_trade_getinstrument`
+  - `bi_output_regtechops_reg_ext_trade_instrumentmetadata` <- `main.trading.bronze_etoro_trade_instrumentmetadata`
+  - `bi_output_regtechops_reg_ext_dictionarycurrency` <- `main.general.bronze_etoro_dictionary_currency`
+  - `bi_output_regtechops_reg_ext_dictionarycurrencytype` <- `main.general.bronze_etoro_dictionary_currencytype`
 - Step 12 expected source/access pending mappings remain gated:
-  - `bi_output_regtechops_reg_ext_trade_getinstrument`
-  - `bi_output_regtechops_reg_ext_trade_instrumentmetadata`
-  - `bi_output_regtechops_reg_ext_dictionarycurrency`
-  - `bi_output_regtechops_reg_ext_dictionarycurrencytype`
   - `bi_output_regtechops_reg_ext_historysplitratio`
   - `bi_output_regtechops_reg_regulationinoutdailydata` usage confirmation
   - `MIFID2_Instruments_To_Exclude` mapped equivalent
   - `Dictionary.Ext_TradeFund` mapped equivalent for mirror/copy-fund enrichment in intermediate population
-- Futures metadata must be treated as expected mapping, not unknown:
+- Futures metadata mapping is confirmed accessible, not unknown:
   - `Trade.FuturesMetaData` -> `main.trading.bronze_etoro_trade_futuresmetadata`
-  - required-column profiling is still pending for `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`.
+  - status: confirmed accessible; required-column validation and certification pending for `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`.
+  - Step 12/13 final logic remains gated until required columns and parity are validated; it is not fully activated.
   - boundary rule: FuturesMetaData is deferred to Step 12B3 final branch projections and is not a Step 12B2 pre-branch dependency.
 - Step 12 must keep `UpdateDate` nullable for `MIFID2_Report` and `MIFID2_ME_Report` (no default invention), and must use explicit insert column lists for `MIFID2_Removed_OP_Partials`.
 - Step 12B2 SQL artifacts are gated templates only:
@@ -250,9 +295,10 @@ Step 12B3 note (final branch projections):
   - EU/CySEC, UK/FCA, FCA-flow-in-EU, Seychelles -> `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
   - ME -> `main.regtech_ops_stg.bi_output_regtechops_mifid2_me_report`
   - removed partials finalization -> `main.regtech_ops_stg.bi_output_regtechops_mifid2_removed_op_partials`
-- FuturesMetaData remains Step 12B3-only and still profiling-gated:
-  - expected mapping: `Trade.FuturesMetaData` -> `main.trading.bronze_etoro_trade_futuresmetadata`
-  - required columns pending confirmation: `InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`
+- FuturesMetaData remains Step 12B3-only; source is confirmed accessible but activation is still gated:
+  - `Trade.FuturesMetaData` -> `main.trading.bronze_etoro_trade_futuresmetadata`
+  - status: confirmed accessible; required-column validation and certification pending (`InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`)
+  - Step 12/13 final logic remains gated until required columns and parity are validated; it is not fully activated
 - Futures validation rule in Step 12B3:
   - futures candidate rows must be identified from pre-output metadata (`IsFuture = 1`) via `{{report_metadata_source}}` / `{{trades_final_source}}` enrichment, not from output-populated futures fields.
 - InstrumentClassification/CFI mapping rule in Step 12B3:
@@ -266,7 +312,7 @@ Step 12B3 note (final branch projections):
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids` (UK branch)
-  - `{{isin_for_instrumentid_341_source}}` (normalized logical columns required: `InstrumentID`, `OverrideISIN`, optional effective/report date)
+  - `main.regtech_stg.silver_sharepoint_transactionreporting_isin_for_instrumentid_341` (confirmed accessible; required-column validation and report-specific usage confirmation pending: `InstrumentID`, `OverrideISIN`, optional effective/report date)
   - `MIFID2_Instruments_To_Exclude` mapped equivalent (still unresolved)
 
 Step 13 note (`MIFID2_ETORO_Report`):

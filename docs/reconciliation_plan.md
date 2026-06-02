@@ -2,6 +2,11 @@
 
 This plan defines reconciliation scope and execution order for migration validation in `main.regtech_ops_stg`. It is documentation-only in this step.
 
+Latest source profiling integration:
+- Profiling summary: `docs/source_profiling_results.md`
+- Access blockers and DE actions: `docs/access_blockers.md`
+- Profiling input: `MiFID_Source_Profiling (1).csv`
+
 ## Current focus
 
 - Step 12B4 final validation/reconciliation package for:
@@ -27,10 +32,29 @@ This plan defines reconciliation scope and execution order for migration validat
 - File delivery (`CSV`, `7z`, `SFTP`, TRAX/Cappitech upload/response handling)
 - Production deployment
 
+## Source profiling gate status
+
+### Gates improved by latest profiling
+
+- Static reference availability for internal accounts, special-char dictionary, and EDNF mapping tables with explicit external LOCATION.
+- Source visibility for position, mirror, changelog, hedge execution, liquidity provider, instrument dictionary, futures metadata, migration gold, split-ratio, price-candle, EDNF/IB, and SharePoint exclusion sources.
+- Mapping confidence for `Trade.GetInstrument`, `Trade.InstrumentMetaData`, `Dictionary.Currency`, `Dictionary.CurrencyType`, and `FuturesMetaData`.
+
+### Gates that remain open
+
+- `Reg_CurrencyPrice_Ext` blocked by storage/data scan failure on `main.trading.bronze_etoro_trade_currencyprice`.
+- Step 7 hedge-server mapping and Step 14 hedge liquidity SCD blocked by storage/data scan failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`.
+- Customer and NPD_TRAX customer-dependent paths blocked by no schema access on `main.pii_data` customer tables.
+- Split-price candidate comparison blocked by no catalog access on `dwh_daily_process` objects.
+- Required-column certification still pending for many confirmed-accessible sources before module activation.
+
 ## Gate prerequisites before Step 12 activation
 
-- Step 5B1 price/split source gates resolved.
-- Step 5B2 non-price Pre_Regulation gates resolved.
+- Resolve `Reg_CurrencyPrice_Ext` storage failure or certify alternative source; then close Step 5B1 price/split source gates.
+- Resolve Step 5B2 non-price required-column certification for accessible sources (`GetInstrument`, `InstrumentMetaData`, dictionary currency/type).
+- Resolve Step 7 hedge-server storage failure before hedge SCD and Step 14 hedge activation reconciliation.
+- Grant PII schema access or approve masked/alternative customer source before customer-module reconciliation.
+- Grant `USE CATALOG dwh_daily_process` or certify `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` before split-price reconciliation.
 - Step 6 movement/reg-change parity gates resolved.
 - Step 9 position/reg-change-position staging gates resolved.
 - `InstrumentMetaData_SpecialChar_Conversion` dependency cleared.
@@ -443,3 +467,13 @@ Step 14B3 evidence is template-level and gating-focused:
   - `docs/known_differences.md`
   - `docs/unresolved_dependencies.md`
   - `docs/history_seed_requirements.md`
+  - `docs/source_profiling_results.md`
+  - `docs/access_blockers.md`
+
+## DE/Data Platform action list (from latest profiling)
+
+1. Resolve storage/data scan failure on `main.trading.bronze_etoro_trade_currencyprice` or provide a certified alternative for `Reg_CurrencyPrice_Ext`.
+2. Resolve storage/data scan failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` for hedge liquidity mapping.
+3. Grant schema access to `main.pii_data` customer tables or approve a masked/alternative customer source for MiFID customer modules.
+4. Grant `USE CATALOG dwh_daily_process` so fallback customer-history and split-price candidate objects can be profiled, or formally retire those candidates in favor of accessible alternatives.
+5. Confirm whether `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` should be promoted from accessible candidate to certified source for `Reg_Ext_CurrencyPriceMaxDateWithSplit`.
