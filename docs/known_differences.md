@@ -115,7 +115,8 @@ This document tracks known or intentional differences for the currently implemen
 - `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` remain gated until row-count/schema parity determines whether prefixed snapshots should be materialized from certified gold or recreated from SSIS-compatible logic.
 - Step 6 enrichment for `Reg_Regulation_Movments_Positions` remains gated until split-price parity (`Reg_Ext_CurrencyPriceMaxDateWithSplit`) is resolved.
 - Step 7 `Reg_LiquidtyAcount_SCD` activation remains gated until seed/cutover strategy is explicitly approved and hedge-server storage failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is resolved.
-- Customer and NPD_TRAX customer-dependent paths remain gated because latest profiling reports no schema access on `main.pii_data.bronze_etoro_customer_customer` and `main.pii_data.bronze_etoro_history_customer`.
+- Final customer parity paths remain gated because `main.pii_data.bronze_etoro_customer_customer` and `main.pii_data.bronze_etoro_history_customer` have no schema access.
+- Manager-approved temporary development fallback: `main.general.bronze_etoro_customer_customer_masked` and `main.general.bronze_etoro_history_customer_masked` may be used for structural testing only (not final regulatory parity unless formally approved).
 - Step 8 compatibility view activation remains gated until `CDE_Execution_timestamp -> OpenTime` semantics are validated.
 - Step 8 keeps `SP_ASIC2_Instrument_Automation` and `SP_ASIC2_PositionReport_Agg` as conditional dependencies only; they are not activated unless profiling proves direct feed into required Step 8 outputs.
 - Step 8 keeps `Reg_DWH_StaticPosition` conditional/legacy and non-blocking unless OpenPrice fallback impact is proven for MiFID-consumed fields.
@@ -537,7 +538,8 @@ This document tracks known or intentional differences for the currently implemen
 
 ## Reference-only policy
 
-- NOC artifacts and old Databricks attempt remain reference-only discovery sources and are not authoritative implementation logic.
+- NOC artifacts remain reference-only (monitoring/freshness scope; must not drive MiFID report-generation logic).
+- Old Databricks attempt remains reference-only (includes delivery/SFTP/TRAX-style scope outside current table-generation phase).
 
 ## Step 16B1 consolidation differences
 

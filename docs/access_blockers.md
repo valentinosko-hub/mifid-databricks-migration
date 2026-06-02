@@ -11,6 +11,27 @@ This is a documentation-only artifact. No SQL was executed and no Databricks obj
 - Storage/data scan failure
 - Table not found (resolved separately for RegTech static reference tables)
 - Candidate source still needs certification
+- Temporary development fallback / manager-approved workaround
+
+## Temporary masked customer workaround (manager-approved; not a blocker closure)
+
+The following masked general tables are approved for **temporary development and structural testing only** while `main.pii_data` access remains pending:
+
+| Object | Status | Allowed use |
+| --- | --- | --- |
+| `main.general.bronze_etoro_customer_customer_masked` | Temporary development fallback / manager-approved workaround | Schema/column profiling, row counts, join-path tests, gated template dev, non-production structural validation, workflow dry-run planning without identity parity certification |
+| `main.general.bronze_etoro_history_customer_masked` | Temporary development fallback / manager-approved workaround | Same as above for history/as-of paths |
+
+Not approved as: Confirmed final source, Production source, Regulatory parity source.
+
+Final expected sources remain:
+
+- `main.pii_data.bronze_etoro_customer_customer`
+- `main.pii_data.bronze_etoro_history_customer`
+
+Final field-level parity remains gated for identity-sensitive fields and final validation of `MIFID2_Customer`, `MIFID2_RegChange_Customer`, `MIFID2_Failed_TRAX`, and `MIFID2_NPD_TRAX`.
+
+Future workflow/orchestration must distinguish development/structural test mode (masked) from final parity/production mode (unmasked PII or formal approval).
 
 ## Active blockers
 
@@ -25,8 +46,8 @@ This is a documentation-only artifact. No SQL was executed and no Databricks obj
 
 | Object | Status | Impacted migration areas | Keep gated until |
 | --- | --- | --- | --- |
-| `main.pii_data.bronze_etoro_customer_customer` | No schema access | Step 8/9/10/11 customer staging, failed-TRAX supplementation, NPD_TRAX customer-dependent logic | Schema access is granted or a business-approved masked/alternative customer source is confirmed |
-| `main.pii_data.bronze_etoro_history_customer` | No schema access | Step 8/9 customer as-of/history enrichment, NPD_TRAX customer-dependent logic | Schema access is granted or a business-approved masked/alternative history source is confirmed |
+| `main.pii_data.bronze_etoro_customer_customer` | No schema access | Final customer parity, identity-change logic, NPD_TRAX identity fields, final `MIFID2_Customer` / `MIFID2_Failed_TRAX` / `MIFID2_NPD_TRAX` validation | Grant `main.pii_data` schema access (masked general tables do not close this blocker) |
+| `main.pii_data.bronze_etoro_history_customer` | No schema access | Final customer as-of/history parity and final reg-change/NPD validation | Grant `main.pii_data` schema access (masked general tables do not close this blocker) |
 
 ### 3. No catalog access
 
@@ -51,7 +72,7 @@ These are RegTech static/reference tables, not raw DE source tables.
 
 1. Resolve storage/data scan failure on `main.trading.bronze_etoro_trade_currencyprice` or provide a certified alternative for `Reg_CurrencyPrice_Ext`.
 2. Resolve storage/data scan failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` for hedge liquidity mapping.
-3. Grant schema access to `main.pii_data` customer tables or approve a masked/alternative customer source for MiFID customer modules.
+3. Grant schema access to `main.pii_data` customer tables for final regulatory parity (masked general tables are already approved for temporary development/structural testing only).
 4. Grant `USE CATALOG dwh_daily_process` so fallback customer-history and split-price candidate objects can be profiled, or formally retire those candidates in favor of accessible alternatives.
 5. Confirm whether `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` should be promoted from accessible candidate to certified source for `Reg_Ext_CurrencyPriceMaxDateWithSplit`.
 
@@ -66,8 +87,8 @@ These are RegTech static/reference tables, not raw DE source tables.
 
 The following are not implementation authority for current MiFID table-generation logic in `main.regtech_ops_stg`:
 
-- NOC monitoring documents (reference-only)
-- Old Databricks attempt / deployment guide (reference-only)
+- NOC monitoring documents (reference-only; monitoring/freshness scope; not MiFID report-generation authority)
+- Old Databricks attempt / deployment guide (reference-only; includes delivery/SFTP/TRAX-style scope outside current table-generation phase)
 
 Also out of current phase scope:
 

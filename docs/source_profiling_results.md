@@ -16,6 +16,34 @@ Status taxonomy used in this document:
 - Migration-produced object, not raw source
 - Candidate source still needs certification
 - Static reference resolved with explicit external LOCATION
+- Temporary development fallback / manager-approved workaround
+
+## Temporary masked customer source policy (manager-approved)
+
+Project management approved temporary use of masked general customer tables so development can continue while `main.pii_data` access remains pending.
+
+| Databricks object | Status | Role |
+| --- | --- | --- |
+| `main.general.bronze_etoro_customer_customer_masked` | Temporary development fallback / manager-approved workaround | Temporary dev/structural testing only |
+| `main.general.bronze_etoro_history_customer_masked` | Temporary development fallback / manager-approved workaround | Temporary dev/structural testing only |
+
+Final expected PII sources (unchanged; access still blocked):
+
+| Databricks object | Status | Role |
+| --- | --- | --- |
+| `main.pii_data.bronze_etoro_customer_customer` | No schema access | Final regulatory parity source for `Customer.Customer` |
+| `main.pii_data.bronze_etoro_history_customer` | No schema access | Final regulatory parity source for `History.Customer` |
+
+Policy:
+
+1. Masked general customer tables may be used only for temporary development and structural testing.
+2. Allowed uses: schema profiling, required-column checks, row-count checks, join-path testing, gated template development, non-production structural validation, workflow dry-run planning where customer identity field parity is not being certified.
+3. Masked tables must not be treated as final MiFID regulatory parity sources unless formally approved by the data owner / RegTech SME / Compliance.
+4. Final field-level customer parity remains gated for: `FirstName`, `LastName`, `BirthDate`, `PIN`, `PIN_Type`, customer identity-change comparison, `NonLatinOrEmptyName` detection, NPD_TRAX identity fields, and final validation for `MIFID2_Customer`, `MIFID2_RegChange_Customer`, `MIFID2_Failed_TRAX`, and `MIFID2_NPD_TRAX`.
+5. `main.pii_data` customer access blockers remain open until unmasked access is granted or formal parity approval is recorded.
+6. Future workflow/orchestration must distinguish **development / structural test mode** (masked tables) from **final parity / production mode** (unmasked PII or formal approval).
+
+Do not classify masked tables as: Confirmed final source, Production source, or Regulatory parity source.
 
 ## Profiling summary by status
 
@@ -78,8 +106,8 @@ These are RegTech static/reference tables in `main.regtech_ops_stg`, not raw DE 
 
 | Databricks object | SQL Server / logical lineage | Impact | Required action |
 | --- | --- | --- | --- |
-| `main.pii_data.bronze_etoro_customer_customer` | unmasked `Customer.Customer` | Customer outputs and NPD_TRAX customer-dependent logic remain gated | Grant schema access or confirm business-approved masked/alternative source |
-| `main.pii_data.bronze_etoro_history_customer` | unmasked `History.Customer` | Customer as-of/history enrichment remains gated | Grant schema access or confirm business-approved masked/alternative source |
+| `main.pii_data.bronze_etoro_customer_customer` | unmasked `Customer.Customer` | Final customer parity and NPD_TRAX identity fields remain gated | Grant `main.pii_data` schema access (masked general tables are dev-only workaround; see temporary policy above) |
+| `main.pii_data.bronze_etoro_history_customer` | unmasked `History.Customer` | Final customer as-of/history parity remains gated | Grant `main.pii_data` schema access (masked general tables are dev-only workaround; see temporary policy above) |
 
 ### No catalog access
 
@@ -111,14 +139,14 @@ These are RegTech static/reference tables in `main.regtech_ops_stg`, not raw DE 
 
 - `Reg_CurrencyPrice_Ext` activation blocked by storage failure on `main.trading.bronze_etoro_trade_currencyprice`.
 - Step 7 hedge-server mapping blocked by storage failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`.
-- Customer and NPD_TRAX customer-dependent paths blocked by no schema access on `main.pii_data` customer tables.
+- Final customer parity paths blocked by no schema access on `main.pii_data` customer tables (masked general tables approved for temporary development/structural testing only).
 - Split-price candidate comparison blocked by no catalog access on `dwh_daily_process` objects.
 - `Dictionary.Ext_TradeFund`, `Reg_Ext_CustomerLatinName`, PIN/UserAPI, RecordID, transaction-reference parity, and module activation gates remain unchanged by this profiling pass.
 
 ## Reference-only policy
 
-- Old Databricks attempt artifacts remain reference-only discovery material.
-- NOC documents remain reference-only and are not implementation authority.
+- Old Databricks attempt artifacts remain reference-only discovery material (includes delivery/SFTP/TRAX-style scope outside current table-generation phase).
+- NOC documents remain reference-only and are not implementation authority (monitoring/freshness scope; must not drive MiFID report-generation logic).
 - Delivery/SFTP/TRAX upload/response handling remains out of phase-1 scope.
 
 ## Source artifact

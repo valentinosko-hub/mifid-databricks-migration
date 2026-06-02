@@ -51,9 +51,22 @@ Primary gating themes:
 - History/seed policy not finalized for stateful modules.
 - Business/SME decisions pending for parity-sensitive rules.
 
+## Temporary masked customer workaround (manager-approved)
+
+Development may continue using masked general customer tables while `main.pii_data` access is pending:
+
+- `main.general.bronze_etoro_customer_customer_masked`
+- `main.general.bronze_etoro_history_customer_masked`
+
+Status: **Temporary development fallback / manager-approved workaround** (not confirmed final, production, or regulatory parity source).
+
+Allowed: schema/column profiling, row counts, join-path tests, gated template development, non-production structural validation, workflow dry-run planning without identity parity certification.
+
+Final field-level parity remains gated (identity fields and final Customer / RegChange Customer / Failed TRAX / NPD TRAX validation). See `docs/source_to_databricks_mapping_review.md`.
+
 ## Remaining source/access blockers
 
-- No schema access:
+- No schema access (blockers remain open):
   - `main.pii_data.bronze_etoro_customer_customer`
   - `main.pii_data.bronze_etoro_history_customer`
 - No catalog access:

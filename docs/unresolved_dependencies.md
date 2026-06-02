@@ -28,7 +28,7 @@ Latest source profiling integration:
 | EMIR Refit UPI non-dependency proof for MiFID fields | UPI is present in full ASIC2 schema but should not affect MiFID-consumed compatibility columns unless proven | Pulling UPI logic into Step 8 unnecessarily can add avoidable dependencies and complexity | Use Step 8 validation checks to prove UPI does not alter the 11 required MiFID compatibility fields | No (unless validation proves impact) |
 | Step 9 `History.BackOfficeCustomer` required-column certification | Mapping is confirmed accessible (`main.general.bronze_etoro_history_backofficecustomer`) but Step 9-specific required-column/runtime parity is not yet certified | Customer/reg-change customer staging can fail or drift on regulation/account-type/as-of filters | Confirm required columns for Step 9 contracts before un-gating customer templates | Yes |
 | Step 9 `Trade/History.PositionForExternalUse` source-shape parity | Mappings are confirmed, but SSIS date-window/filter parity and required-column checks are not runtime-validated | `MIFID2_ext_Position` / `MIFID2_ext_RegChange_Position` can diverge from SQL Server position population | Validate required columns and day-window parity before un-gating `03_position_ext_staging.sql` | Yes |
-| Step 9 customer source access (`Customer.Customer`, `History.Customer`) | Latest profiling reports no schema access on `main.pii_data.bronze_etoro_customer_customer` and `main.pii_data.bronze_etoro_history_customer` | Customer outputs, failed-TRAX supplementation, and NPD_TRAX customer-dependent logic remain gated | Grant schema access or confirm business-approved masked/alternative customer source | Yes |
+| Step 9 customer source access (`Customer.Customer`, `History.Customer`) | No schema access on `main.pii_data` customer tables; manager-approved masked general tables (`main.general.bronze_etoro_customer_customer_masked`, `main.general.bronze_etoro_history_customer_masked`) permitted for temporary dev/structural testing only | Final customer parity and NPD identity validation remain gated; dev may proceed on structure using masked tables | Grant `main.pii_data` access for final parity; do not treat masked tables as regulatory parity source without formal approval | Yes (final parity); No (temporary structural dev using masked tables) |
 | Step 9 PIN/UserAPI source contract | Customer and Failed TRAX flows require PIN enrichment, but exact runtime source object/column contracts are still discovery-gated | `PIN_ID` / `PIN_Type` / `PIN` / `UAPI_CountryID` outputs can be null/incorrect in staging | Complete UserAPI/PIN discovery + required-column certification, then replace temporary gated placeholders in Step 9 templates | Yes |
 | Step 9 reg-change migration population parity | Step 9 reg-change customer/position flows depend on Step 6 migration population representation and interval semantics (`PrevRegulationID`, `RegValidFrom`, `RegValidTo`, `RegChangeRank`) | Incorrect reg-change CID/position inclusion around migration boundaries | Confirm Step 6 parity behavior for `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population` before un-gating reg-change templates | Yes |
 | Step 9 `MIFID2_Failed_TRAX` history/current dependency | Step 9 requires latest-row logic over `MIFID2_NPD_TRAX`, but history/cutover window and availability are unresolved | Failed-TRAX customer supplementation can be incomplete or non-deterministic for requested validation windows | Define validation-window seed policy and confirm `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax` availability before un-gating `06_failed_trax_staging.sql` | Yes |
@@ -80,10 +80,12 @@ Latest source profiling integration:
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_regchange_customer`
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_report`
   - remain gated until Step 9/10/11/12 dependencies pass.
-- PII source-access gate for customer parity:
+- PII source-access gate for final customer parity (blockers remain open):
   - `main.pii_data.bronze_etoro_customer_customer` (no schema access)
   - `main.pii_data.bronze_etoro_history_customer` (no schema access)
-  - customer outputs and NPD customer-shaping remain access-blocked until schema grant or approved alternative.
+- Temporary masked development workaround (manager-approved; does not close final parity):
+  - `main.general.bronze_etoro_customer_customer_masked`
+  - `main.general.bronze_etoro_history_customer_masked`
 - NPD history/cutover gate:
   - exact new-vs-existing/retry/REPL behavior requires prior latest `MIFID2_NPD_TRAX` rows.
   - forward-only cutover can start clean but is not historical parity-equivalent.
@@ -358,9 +360,12 @@ The following items remain explicitly unresolved for Step 14 hedge activation an
 
 This section is the cross-module unresolved set for readiness consolidation and should be treated as the go/no-go dependency list before execution is enabled.
 
-- Access blockers:
+- Access blockers (remain open):
   - `main.pii_data.bronze_etoro_customer_customer` (no schema access)
   - `main.pii_data.bronze_etoro_history_customer` (no schema access)
+- Temporary development workaround (manager-approved; does not close PII blockers):
+  - `main.general.bronze_etoro_customer_customer_masked`
+  - `main.general.bronze_etoro_history_customer_masked`
   - `dwh_daily_process.daily_snapshot.etoro_history_customer` (no catalog access)
   - `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` (no catalog access)
 - Storage/data scan blockers:

@@ -23,8 +23,8 @@ These mappings are explicitly documented as established in `06_mappings`:
 - `[SYNAPSE-DWH-PROD]...[LP_IB_U1059976_Open_Positions_All]` -> `main.general.gold_ib_u1059976_open_positions_all`
 - `Dictionary.Country` -> `main.general.bronze_etoro_dictionary_country`
 - `Dictionary.Label` -> `main.general.bronze_etoro_dictionary_label`
-- `Customer.Customer` -> authoritative expected source: `main.pii_data.bronze_etoro_customer_customer` (no schema access; gated). Visible/reference path: `main.general.bronze_etoro_customer_customer` (masked/general; fallback/reference only unless business approves).
-- `History.Customer` -> authoritative expected source: `main.pii_data.bronze_etoro_history_customer` (no schema access; gated). Masked/general variants are fallback/reference only unless business approves.
+- `Customer.Customer` -> final expected PII source: `main.pii_data.bronze_etoro_customer_customer` (no schema access; gated). Temporary development fallback: `main.general.bronze_etoro_customer_customer_masked` (manager-approved workaround; not final parity source).
+- `History.Customer` -> final expected PII source: `main.pii_data.bronze_etoro_history_customer` (no schema access; gated). Temporary development fallback: `main.general.bronze_etoro_history_customer_masked` (manager-approved workaround; not final parity source).
 - `History.BackOfficeCustomer` -> `main.general.bronze_etoro_history_backofficecustomer`
 - `Customer.ExtendedUserField` -> `main.dwh.gold_sql_dp_prod_we_dwh_dbo_dim_extendeduserfield`
 - `Dictionary.ExtendedUserValueType` -> `main.compliance.bronze_userapidb_dictionary_extendeduservaluetype`
@@ -58,25 +58,65 @@ These mappings are explicitly documented as established in `06_mappings`:
 | --- | --- | --- |
 | `main.trading.bronze_etoro_trade_currencyprice` | Storage/data scan failure | `Reg_CurrencyPrice_Ext` remains gated |
 | `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` | Storage/data scan failure | Step 7 hedge-server mapping and Step 14 hedge liquidity SCD remain gated |
-| `main.pii_data.bronze_etoro_customer_customer` | No schema access | Unmasked customer paths remain gated |
-| `main.pii_data.bronze_etoro_history_customer` | No schema access | Customer as-of/history enrichment remains gated |
+| `main.pii_data.bronze_etoro_customer_customer` | No schema access | Final customer parity remains gated |
+| `main.pii_data.bronze_etoro_history_customer` | No schema access | Final customer as-of/history parity remains gated |
+| `main.general.bronze_etoro_customer_customer_masked` | Temporary development fallback / manager-approved workaround | Dev/structural testing only; not final regulatory parity source |
+| `main.general.bronze_etoro_history_customer_masked` | Temporary development fallback / manager-approved workaround | Dev/structural testing only; not final regulatory parity source |
 | `dwh_daily_process.daily_snapshot.etoro_history_customer` | No catalog access | Fallback customer-history candidate cannot be profiled |
 | `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` | No catalog access | Split-price candidate comparison blocked |
 | `main.regtech_ops_stg.bi_output_regtechops_dbo_internal_accounts` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/dbo_internal_accounts` |
 | `main.regtech_ops_stg.bi_output_regtechops_dictionary_ext_specialchar` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/dictionary_ext_specialchar` |
 | `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/ed_f_to_istrument_id_e_toro` |
 
-## Customer source path policy (profiling reconciliation)
+## Customer source path policy (temporary masked fallback + final PII gates)
 
-- `main.general.bronze_etoro_customer_customer` or other masked/general customer variants may be visible or usable for reference-only discovery, but they are not the authoritative source for final MiFID customer output.
-- The authoritative expected source for final MiFID customer output is the unmasked PII table:
-  - `Customer.Customer` -> `main.pii_data.bronze_etoro_customer_customer`
-- Current status: access blocked / no schema access on `main.pii_data.bronze_etoro_customer_customer`.
-- Do not use masked/general customer data for final MiFID customer output unless business explicitly approves.
-- For customer as-of/history enrichment, the authoritative expected unmasked source is:
-  - `History.Customer` -> `main.pii_data.bronze_etoro_history_customer`
-- Current status: access blocked / no schema access on `main.pii_data.bronze_etoro_history_customer`.
-- Masked/general history customer paths are fallback/reference only unless business approves.
+Project management approved temporary masked general customer sources for development while `main.pii_data` access remains pending.
+
+### Temporary development fallback (manager-approved)
+
+| SQL Server lineage | Temporary Databricks source | Status |
+| --- | --- | --- |
+| `Customer.Customer` (dev/structural) | `main.general.bronze_etoro_customer_customer_masked` | Temporary development fallback / manager-approved workaround |
+| `History.Customer` (dev/structural) | `main.general.bronze_etoro_history_customer_masked` | Temporary development fallback / manager-approved workaround |
+
+Allowed uses of masked tables only:
+
+- schema profiling
+- required-column checks
+- row-count checks
+- join-path testing
+- gated template development
+- non-production structural validation
+- workflow dry-run planning where customer identity field parity is not being certified
+
+Do not classify masked tables as: Confirmed final source, Production source, Regulatory parity source.
+
+### Final expected PII sources (parity gates remain open)
+
+| SQL Server lineage | Final expected Databricks source | Current status |
+| --- | --- | --- |
+| `Customer.Customer` | `main.pii_data.bronze_etoro_customer_customer` | No schema access (blocker remains open) |
+| `History.Customer` | `main.pii_data.bronze_etoro_history_customer` | No schema access (blocker remains open) |
+
+Masked tables must not be treated as final MiFID regulatory parity sources unless formally approved by the data owner / RegTech SME / Compliance.
+
+### Final field-level parity still gated
+
+- `FirstName`, `LastName`, `BirthDate`, `PIN`, `PIN_Type`
+- customer identity-change comparison
+- `NonLatinOrEmptyName` detection
+- NPD_TRAX identity fields
+- final `MIFID2_Customer` validation
+- final `MIFID2_RegChange_Customer` validation
+- final `MIFID2_Failed_TRAX` validation
+- final `MIFID2_NPD_TRAX` validation
+
+### Future orchestration mode distinction
+
+Any future Databricks workflow/orchestration must distinguish:
+
+- **Development / structural test mode** — masked customer tables permitted for non-parity work
+- **Final parity / production mode** — unmasked `main.pii_data` sources or formal approval required
 
 ## Candidate mappings
 

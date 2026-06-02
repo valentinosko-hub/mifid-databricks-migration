@@ -2,7 +2,18 @@
 
 This document is a consolidated execution blocker register for phase-1 MiFID migration in `main.regtech_ops_stg`.
 
-## Access blockers
+## Temporary masked customer workaround (manager-approved)
+
+Not a blocker closure. Approved for temporary development and structural testing only:
+
+- `main.general.bronze_etoro_customer_customer_masked`
+- `main.general.bronze_etoro_history_customer_masked`
+
+Status: Temporary development fallback / manager-approved workaround.
+
+Does not replace final PII sources or close final identity-field parity gates. Policy: `docs/source_to_databricks_mapping_review.md`.
+
+## Access blockers (remain open)
 
 - `main.pii_data.bronze_etoro_customer_customer` (no schema access)
 - `main.pii_data.bronze_etoro_history_customer` (no schema access)
