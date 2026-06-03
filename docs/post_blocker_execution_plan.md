@@ -19,7 +19,7 @@ Prerequisites before starting:
 2. Set run posture per [workflow_governance_controls.md](workflow_governance_controls.md):
    - Development structural test: `development_structural_test`, masked only if MAG-05 satisfied.
    - Final parity path: `final_parity_production`, unmasked PII required (MAG-06).
-3. Keep workflow skeleton **non-deployed** until Phase 10 criteria met.
+3. Keep workflow skeleton **non-deployed** until Phase 6 criteria are met.
 
 ---
 
@@ -29,6 +29,11 @@ Prerequisites before starting:
 | --- | --- | --- |
 | 1 | Rerun source profiling for all module upstream objects | Update `docs/source_profiling_results.md` |
 | 2 | Integrate profiling into blocker/decision registers | Update `docs/open_blockers_for_execution.md`, `docs/remaining_decisions.md` if needed |
+
+Selected primary sources to re-validate in this phase:
+
+- `main.dealing.bronze_pricelog_history_currencyprice` (for `Reg_CurrencyPrice_Ext`)
+- `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit` (for `Reg_Ext_CurrencyPriceMaxDateWithSplit`)
 
 ---
 
@@ -40,6 +45,17 @@ Prerequisites before starting:
 | 4 | Run source required-column checks | `databricks/sql/validation/02_static_reference_required_columns.sql`; module `*_validation.sql` where applicable |
 
 Do not un-gate business DML if hard gates fail.
+
+---
+
+## Phase 2.5 — Historical seed implementation
+
+| Step | Action |
+| --- | --- |
+| 4a | Implement approved historical seed strategy for parity/retry/SCD/baseline windows (NPD, Failed TRAX, ASIC2, Hedge, liquidity SCD, migration/regulation in-out) |
+| 4b | If minimum safe historical windows cannot be proven, seed all available history for affected objects |
+
+Execution evidence from this phase must be captured before module activation.
 
 ---
 

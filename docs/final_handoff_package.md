@@ -77,27 +77,21 @@ Use [open_blockers_for_execution.md](open_blockers_for_execution.md) as the cano
 
 - [ ] `main.pii_data.bronze_etoro_customer_customer`
 - [ ] `main.pii_data.bronze_etoro_history_customer`
-- [ ] `dwh_daily_process` catalog (and dependent objects if required)
 
-### Storage (open)
+### History / seed (approved direction; implementation pending)
 
-- [ ] `main.trading.bronze_etoro_trade_currencyprice`
-- [ ] `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`
-
-### History / seed (open)
-
-- [ ] `MIFID2_NPD_TRAX` cutover
-- [ ] `MIFID2_Failed_TRAX` / NPD dependency
-- [ ] `ASIC2_Transactions` seed window
-- [ ] `Reg_LiquidtyAcount_SCD` seed/cutover
-- [ ] `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData` materialization
+- [ ] `MIFID2_NPD_TRAX` seed implementation
+- [ ] `MIFID2_Failed_TRAX` / NPD shared history implementation
+- [ ] `ASIC2_Transactions` history implementation
+- [ ] `Reg_LiquidtyAcount_SCD` historical validity implementation
+- [ ] `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData` historical replay implementation
 
 ### SME / certification (open)
 
-- [ ] `CurrencyPriceMaxDateWithSplit` source (D-05 / MAG-14)
-- [ ] CFI / `InstrumentClassification` (D-14 / MAG-15)
-- [ ] Hedge `RecordID` (D-12 / MAG-12)
-- [ ] Hedge `TransactionReferenceNumber` (D-13 / MAG-13)
+- [ ] `CurrencyPriceMaxDateWithSplit` selected-source validation (D-05 / MAG-14)
+- [ ] CFI / `InstrumentClassification` exact SQL Server parity (D-14 / MAG-15)
+- [ ] Hedge `RecordID` approved-direction implementation and validation (D-12 / MAG-12)
+- [ ] Hedge `TransactionReferenceNumber` exact SQL Server parity (D-13 / MAG-13)
 - [ ] Required-column certifications batch (D-21 / MAG-02)
 - [ ] SQL Server baseline scope (D-23 / MAG-16)
 
@@ -105,6 +99,10 @@ Use [open_blockers_for_execution.md](open_blockers_for_execution.md) as the cano
 
 - Static reference tables with explicit LOCATION (internal accounts, special-char dictionary, EDNF mapping)
 - Several trading/general sources confirmed accessible (certification may still be pending)
+- `Reg_CurrencyPrice_Ext` primary source selected: `main.dealing.bronze_pricelog_history_currencyprice`
+- `Reg_Ext_CurrencyPriceMaxDateWithSplit` primary source selected: `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`
+- `main.trading.bronze_etoro_trade_currencyprice` downgraded to readable-but-not-preferred fallback/reference
+- `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` downgraded to readable with required columns present
 
 ---
 
@@ -114,7 +112,7 @@ Authoritative register: [manual_approval_gates.md](manual_approval_gates.md). Re
 
 | Gate range | Topic | Typical status |
 | --- | --- | --- |
-| MAG-01–03 | Access, columns, storage | OPEN |
+| MAG-01–03 | Access and source/column readiness | OPEN |
 | MAG-04 | Static references | PARTIAL |
 | MAG-05–06 | Masked dev vs final PII | OPEN |
 | MAG-07–11 | History/seed families | OPEN |
@@ -132,11 +130,11 @@ Legacy Step 17B checklist: [workflow_manual_approval_checkpoints.md](workflow_ma
 
 **Primary doc:** [de_data_platform_action_list.md](de_data_platform_action_list.md)
 
-1. Fix currency price and hedge-server storage scan failures.
+1. Keep selected price/hedge source classifications current in profiling and blocker registers (no longer active storage blockers).
 2. Grant `main.pii_data` for final parity.
-3. Grant `dwh_daily_process` if still required.
-4. Certify split-price source and complete required-column certifications.
-5. Update `docs/source_profiling_results.md` after remediation.
+3. Certify selected primary price/split-price source contracts and complete required-column certifications.
+4. Support historical seed extraction/access for approved strategy implementation.
+5. Update `docs/source_profiling_results.md` after certification/confirmation updates.
 6. Later: confirm warehouse/SP permissions when execution enablement is approved.
 
 ### RegTech SME
@@ -144,10 +142,10 @@ Legacy Step 17B checklist: [workflow_manual_approval_checkpoints.md](workflow_ma
 **Primary doc:** [regtech_sme_decision_list.md](regtech_sme_decision_list.md)
 
 1. Confirm masked tables are dev-only; approve final PII path.
-2. Sign history/seed policies (NPD, Failed TRAX, ASIC2, liquidity SCD).
+2. Sign implementation plans for approved history/seed strategy (NPD, Failed TRAX, ASIC2, liquidity SCD, migration/regulation in-out).
 3. Sign migration/regulation in-out materialization.
-4. Approve hedge RecordID and transaction-reference parity.
-5. Sign CFI/classification parity where gated.
+4. Approve hedge RecordID implementation detail (natural key + registry) and transaction-reference exact parity evidence.
+5. Sign CFI/classification exact parity evidence where gated.
 6. Agree baseline comparison dates and final go/no-go criteria.
 
 ### Validation / QA
@@ -162,7 +160,7 @@ Legacy Step 17B checklist: [workflow_manual_approval_checkpoints.md](workflow_ma
 
 **Primary doc:** [final_manager_handoff_summary.md](final_manager_handoff_summary.md)
 
-1. Prioritize DE storage and PII access work.
+1. Prioritize `main.pii_data` access and source-certification/historical-seed implementation readiness.
 2. Schedule SME sessions for history/seed and hedge/classification decisions.
 3. Enforce **no execution** until blockers and MAG closures are evidenced.
 4. Accept Step 18A audit and this package as preparation-complete, not execution-ready.

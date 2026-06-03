@@ -7,16 +7,30 @@ Latest source profiling integration:
 - Access blockers and DE actions: `docs/access_blockers.md`
 - Profiling input: `MiFID_Source_Profiling (1).csv`
 
+## Latest status overrides (documentation update)
+
+The following updates supersede older unresolved wording where conflicts exist:
+
+- Active source-access blockers are simplified to `main.pii_data` customer/history access only.
+- `main.trading.bronze_etoro_trade_currencyprice` is no longer an active storage blocker; it is readable but not preferred.
+- `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is no longer an active storage blocker; it is readable with required columns.
+- Primary `Reg_CurrencyPrice_Ext` source is `main.dealing.bronze_pricelog_history_currencyprice`.
+- Primary `Reg_Ext_CurrencyPriceMaxDateWithSplit` source is `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`.
+- `dwh_daily_process` comparison access for split-price selection is downgraded to fallback/reference context.
+- Historical seed strategy direction is approved (seed required history; if minimum safe window is unproven, seed all available history), with implementation still pending.
+- `MIFID2_Hedge_Report.RecordID` direction is approved (functional back-reporting/audit field; preserve historical SQL Server IDs exactly; continue from `MAX(RecordID)+1` via persistent registry/control allocation). Implementation, natural key definition, and validation remain pending.
+- Hedge `TransactionReferenceNumber` and CFI/`InstrumentClassification` are hard exact SQL Server parity requirements.
+
 ## Active unresolved items
 
 | dependency | why unresolved | impact if not resolved | required decision/action | blocking for phase 1 |
 | --- | --- | --- | --- | --- |
-| `Reg_CurrencyPrice_Ext` source access (`History.CurrencyPrice_Active`) | Candidate `main.trading.bronze_etoro_trade_currencyprice` reports storage/data scan failure in latest profiling | Staging build cannot proceed; Step 12 price derivation and movement enrichment remain blocked | DE/Data Platform must resolve storage issue or certify an alternative source; then run required-column parity checks | Yes |
+| `Reg_CurrencyPrice_Ext` source certification (`History.CurrencyPrice_Active`) | Primary source is now `main.dealing.bronze_pricelog_history_currencyprice`; required-column and date-window/baseline certification is still pending | Price derivation can drift if selected source contract is not validated against SQL Server windows | Certify required columns and run report-date + one-hour lookback parity checks with baseline comparison | Yes |
 | `Reg_Ext_DailyMaxPrices` source column parity (`History.CurrencyPriceMaxDate`) | Source `main.dealing.bronze_pricelog_history_currencypricemaxdate` is confirmed accessible, but required-column certification against SSIS-selected fields is still pending | Price/max-date staging parity can drift or fail at runtime | Confirm required columns and run-window parity before execution | Yes |
-| `Reg_Ext_CurrencyPriceMaxDateWithSplit` source selection | Primary candidate `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` has no catalog access; accessible alternative `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` still needs candidate-comparison certification | Price/split parity differences in MiFID and movement outputs | Grant `USE CATALOG dwh_daily_process` for comparison, or formally certify the accessible `main.dwh` candidate as sole source | Yes (for full parity) |
+| `Reg_Ext_CurrencyPriceMaxDateWithSplit` source validation | Primary source is now `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`; date-window and baseline validation are still pending | Price/split parity differences in MiFID and movement outputs if window/partition logic diverges | Validate selected source using partition filters (`etr_y`, `etr_ym`, `etr_ymd`) and SQL Server baseline windows | Yes (for full parity) |
 | `Reg_Ext_T_PriceCandle60Min` source shape confirmation | Source `main.dealing.bronze_candles_candles_t_pricecandle60min` is confirmed accessible, but required-column certification is still pending | Latest-price extraction may fail if source schema differs | Confirm `InstrumentID`, `BidLast`, `AskLast`, `DateFrom` before execution | Yes |
-| `MIFID2_Hedge_Report.RecordID` identity behavior | SQL Server uses `IDENTITY(100000001,1)` but Databricks has no direct equivalent behavior by default | Record sequencing drift and potential downstream mismatch | Decide deterministic generation strategy and document it | Yes |
-| Step 14 generated transaction-reference parity (`ProviderExecID` + `RowID` + report-date + fallback) | Step 14B3 template ports the SQL Server expression pattern, but parity evidence is not yet execution-validated | Exclusion-key matching and uniqueness behavior can still drift if expression semantics differ by engine edge cases | Keep Step 14B3 template gated and validate expression-level parity in Step 14B4 before activation | Yes |
+| `MIFID2_Hedge_Report.RecordID` implementation readiness | Strategy direction is approved (preserve historical SQL Server IDs, continue from max+1, persistent registry, reuse existing IDs, allocate only for new/back-reported missed trades), but implementation details and validation are pending | Missed-trade back-reporting and rerun parity can drift without implemented allocator and natural-key contract | Implement approved registry/allocation pattern and validate against SQL Server history | Yes |
+| Step 14 generated transaction-reference parity (`ProviderExecID` + `RowID` + report-date + fallback) | RegTech/manager clarified this is a hard exact-parity field; uniqueness-only is not acceptable | Exclusion-key matching and regulatory parity fail if values differ from SQL Server | Validate exact value matching against SQL Server baseline before activation | Yes |
 | Step 14 report-scoped exclusion parity (`table_name = '[MIFID2_Hedge_Report]'`) | Step 14B3 template includes row-level projection filtering, but parity evidence is not yet execution-validated | Incorrect interpretation could produce full-table suppression or missed row-level exclusions | Keep semantics hard-gated and validate row-level scoped filtering behavior in Step 14B4 before activation | Yes |
 | ASIC2 replacement for legacy `ASIC_Transactions` | `SP_MIFID2_ETORO_Report` still references legacy object shape | MiFID ETORO output may not match intended ASIC2 source-of-truth | Keep Step 8 compatibility projection/view gated until validation SQL proves field-contract parity | Yes |
 | `Trade.PositionForExternalUse` and `History.PositionForExternalUse` source contract for ASIC2 ext open positions | Sources are confirmed accessible in latest profiling, but Step 8 required-column and date-window certification is still pending | `ASIC2_ext_OpenPositions_PositionsReport` may fail or drift if source shapes differ from package assumptions | Confirm required columns and window-filter parity before un-gating Step 8 ext staging SQL | Yes |
@@ -41,7 +55,7 @@ Latest source profiling integration:
 | Step 11 `ReplaceChar` parity validation gate for `MIFID2_RegChange_Customer` | Step 11 name/PIN normalization relies on `bi_output_regtechops_fn_replacechar`; activation without parity evidence can drift from SQL Server identity output | Reg-change customer names and PIN-derived identifiers can diverge even if staging is available | Execute and approve ReplaceChar parity checks before un-gating `databricks/sql/08_outputs/02_mifid2_regchange_customer.sql` | Yes |
 | Step 12 price/split carry-forward gate (`Reg_CurrencyPrice_Ext`) | Step 12 report pricing logic depends on Step 5B1 `Reg_CurrencyPrice_Ext`, but source-shape parity evidence is still pending | Price derivation and report branch outputs can drift or fail | Complete runtime source-shape profiling and required-column parity checks before Step 12 activation | Yes |
 | Step 12 price/split carry-forward gate (`Reg_Ext_DailyMaxPrices`) | Step 12 report pricing logic depends on Step 5B1 `Reg_Ext_DailyMaxPrices`, but source-shape parity evidence is still pending | Max-price lookups can drift or fail for report-day calculations | Complete runtime source-shape profiling and required-column parity checks before Step 12 activation | Yes |
-| Step 12 price/split carry-forward gate (`Reg_Ext_CurrencyPriceMaxDateWithSplit`) | Candidate source selection remains unresolved and Step 12 split/price logic depends on the selected source | Report prices and split-adjusted calculations can diverge from SQL Server parity | Finalize candidate source selection from profiling evidence and lock the contract before Step 12 activation | Yes |
+| Step 12 price/split carry-forward gate (`Reg_Ext_CurrencyPriceMaxDateWithSplit`) | Primary source is selected (`main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`), but date-window and baseline parity validation remain pending | Report prices and split-adjusted calculations can diverge from SQL Server parity | Validate selected source contract and lock baseline evidence before Step 12 activation | Yes |
 | Step 12 price/split carry-forward gate (`Reg_Ext_T_PriceCandle60Min`) | Required-column validation is still pending for the expected source | Latest-price dependent report enrichments can fail or be inconsistent | Complete required-column validation (`InstrumentID`, `BidLast`, `AskLast`, `DateFrom`) before Step 12 activation | Yes |
 | Step 12 migration/in-out materialization policy (`Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData`) | Policy between prefixed gold snapshot vs SSIS-compatible recreation is not finalized for all consumers | RegChange and movement-driven report population can produce inconsistent lineage and counts | Lock materialization policy with parity evidence and document run-snapshot behavior before report activation | Yes |
 | Step 12 movement gate (`Reg_Regulation_Movments_Positions`) | Step 6 source parity and enrichment gates remain unresolved for movement staging consumed by Step 12 report logic | RegChange branch composition and movement-related report rows can drift | Clear Step 6 movement gates (source contracts, join/date parity, price enrichment parity) before Step 12 activation | Yes |
@@ -55,15 +69,15 @@ Latest source profiling integration:
 | Step 12B2/12B3 boundary enforcement for FuturesMetaData | Futures metadata is not used in pre-branch trade-pool population but is required in final branch projections | Mixing boundary scope can delay Step 12B2 or create premature final-branch coupling | Keep FuturesMetaData as Step 12B3 activation gate and validate only with final-branch projection logic | Yes |
 | Step 12B2 optional checkpoint materialization decision (`trade_population` / `customer_reg_flags` / removed-partials candidates) | CTE-only approach is preferred, but reproducibility/reconciliation may require temporary materialized checkpoints | Inconsistent validation evidence across reruns if checkpoint strategy is undefined | Decide whether optional prefixed checkpoint tables are needed and keep any activation gated | No |
 | Step 12B2 split/GBX parity-proof fields | Current validation cannot prove split/GBX parity unless audit fields are materialized in the intermediate checkpoint output | Split and GBX behavior may appear validated without evidence of before/after transformations | Materialize and validate audit fields (`AmountRatioSplit`, `IsSplitAdjusted`, `IsGBX`, `InitForexRateBeforeGBX`, `InitForexRateAfterGBX`, `EndForexRateBeforeGBX`, `EndForexRateAfterGBX`) before treating split/GBX parity as passed | Yes |
-| Historical seed strategy for `MIFID2_NPD_TRAX` | Full historical backfill is out of scope; optional seed policy not finalized | Backdated reconciliation windows may fail parity | Define minimal seed approach for validation-only windows | No (unless older validation window is requested) |
-| Historical seed strategy for `ASIC2_Transactions` | Same as above; history required only for some parity windows | Backdated ETORO parity may diverge | Define optional seed/rebuild boundaries and triggers | No (unless older validation window is requested) |
+| Historical seed strategy for `MIFID2_NPD_TRAX` | Strategy direction approved: seed required history (or all available if safe minimum is unproven); implementation planning pending | Backdated reconciliation windows may fail parity if implementation is delayed | Implement approved seed strategy with evidence for retry/parity windows | Yes |
+| Historical seed strategy for `ASIC2_Transactions` | Strategy direction approved: seed required history (or all available if safe minimum is unproven); implementation planning pending | Backdated ETORO parity may diverge if implementation is delayed | Implement approved seed strategy for ASIC2/ETORO parity windows | Yes |
 | Materialization choice for `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` | Both SSIS-created staging and mapped gold equivalents exist | Inconsistent lineage and row-count mismatches between flows | Step 5B2 decision gate: prefer prefixed snapshots from certified gold only after row-count/schema parity passes; otherwise recreate SSIS-compatible materialized logic from run-date inputs | Yes (for deterministic reproducibility) |
 | `Reg_Ext_MigrationInOut_STG` source reconstruction | SSIS builds `##TRAN_DATA` from multiple operational sources before loading the staging table | Incorrect migration/in-out rows can affect movement and MiFID report logic | Confirm Databricks equivalents for the temp-table inputs and validate reconstructed row counts against SQL Server | Yes |
 | Step 5B2 expected source required-column certification | `Trade.GetInstrument`, `Trade.InstrumentMetaData`, `Dictionary.Currency`, and `Dictionary.CurrencyType` are confirmed accessible; `Reg_Ext_CustomerLatinName` remains expected-source/access-pending | Staging SQL may fail or silently diverge if required columns differ | Certify required columns for accessible sources before authoring executable non-price staging SQL | Yes |
 | `Reg_Instruments_ext` gold/FIRDS replacement shape | SSIS builds the object from raw trade joins, while phase 1 prefers certified gold/FIRDS sources | Missing columns such as visibility, currency IDs, or `IsFuture` can break downstream instrument logic | Validate `main.regtech.gold_regtech_reg_instruments_scd` / full-description coverage against the SSIS output contract before materialization | Yes |
 | `Reg_Regulation_Movments_Positions` Step 6 source parity | Active movement load depends on migration population, position/history branches, and post-load instrument/price enrichment | Movement rows, branch composition, and MIFID report filters can drift if join/date logic diverges | Validate Step 6 source contracts via `databricks/sql/04_regulation_movements/01_regulation_movments_source_profiling.sql` before enabling executable staging SQL | Yes |
-| `Reg_Regulation_Movments_Positions` price enrichment dependency | Step 6 post-load `EOD_Price` depends on split-price staging source choice still unresolved in Step 5B1 | Missing or incorrect `EOD_Price`/`Symbol` enrichment for movement rows | Resolve/validate `Reg_Ext_CurrencyPriceMaxDateWithSplit` parity before activating Step 6 enrichment logic | Yes |
-| Step 7 liquidity source required-column certification | Liquidity provider/account/LEI sources are confirmed accessible; `HedgeServerToLiquidityAccount` candidate reports storage/data scan failure | Hedge-liquidity staging activation can fail on hedge-server mapping; other Step 7 paths can drift if required columns differ | Resolve storage failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`; certify required columns for accessible sources before un-gating Step 7 staging SQL | Yes |
+| `Reg_Regulation_Movments_Positions` price enrichment dependency | Step 6 post-load `EOD_Price` depends on selected split-price source validation (`main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`) | Missing or incorrect `EOD_Price`/`Symbol` enrichment for movement rows | Validate selected split-price source parity before activating Step 6 enrichment logic | Yes |
+| Step 7 liquidity source required-column certification | Liquidity provider/account/LEI sources are confirmed accessible, including `HedgeServerToLiquidityAccount` | Hedge-liquidity staging can drift if required columns, duplicate-key behavior, or coverage expectations are not validated | Complete required-column + duplicate/key + coverage validation for Step 7 sources before un-gating staging SQL | Yes |
 | Step 7 sensitive-column handling for `Reg_LiquidtyAcount_Ext` | SQL Server SSIS selected `Username`, `Password`, `SettingsXML`, but phase-1 staging excludes sensitive fields | Potential downstream shape mismatch if a consumer expects legacy sensitive columns | Confirm whether a compatibility object with masked/null placeholders is needed; keep normal staging object free of raw secrets | Yes |
 | `Reg_LiquidtyAcount_SCD` seed/cutover strategy | Step 7 SCD is persistent history and cannot use unconditional full replace pattern | Incorrect cutover can break SCD history and hedge-report dependencies | Approve seed/rebuild vs incremental cutover strategy before activating SCD templates in `databricks/sql/05_hedge_liquidity/03_reg_liquidtyacount_scd.sql` | Yes |
 | `Reg_LiquidtyAcount_SCD` removed-account `IsLast` behavior | SQL Server removed-account update does not explicitly set `IsLast = 0`; parity vs data-quality behavior must be explicit | Silent correction can break parity; strict parity can leave edge-case current flags | Preserve SQL Server behavior by default; if correction is desired, document and approve as intentional known difference before execution | Yes |
@@ -162,10 +176,10 @@ These are RegTech static/reference tables, not raw DE source tables.
 
 ## Recommended resolution order
 
-0. Resolve DE/Data Platform access blockers documented in `docs/access_blockers.md` (storage failures, PII schema access, `dwh_daily_process` catalog access).
-1. Resolve `Reg_CurrencyPrice_Ext` storage failure or certify alternative source; then complete required-column certification.
+0. Resolve active `main.pii_data` access blockers documented in `docs/access_blockers.md`.
+1. Certify selected primary source contracts for `Reg_CurrencyPrice_Ext` and `Reg_Ext_CurrencyPriceMaxDateWithSplit` (`main.dealing` sources) and complete date-window/baseline checks.
 2. Certify required columns for accessible Step 5B1 sources (`Reg_Ext_DailyMaxPrices`, `Reg_Ext_T_PriceCandle60Min`).
-3. Resolve `Reg_Ext_CurrencyPriceMaxDateWithSplit` source selection: grant `dwh_daily_process` catalog access for comparison or certify `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit`.
+3. Apply approved historical seed strategy implementation plan for NPD/Failed TRAX/ASIC2/liquidity/migration windows.
 4. Complete Step 8 required-column certification for open-positions, customer-profile, and instrument-metadata dependencies.
 5. Validate `CDE_Execution_timestamp -> OpenTime` semantics and approve compatibility mapping.
 6. Confirm whether `SP_ASIC2_Instrument_Automation` is required or remains conditional/out of scope.
@@ -178,7 +192,7 @@ These are RegTech static/reference tables, not raw DE source tables.
 13. Confirm Step 10/11 `Dictionary.Ext_TradeFund` mapping and required columns for copy-fund enrichment.
 14. Confirm Step 10/11 `Reg_Ext_CustomerLatinName` staging/source contract before activating translation path.
 15. Clear Step 11 reg-change customer activation gates after Step 9 reg-change source prerequisites pass.
-16. Decide `RecordID` strategy for `MIFID2_Hedge_Report`.
+16. Implement and validate approved `MIFID2_Hedge_Report` RecordID seed/allocation strategy. Direction is approved: preserve historical SQL Server RecordID values exactly, continue from `MAX(RecordID)+1`, and use a persistent registry/control mechanism. Remaining work is natural-key definition, implementation, and validation.
 17. Lock staging-vs-gold materialization policy for migration/in-out tables using Step 5B2 parity profiling.
 18. Certify Step 5B2 required columns for accessible non-price sources before authoring active non-price staging SQL.
 19. Confirm Step 6 movement source contracts and join/date parity before activating Step 6 staging DDL.
@@ -193,7 +207,7 @@ These are RegTech static/reference tables, not raw DE source tables.
 28. Keep FuturesMetaData validation strictly in Step 12B3 final-branch activation checks.
 29. Confirm Step 12B2 dictionary-currency source/profile parity for pre-branch metadata and GBX handling.
 30. Materialize Step 12B2 split/GBX audit fields before declaring parity checks as passed.
-31. Finalize Step 14 RecordID deterministic strategy and acceptance criteria for `MIFID2_Hedge_Report`.
+31. Implement and validate approved Step 14 `MIFID2_Hedge_Report` RecordID seed/allocation strategy (preserve historical SQL Server IDs, `MAX(RecordID)+1` persistent registry, reuse existing IDs, allocate only for new/back-reported missed trades); document natural business key and acceptance criteria before activation.
 32. Clear Step 14 hedge source gates for `MIFID2_ext_HedgeExecutionLog`, `Reg_Ext_HedgeExecutionLog`, and `Reg_Ext_HedgeHBCOrderLog`.
 33. Validate Step 14 liquidity-account SCD and LEI coverage readiness for hedge report-date windows.
 34. Validate Step 14 EDNF/IB mapping coverage and report-scoped exclusion semantics for hedge branches.
@@ -318,9 +332,12 @@ The following items remain explicitly unresolved for Step 13B3 ETORO validation/
 
 The following items remain explicitly unresolved for Step 14 hedge activation and parity signoff after Step 14B4 validation package authoring:
 
-- RecordID strategy gate:
-  - SQL Server `MIFID2_Hedge_Report` uses `RecordID INT IDENTITY(100000001,1)`.
-  - Databricks strategy remains unresolved and must be explicitly approved before activation.
+- RecordID implementation gate:
+  - `MIFID2_Hedge_Report.RecordID` is a functional back-reporting/audit field (purpose no longer unclear); team confirmed it was involved in inability to back-report missed hedge trades.
+  - SQL Server baseline uses `RecordID INT IDENTITY(100000001,1)`; historical values must be preserved exactly in Databricks.
+  - Approved direction: seed historical SQL Server RecordIDs, continue from `MAX(RecordID)+1`, use persistent registry/control allocation, reuse existing IDs on reruns, allocate new IDs only for new/back-reported missed trades; document natural business key.
+  - Reject: non-deterministic identity, per-run `row_number()` reassignment, or any approach that changes existing RecordIDs when missed trades are added later.
+  - Implementation, natural-key definition, and validation remain required before `MIFID2_Hedge_Report` activation.
 - Liquidity SCD seed/cutover gate:
   - `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd` seed/rebuild vs incremental cutover policy remains unresolved.
 - LEI coverage gate:
@@ -360,29 +377,24 @@ The following items remain explicitly unresolved for Step 14 hedge activation an
 
 This section is the cross-module unresolved set for readiness consolidation and should be treated as the go/no-go dependency list before execution is enabled.
 
-- Access blockers (remain open):
+- Active access blockers (remain open):
   - `main.pii_data.bronze_etoro_customer_customer` (no schema access)
   - `main.pii_data.bronze_etoro_history_customer` (no schema access)
 - Temporary development workaround (manager-approved; does not close PII blockers):
   - `main.general.bronze_etoro_customer_customer_masked`
   - `main.general.bronze_etoro_history_customer_masked`
-  - `dwh_daily_process.daily_snapshot.etoro_history_customer` (no catalog access)
-  - `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` (no catalog access)
-- Storage/data scan blockers:
-  - `main.trading.bronze_etoro_trade_currencyprice`
-  - `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`
-- History/seed blockers:
-  - `MIFID2_NPD_TRAX` prior-latest seed/cutover policy
-  - `MIFID2_Failed_TRAX` shared seed dependency on NPD history
-  - `ASIC2_Transactions` parity window seed policy
-  - `Reg_LiquidtyAcount_SCD` seed/rebuild vs incremental policy
-  - `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData` materialization policy
-- Business/SME blockers:
-  - final source certification for `Reg_Ext_CurrencyPriceMaxDateWithSplit`
-  - exact CFI / InstrumentClassification parity where still gated
-  - `MIFID2_Hedge_Report` `RecordID` strategy
-  - `MIFID2_Hedge_Report` transaction reference parity
-  - required-column certification for confirmed-accessible but still-pending sources
+- Reclassified (not active blockers):
+  - `main.trading.bronze_etoro_trade_currencyprice` (readable but not preferred; primary source selected elsewhere)
+  - `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` (readable with required columns)
+  - `dwh_daily_process` split-price comparison access (fallback/reference context)
+- History/seed direction:
+  - strategy approved to seed required history (or all available if minimum safe window is unproven); implementation remains pending
+- Business/SME execution gates:
+  - exact CFI / InstrumentClassification parity (hard requirement)
+  - `MIFID2_Hedge_Report` `RecordID` approved direction implementation
+  - `MIFID2_Hedge_Report` transaction-reference exact SQL Server parity
+  - required-column certification for selected primary sources
+  - SQL Server baseline comparison where required
 
 Resolved static-reference availability remains unchanged:
 - `main.regtech_ops_stg.bi_output_regtechops_dbo_internal_accounts`

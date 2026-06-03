@@ -1,6 +1,30 @@
 # History Seed Requirements (Phase 1)
 
-This document tracks history-seed expectations for phase-1 table/report generation modules. Full historical backfill remains out of scope unless a validation window explicitly requires it.
+This document tracks history-seed expectations for phase-1 table/report generation modules.
+
+## Approved historical seed direction (latest update)
+
+RegTech direction is now approved:
+
+- Seed all historical data required for future reporting, retry logic, SCD validity, missed-trade back-reporting, identity continuity, and SQL Server baseline comparison.
+- If the minimum safe historical window cannot be proven, seed all available history for that object.
+
+Applies especially to:
+
+- `MIFID2_NPD_TRAX`
+- `MIFID2_Failed_TRAX`
+- `MIFID2_Hedge_Report`
+- `ASIC2_Transactions` and related ASIC2 history
+- `Reg_LiquidtyAcount_SCD`
+- `Reg_MigrationInOut_Population`
+- `Reg_RegulationInOutDailyData`
+- `Reg_Regulation_Movments_Positions`
+- relevant instrument/FIRDS history where needed
+
+Status:
+
+- Strategy approved.
+- Execution implementation and sequencing remain pending and gated.
 
 ## Step 6 - Regulation movement staging
 
@@ -68,7 +92,7 @@ For Step 7 validation/execution windows, ensure availability of:
 - `Reg_LiquidtyAcount_SCD` requires explicit cutover decision:
   - optional initial seed/rebuild template (history reset risk), or
   - incremental cutover that preserves existing SCD history.
-- Phase-1 default should favor incremental cutover once source profiling and schema parity checks pass.
+- Use the approved historical-seed strategy and prefer incremental cutover only when it still preserves required historical parity windows.
 
 ### Known Step 7 history risks
 
@@ -104,8 +128,7 @@ For Step 8 validation windows, ensure availability of:
 
 ### Seed/cutover policy for Step 8
 
-- Phase-1 default: seed only requested validation windows.
-- Do not block Step 8 staging authoring on full historical backfill.
+- Follow approved strategy: seed all history required for parity/retry windows; if minimum safe window cannot be proven, seed all available ASIC2 history.
 - If older parity windows are requested, expand seed scope incrementally:
   1. ext/customer/instrument dependencies,
   2. `ASIC2_Positions`,
@@ -147,7 +170,7 @@ For a requested Step 9 `ReportDate` window, ensure:
 
 ### Seed/cutover policy for Step 9
 
-- Phase-1 default: seed only requested validation windows (no full historical backfill).
+- Follow approved strategy: seed all history required for failed-TRAX/NPD identity continuity and retry parity; use full available history if minimum safe window is unproven.
 - `MIFID2_ext_*` objects are truncate/reload day snapshots and do not require deep historical persistence for authoring.
 - `MIFID2_Failed_TRAX` must not fabricate history. If historical parity is requested, seed `MIFID2_NPD_TRAX` first and then recompute failed-TRAX rows by latest-per-CID logic.
 
@@ -183,9 +206,9 @@ For a requested Step 10 `ReportDate`, ensure:
 
 ### Seed/cutover policy for Step 10
 
-- Phase-1 default remains validation-window seeding only.
+- Follow approved strategy for historical windows required by parity, retry, and baseline comparisons.
 - Step 10 should be rerun as report-date scoped delete/insert after supporting Step 9 snapshots are refreshed.
-- No full historical backfill is required unless parity checks explicitly request older windows.
+- If required historical windows cannot be bounded safely, seed all available history for affected sources.
 
 ### Known Step 10 history risks
 
@@ -220,9 +243,9 @@ For a requested Step 11 `ReportDate`, ensure:
 
 ### Seed/cutover policy for Step 11
 
-- Phase-1 default remains validation-window seeding only.
+- Follow approved strategy for historical windows required by parity, retry, and baseline comparisons.
 - Step 11 should be rerun as report-date scoped delete/insert after Step 9 reg-change staging refresh.
-- No full historical backfill is required unless parity checks explicitly request older windows.
+- If required historical windows cannot be bounded safely, seed all available history for affected sources.
 
 ### Known Step 11 history risks
 
@@ -278,7 +301,7 @@ For a requested Step 12 `ReportDate`, ensure:
 
 ### Seed/cutover policy for Step 12
 
-- Phase-1 default remains validation-window seeding only.
+- Follow approved strategy for historical windows required by parity and baseline comparisons.
 - Step 12 report targets should be rebuilt as report-date scoped delete/insert after upstream snapshots refresh.
 - Full historical backfill is not required for Step 12B1 and is deferred until explicitly requested for reconciliation windows.
 
@@ -342,8 +365,7 @@ For a requested Step 13 `ReportDate`, ensure:
 
 ### Seed/cutover policy for Step 13
 
-- Phase-1 default remains validation-window seeding only.
-- Do not block Step 13B1 scaffold authoring on full historical backfill.
+- Follow approved strategy: seed all history required for ETORO parity windows; if minimum safe history cannot be proven, seed all available ASIC2 history.
 - If older ETORO windows are requested:
   1. expand Step 8 compatibility seed for the required dates,
   2. re-validate OpenTime/Volume/OpenPrice parity,
@@ -426,12 +448,12 @@ For a requested Step 14 `ReportDate`, ensure:
 
 ### Seed/cutover policy for Step 14
 
-- Phase-1 default remains validation-window seeding only.
+- Follow approved strategy: seed all history required for hedge parity, missed-trade back-reporting, and baseline comparisons.
 - Step 14B1 is scaffold-only and does not execute report DML.
 - Step 14B2 is source-preparation-only and does not execute final output DML.
 - Step 14B3 is final projection/load template authoring only and keeps final DML commented/gated.
 - Step 14B4 is validation-only authoring and does not execute hedge business DML.
-- Do not block Step 14B1 authoring on full historical backfill.
+- Authoring remains documentation/template-safe, but execution planning must include approved historical seed implementation.
 - If older hedge windows are requested later:
   1. expand hedge execution staging windows,
   2. confirm liquidity SCD/LEI historical coverage,
@@ -441,7 +463,7 @@ For a requested Step 14 `ReportDate`, ensure:
 ### Known Step 14 history risks
 
 - RecordID risk:
-  - unresolved deterministic strategy can block parity signoff across reruns.
+  - strategy direction is approved, but implementation must preserve historical SQL Server RecordIDs and enforce max+1 registry allocation for future rows.
 - Hedge source activation risk:
   - incomplete activation or history gaps in `MIFID2_ext_HedgeExecutionLog` / `Reg_Ext_HedgeExecutionLog` / `Reg_Ext_HedgeHBCOrderLog` can alter branch row counts.
 - Liquidity SCD/LEI risk:
@@ -451,7 +473,7 @@ For a requested Step 14 `ReportDate`, ensure:
 - Exclusion history risk:
   - missing historical exclusion entries can change hedge output composition for older dates.
 - Transaction-reference risk:
-  - reference construction uses normalized provider execution id and row ordering; unstable ordering inputs can create cross-run drift without deterministic controls.
+  - transaction reference must match SQL Server exactly; unstable ordering or expression drift can break hard parity even if values remain unique.
 
 ## Step 14B2-specific seed notes (hedge source preparation)
 
@@ -498,9 +520,9 @@ Step 14B3 historical caution:
 
 ## Step 14B4-specific seed notes (hedge validation/reconciliation)
 
-Step 14B4 validation can run for requested report windows without full historical backfill.
+Step 14B4 validation can start on requested windows, but final parity signoff must respect the approved historical seed strategy.
 
-- No full historical seed is required by default for Step 14B4.
+- Historical seed must cover all parity-required windows; if minimum safe coverage is unproven, seed all available relevant history.
 - Expand history only when requested parity windows require:
   - deeper liquidity SCD validity history,
   - older LEI/exclusion history,
@@ -540,7 +562,7 @@ For a requested Step 15 `ReportDate`, ensure:
 - Step 15B2 table-generation template is authored in:
   - `databricks/sql/08_outputs/09_mifid2_npd_trax.sql`
   - it remains commented/non-active until seed and upstream gates pass.
-- Step 15 can start forward-only for current validation windows without full historical backfill.
+- Forward-only runs may be used for structural checks, but final parity requires approved historical seed coverage.
 - Forward-only first run changes exact SQL Server parity behavior for:
   - new-vs-existing combination detection,
   - retry logic for rejected/null prior rows,

@@ -51,19 +51,23 @@ These mappings are explicitly documented as established in `06_mappings`:
 - `Dictionary.Currency` -> `main.general.bronze_etoro_dictionary_currency` (confirmed accessible; staging required-column certification pending)
 - `Dictionary.CurrencyType` -> `main.general.bronze_etoro_dictionary_currencytype` (confirmed accessible; staging required-column certification pending)
 - `Trade.FuturesMetaData` -> `main.trading.bronze_etoro_trade_futuresmetadata` (confirmed accessible; required-column certification pending for Step 12B3)
+- `History.CurrencyPrice` / `History.CurrencyPrice_Active` / `Reg_CurrencyPrice_Ext` -> `main.dealing.bronze_pricelog_history_currencyprice` (selected primary source; baseline/date-window validation pending)
+- `Candles.CurrencyPriceMaxDateWithSplit` / `Reg_Ext_CurrencyPriceMaxDateWithSplit` -> `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit` (selected primary source; baseline/date-window validation pending)
 
 ## Profiling status overrides (latest run)
 
 | Databricks object | Profiling status | Migration impact |
 | --- | --- | --- |
-| `main.trading.bronze_etoro_trade_currencyprice` | Storage/data scan failure | `Reg_CurrencyPrice_Ext` remains gated |
-| `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` | Storage/data scan failure | Step 7 hedge-server mapping and Step 14 hedge liquidity SCD remain gated |
+| `main.trading.bronze_etoro_trade_currencyprice` | Readable but not preferred | Not selected as primary `Reg_CurrencyPrice_Ext` source (missing full SSIS-selected shape) |
+| `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` | Confirmed accessible | Required columns present; keep duplicate/key/coverage validation in Step 7 |
 | `main.pii_data.bronze_etoro_customer_customer` | No schema access | Final customer parity remains gated |
 | `main.pii_data.bronze_etoro_history_customer` | No schema access | Final customer as-of/history parity remains gated |
 | `main.general.bronze_etoro_customer_customer_masked` | Temporary development fallback / manager-approved workaround | Dev/structural testing only; not final regulatory parity source |
 | `main.general.bronze_etoro_history_customer_masked` | Temporary development fallback / manager-approved workaround | Dev/structural testing only; not final regulatory parity source |
-| `dwh_daily_process.daily_snapshot.etoro_history_customer` | No catalog access | Fallback customer-history candidate cannot be profiled |
-| `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` | No catalog access | Split-price candidate comparison blocked |
+| `dwh_daily_process.daily_snapshot.etoro_history_customer` | Fallback/reference only | Not an active blocker in current execution path |
+| `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` | Fallback/reference only | No longer primary split-price source candidate |
+| `main.dealing.bronze_pricelog_history_currencyprice` | Primary source selected | `History.CurrencyPrice` / `History.CurrencyPrice_Active` / `Reg_CurrencyPrice_Ext` |
+| `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit` | Primary source selected | `Candles.CurrencyPriceMaxDateWithSplit` / `Reg_Ext_CurrencyPriceMaxDateWithSplit` |
 | `main.regtech_ops_stg.bi_output_regtechops_dbo_internal_accounts` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/dbo_internal_accounts` |
 | `main.regtech_ops_stg.bi_output_regtechops_dictionary_ext_specialchar` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/dictionary_ext_specialchar` |
 | `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/ed_f_to_istrument_id_e_toro` |
@@ -118,20 +122,31 @@ Any future Databricks workflow/orchestration must distinguish:
 - **Development / structural test mode** — masked customer tables permitted for non-parity work
 - **Final parity / production mode** — unmasked `main.pii_data` sources or formal approval required
 
-## Candidate mappings
+## Selected mappings and fallback references
 
-Candidate mappings that require final selection after SSIS column-level validation:
+Primary selections:
 
-- `Reg_Ext_CurrencyPriceMaxDateWithSplit` -> `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` (candidate)
-- `Reg_Ext_CurrencyPriceMaxDateWithSplit` -> `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` (candidate alternative)
+- `Reg_CurrencyPrice_Ext` -> `main.dealing.bronze_pricelog_history_currencyprice`
+- `Reg_Ext_CurrencyPriceMaxDateWithSplit` -> `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`
+
+Selected source contract notes:
+
+- `main.dealing.bronze_pricelog_history_currencyprice` includes required SSIS-selected columns for `History.CurrencyPrice_Active` parity (`CurrencyPriceID`, `ProviderID`, `InstrumentID`, `Bid`, `Ask`, `ValidFrom`, `ValidTo`, `OccurredOnProvider`, `Occurred`, `PriceRateID`, `ReceivedOnPriceServer`, `LiquidityAccountID`, `USDConversionRate`, `MarketPriceRateID`, `RateLastEx`, `BidSpreaded`, `AskSpreaded`, `BidMarketPriceRateID`, `AskMarketPriceRateID`, `MarkupPips`, `MarketReceivedTime`, `SkewValueBid`, `SkewValueAsk`, `SkewID`, `USDConversionRateBidSpreaded`, `USDConversionRateAskSpreaded`, `USDConversionPriceRateID`).
+- `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit` includes required columns for split-price parity (`PriceRateID`, `ProviderID`, `InstrumentID`, `Occurred`, `OccurredDate`, `OccurredDateID`, `isvalid`, `MarkupPips`, `AskSpreaded`, `BidSpreaded`, `RateLastEx`, `SkewValueBid`, `SkewValueAsk`, `Ask`, `Bid`) and partition columns (`etr_y`, `etr_ym`, `etr_ymd`).
+- Both selected sources still require final date-window validation and SQL Server baseline comparison before execution activation.
+
+Fallback/reference-only mappings (not primary execution path):
+
+- `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit`
+- `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit`
 
 ## Conditional mappings
 
 These are valid mappings but should be used conditionally based on package logic and dependency confirmation:
 
-- `Reg_CurrencyPrice_Ext source` -> `main.trading.bronze_etoro_trade_currencyprice`  
-  Use as an SSIS-created dynamic extract input, not as a one-time static replacement.  
-  Step 5B1 status: provisional staging SQL authored; latest profiling reports storage/data scan failure on the candidate source. Keep gated until DE/Data Platform resolves storage or certifies an alternative.
+- `Reg_CurrencyPrice_Ext source` -> `main.dealing.bronze_pricelog_history_currencyprice`  
+  Use as an SSIS-created dynamic extract input with report-date and one-hour lookback logic, not as a one-time static replacement.  
+  Step 5B1 status: primary source selected; required SSIS-selected columns identified. Final activation remains gated by required-column validation and SQL Server baseline/date-window checks.
 - `Reg_Ext_T_PriceCandle60Min source` -> `main.dealing.bronze_candles_candles_t_pricecandle60min`  
   Conditional on exact package-side filtering/column logic.  
   Step 5B1 status: staging SQL authored with latest-row-per-`InstrumentID` logic; runtime source-shape check still required.
@@ -150,7 +165,7 @@ Classification note:
 
 Step 5B1 note:
 - `Reg_CurrencyPrice_Ext`, `Reg_Ext_DailyMaxPrices`, and `Reg_Ext_T_PriceCandle60Min` are treated as SSIS-created staging outputs with materialized Delta targets in `main.regtech_ops_stg` (not replacement views).
-- `Reg_Ext_CurrencyPriceMaxDateWithSplit` remains unresolved pending candidate-comparison profiling; no silent source choice is made.
+- `Reg_Ext_CurrencyPriceMaxDateWithSplit` primary source is selected (`main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`); execution remains gated by date-window validation and SQL Server baseline comparison.
 
 Step 5B2 note:
 - `Reg_MigrationInOut_Population` -> `main.regtech.gold_regtech_reg_migrationinout_population` remains a confirmed gold source mapping, but the phase-1 staging object should be a prefixed materialized snapshot only after row-count and schema parity are accepted.
@@ -167,7 +182,7 @@ Step 6 note (Regulation movement staging):
 - `RegSupportDB.dbo.Ext_MigrationInOut_Population` is treated as a support-copy artifact in SQL Server and should be represented as non-persistent temporary logic in Databricks (CTE/temp relation), not a new persistent business table.
 - `Reg_MigrationInOut_Population` can be consumed from prefixed snapshot `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population` after parity validation; certified gold `main.regtech.gold_regtech_reg_migrationinout_population` remains the confirmed fallback mapping.
 - `Reg_RegulationInOutDailyData` is not an active Step 6 build input for `Reg_Regulation_Movments_Positions`, but its mapping remains relevant for downstream consumers and parity governance.
-- Step 6 post-load price enrichment remains gated until `Reg_Ext_CurrencyPriceMaxDateWithSplit` source-selection/parity is resolved.
+- Step 6 post-load price enrichment remains gated until selected `Reg_Ext_CurrencyPriceMaxDateWithSplit` source passes date-window and SQL Server baseline parity validation.
 
 Step 7 note (Hedge liquidity mapping staging):
 - Confirmed source mappings for Step 7 are:
@@ -182,8 +197,8 @@ Step 7 note (Hedge liquidity mapping staging):
   - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid`
   - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityproviders`
   - `main.regtech_ops_stg.bi_output_regtechops_reg_liquidtyacount_scd`
-- `Hedge.HedgeServerToLiquidityAccount` candidate source reports storage/data scan failure in latest profiling; Step 7 hedge-server mapping remains gated until resolved.
-- Other Step 7 liquidity sources are confirmed accessible; execution remains gated until required-column certification passes.
+- `Hedge.HedgeServerToLiquidityAccount` source is now confirmed readable with required columns (`HedgeServerID`, `LiquidityAccountID`, `AltRatesLiquidityAccountID`); no longer tracked as storage blocker.
+- Other Step 7 liquidity sources are confirmed accessible; execution remains gated until required-column certification and duplicate/coverage validation pass.
 - Sensitive source fields from `Trade.LiquidityAccounts` (`Username`, `Password`, `SettingsXML`) are intentionally excluded/masked for phase-1 normal staging objects.
 - `Reg_LiquidtyAcount_SCD` activation is gated by seed/cutover decision; removed-account `IsLast` behavior follows SQL Server parity by default (no silent correction).
 
@@ -344,6 +359,7 @@ Step 12B3 note (final branch projections):
 - InstrumentClassification/CFI mapping rule in Step 12B3:
   - exact `SP_MIFID_Report` branch-specific mappings are still a hard gate.
   - simplified fallback logic is intentionally removed until exact branch mappings are ported.
+  - final values must match SQL Server exactly; near-equivalent/simplified classifications are not acceptable.
 - Category-specific instrument coverage rule in Step 12B3 validation:
   - real stock/ETF rows require ISIN.
   - futures rows require FuturesMetaData (`CFICode`, `ExpirationDateTime`, `Multiplier`) coverage.
@@ -432,20 +448,21 @@ Step 14 note (`MIFID2_Hedge_Report`):
 - Step 14B2 transaction-reference policy:
   - source fields are prepared (`ProviderExecID` normalization, `RowID`, report-date token, liquidity-provider fallback inputs),
   - final parity construction is hard-gated and deferred to Step 14B3.
+  - exact SQL Server/SSMS value parity is required (uniqueness-only is not sufficient).
 - Step 14B3 transaction-reference policy:
   - template ports SQL Server expression pattern for `TransactionReferenceNumber`:
     - `ISNULL(CONCAT(UPPER(ProviderExecID), RowID, yyyymmdd), CONCAT(UPPER(LiquidityProvider), yyyymmdd, RowID))`
-  - parity acceptance remains validation-gated before activation.
+  - parity acceptance remains validation-gated before activation and must be proven against SQL Server baseline values.
 - Step 14 exclusion mappings:
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments`
   - `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids`
   - scope rule: `table_name = '[MIFID2_Hedge_Report]'` is row-level report scoping, not full-table suppression.
 - Step 14 RecordID policy:
-  - SQL Server `IDENTITY(100000001,1)` behavior remains unresolved and is explicitly carried as an activation gate.
-- Step 14B3 RecordID strategy template:
-  - deterministic candidate strategy is authored and gated:
-    - `100000000 + row_number() over (ReportDate, RegulationReportID, rowSource, TransactionReferenceNumber, ExecutionID, LiquidityAccountID, InstrumentID)`.
-  - activation remains approval-gated.
+  - purpose is clarified: required for missed-trade back-reporting.
+  - approved direction: preserve historical SQL Server RecordIDs exactly; continue future allocation from `MAX(SQL Server RecordID) + 1` using a persistent Databricks registry/control mechanism.
+- Step 14B3 RecordID strategy status:
+  - temporary deterministic candidate remains documented as gated template logic only.
+  - activation requires implementation of approved registry/natural-key approach and validation evidence.
 - Step 14B3 remains gated:
   - final branch projection/load DML exists as commented template only (not active).
 

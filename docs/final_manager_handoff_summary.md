@@ -33,11 +33,10 @@ Concise status for program and engineering management. Technical detail: [handof
 
 Execution remains blocked until the following categories close (detail: [open_blockers_for_execution.md](open_blockers_for_execution.md)):
 
-1. **Access** — `main.pii_data` customer tables; `dwh_daily_process` catalog objects for final parity paths.
-2. **Storage** — Currency price and hedge-server-to-liquidity bronze tables fail data scan.
-3. **History/seed** — NPD TRAX, Failed TRAX, ASIC2 window, liquidity SCD, migration/regulation in-out materialization policies.
-4. **SME/certification** — Split-price source, hedge RecordID/transaction reference, CFI/classification, batch required-column certifications, baseline comparison scope.
-5. **Approvals** — MAG-01 through MAG-17 largely **OPEN**; evidence must be recorded externally (not in repo).
+1. **Access** — `main.pii_data` customer/history tables are still not accessible for final parity mode.
+2. **History/seed implementation** — strategy direction is approved, but historical-seed implementation is still pending for NPD/Failed TRAX/ASIC2/liquidity/migration paths.
+3. **SME/certification** — selected price sources require final certification/baseline checks; hedge RecordID approved direction must be implemented; transaction reference and CFI/classification require exact SQL Server parity evidence.
+4. **Approvals** — MAG gates required for execution remain largely **OPEN** and evidence must be recorded externally (not in repo).
 
 **Masked customer tables** (`main.general.*_masked`) are manager-approved for **temporary development/structural testing only**. They do **not** satisfy final regulatory parity or close PII blockers.
 
@@ -49,10 +48,9 @@ Execution remains blocked until the following categories close (detail: [open_bl
 
 See [de_data_platform_action_list.md](de_data_platform_action_list.md):
 
-- Fix storage scan on currency price and hedge-server mapping tables
 - Grant `main.pii_data` access for final parity
-- Grant `dwh_daily_process` if still required
-- Certify split-price source and pending accessible sources
+- Certify selected primary price/split-price sources and pending accessible sources
+- Support historical seed extraction/access for approved strategy implementation
 
 ### RegTech SME / business
 
@@ -74,7 +72,7 @@ See [regtech_sme_decision_list.md](regtech_sme_decision_list.md):
 
 | Milestone | Outcome |
 | --- | --- |
-| Blocker closure | DE remediation + access grants evidenced in profiling |
+| Blocker closure | `main.pii_data` access + source certification/historical-seed readiness evidenced in profiling |
 | Required-column validation | MAG-02 closed; module column contracts certified |
 | Controlled execution dry run | SELECT-only validations under `development_structural_test` |
 | SQL Server baseline comparison | MAG-16 where required per module |
@@ -100,5 +98,11 @@ Sequence after blockers: [post_blocker_execution_plan.md](post_blocker_execution
 | Delivery / production deployment | **NO-GO** — out of phase-1 scope |
 
 **GO** for controlled planning, blocker triage, and documentation updates only.
+
+Source-resolution note:
+
+- `main.trading.bronze_etoro_trade_currencyprice` is downgraded to readable-but-not-preferred (not an active blocker).
+- `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is downgraded to readable with required columns present (not an active blocker).
+- Selected primary sources are documented in `docs/source_profiling_results.md`.
 
 Formal sign-off artifact: [final_repository_audit.md](final_repository_audit.md) (Step 18A).

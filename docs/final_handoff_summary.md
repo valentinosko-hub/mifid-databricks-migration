@@ -18,7 +18,7 @@ Phase-1 migration work in this repository is **documentation and gated SQL autho
 
 - **Built:** gated table-generation templates, staging templates, validation/reconciliation SQL, and cross-module readiness packaging for all in-scope MiFID modules in `main.regtech_ops_stg` (`bi_output_regtechops_` prefix).
 - **Not executed:** no Databricks runtime execution, no production object creation in `main.regtech`, and no delivery/upload/response handling.
-- **Blocked:** final execution parity remains blocked by `main.pii_data` access, storage, history/seed, and business/SME gates documented in `docs/open_blockers_for_execution.md`.
+- **Blocked:** final execution parity remains blocked by `main.pii_data` access plus remaining history/seed implementation, certification, and business/SME gates documented in `docs/open_blockers_for_execution.md`.
 - **Temporary workaround:** manager-approved masked customer tables (`main.general.bronze_etoro_customer_customer_masked`, `main.general.bronze_etoro_history_customer_masked`) enable development/structural testing only; they do not close final PII parity gates.
 - **Authority:** SQL Server stored procedures, SSIS packages, and DDLs under `reference/mifid_databricks_migration_context/` remain authoritative for business logic. NOC and old Databricks attempt artifacts are reference-only.
 
@@ -161,8 +161,8 @@ Each module below has SQL under `databricks/sql/` and supporting analysis under 
 See `docs/open_blockers_for_execution.md` for the full register. Summary:
 
 - **Access:** `main.pii_data` customer tables (blockers remain open; masked general tables are dev-only workaround).
-- **Catalog:** `dwh_daily_process` catalog objects.
-- **Storage:** `main.trading.bronze_etoro_trade_currencyprice`; `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`.
+- **Access:** `main.pii_data` customer tables (active blocker category).
+- **Reclassified source items (not active blockers):** `main.trading.bronze_etoro_trade_currencyprice` is readable-but-not-preferred; `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is readable with required columns.
 - **History/seed:** NPD TRAX, Failed TRAX, ASIC2 transactions window, liquidity SCD, migration population materialization.
 - **SME/certification:** split-price source selection, hedge RecordID and transaction-reference parity, CFI/classification gates, pending required-column certifications.
 
@@ -170,7 +170,7 @@ See `docs/open_blockers_for_execution.md` for the full register. Summary:
 
 See `docs/execution_prerequisites.md` and `docs/remaining_decisions.md`.
 
-1. Resolve DE/Data Platform blockers (access + storage).
+1. Resolve active DE/Security blocker (`main.pii_data` access) and close selected-source certification gates.
 2. Complete required-column certification for confirmed-accessible sources.
 3. Close history/seed and materialization decisions with SME sign-off.
 4. Close business parity decisions (hedge RecordID, transaction reference, classification rules).
@@ -197,7 +197,7 @@ See `docs/execution_prerequisites.md` and `docs/remaining_decisions.md`.
 
 ## Recommended next sequence
 
-1. **Resolve access/storage blockers** (`main.pii_data` for final parity, `dwh_daily_process`, currency price, hedge-server mapping); use masked customer tables only in development/structural test mode until PII access or formal approval.
+1. **Resolve active access blocker** (`main.pii_data` for final parity) and selected-source certification gates; use masked customer tables only in development/structural test mode until PII access or formal approval.
 2. **Run source profiling / required-column checks** for each module’s upstream objects.
 3. **Activate staging modules in dependency order** (static → Pre_Regulation → movements → hedge liquidity → ASIC2 → MIFID2_ext → customer → report family → ETORO → hedge → NPD TRAX).
 4. **Run validations** per module and Step 16B1 cross-module SQL (SELECT-only).

@@ -1,155 +1,224 @@
 # MiFID Source Profiling Results
 
-This document integrates the latest MiFID source profiling run captured in `MiFID_Source_Profiling (1).csv` and the static-table recreation update for RegTech reference objects in `main.regtech_ops_stg`.
+This document captures the latest source-resolution and RegTech decision updates for phase-1 migration readiness.
 
 Profiling scope:
-- Read-only source visibility and access classification for phase-1 migration dependencies.
-- No SQL execution, table creation, or business-logic changes are performed by this documentation update.
+
+- Read-only source visibility and source-contract documentation.
+- Documentation update only (no SQL execution, no table creation, no workflow deployment).
 
 Status taxonomy used in this document:
+
 - Confirmed accessible
+- Readable but not preferred
+- Primary source selected
 - Fallback/reference only
 - No schema access
-- No catalog access
-- Storage/data scan failure
-- Table not found
-- Migration-produced object, not raw source
-- Candidate source still needs certification
 - Static reference resolved with explicit external LOCATION
 - Temporary development fallback / manager-approved workaround
 
-## Temporary masked customer source policy (manager-approved)
+## 1) Active blocker simplification (current)
 
-Project management approved temporary use of masked general customer tables so development can continue while `main.pii_data` access remains pending.
+### Active access blockers (only remaining active blockers)
 
-| Databricks object | Status | Role |
+| Databricks object | Status | Impact |
 | --- | --- | --- |
-| `main.general.bronze_etoro_customer_customer_masked` | Temporary development fallback / manager-approved workaround | Temporary dev/structural testing only |
-| `main.general.bronze_etoro_history_customer_masked` | Temporary development fallback / manager-approved workaround | Temporary dev/structural testing only |
+| `main.pii_data.bronze_etoro_customer_customer` | No schema access | Final customer/NPD identity parity remains gated |
+| `main.pii_data.bronze_etoro_history_customer` | No schema access | Final customer history/as-of parity remains gated |
 
-Final expected PII sources (unchanged; access still blocked):
+### Temporary masked customer fallback (development-only)
 
-| Databricks object | Status | Role |
+| Databricks object | Status | Allowed use |
 | --- | --- | --- |
-| `main.pii_data.bronze_etoro_customer_customer` | No schema access | Final regulatory parity source for `Customer.Customer` |
-| `main.pii_data.bronze_etoro_history_customer` | No schema access | Final regulatory parity source for `History.Customer` |
+| `main.general.bronze_etoro_customer_customer_masked` | Temporary development fallback / manager-approved workaround | Schema profiling, row-count checks, join-path testing, gated template development, non-production structural validation |
+| `main.general.bronze_etoro_history_customer_masked` | Temporary development fallback / manager-approved workaround | Same as above for history/as-of paths |
 
-Policy:
+Masked tables must not be treated as final regulatory parity sources.
 
-1. Masked general customer tables may be used only for temporary development and structural testing.
-2. Allowed uses: schema profiling, required-column checks, row-count checks, join-path testing, gated template development, non-production structural validation, workflow dry-run planning where customer identity field parity is not being certified.
-3. Masked tables must not be treated as final MiFID regulatory parity sources unless formally approved by the data owner / RegTech SME / Compliance.
-4. Final field-level customer parity remains gated for: `FirstName`, `LastName`, `BirthDate`, `PIN`, `PIN_Type`, customer identity-change comparison, `NonLatinOrEmptyName` detection, NPD_TRAX identity fields, and final validation for `MIFID2_Customer`, `MIFID2_RegChange_Customer`, `MIFID2_Failed_TRAX`, and `MIFID2_NPD_TRAX`.
-5. `main.pii_data` customer access blockers remain open until unmasked access is granted or formal parity approval is recorded.
-6. Future workflow/orchestration must distinguish **development / structural test mode** (masked tables) from **final parity / production mode** (unmasked PII or formal approval).
+Final parity remains gated for:
 
-Do not classify masked tables as: Confirmed final source, Production source, or Regulatory parity source.
+- `FirstName`, `LastName`, `BirthDate`, `PIN`, `PIN_Type`
+- customer identity-change comparison
+- `NonLatinOrEmptyName` detection
+- final validation of `MIFID2_Customer`, `MIFID2_RegChange_Customer`, `MIFID2_Failed_TRAX`, `MIFID2_NPD_TRAX`
 
-## Profiling summary by status
+## 2) CurrencyPrice source update
 
-### Confirmed accessible
+### Primary source selected
 
-| Databricks object | SQL Server / logical lineage | Migration use | Next step |
-| --- | --- | --- | --- |
-| `main.general.bronze_etoro_history_backofficecustomer` | `History.BackOfficeCustomer` | Step 8/9 customer enrichment, ASIC2 customer profile | Required-column contract validation per consumer module |
-| `main.bi_db.bronze_etoro_trade_positionforexternaluse` | `Trade.PositionForExternalUse` | Step 8/9 position staging | Required-column and date-window parity validation |
-| `main.trading.bronze_etoro_history_position_datafactory` | `History.PositionForExternalUse`, `History.Position` | Step 6/8/9 position and movement inputs | Required-column and window parity validation |
-| `main.trading.bronze_etoro_history_positionchangelog` | `History.PositionChangeLog` | Step 9 / ASIC2 change-log staging | Event continuity and filter parity validation |
-| `main.trading.bronze_etoro_history_mirror` | `History.Mirror` | Step 9 mirror staging | Mirror-window and CopyFund parity validation |
-| `main.dealing.bronze_candles_candles_t_pricecandle60min` | `Reg_Ext_T_PriceCandle60Min` source | Step 5B1 price candle staging | Required-column contract validation (`InstrumentID`, `BidLast`, `AskLast`, `DateFrom`) |
-| `main.dealing.bronze_pricelog_history_currencypricemaxdate` | `History.CurrencyPriceMaxDate` / `Reg_Ext_DailyMaxPrices` | Step 5B1 daily max prices | Required-column parity validation |
-| `main.dealing.bronze_pricelog_history_splitratio` | `History.SplitRatio` / `Reg_Ext_HistorySplitRatio` | Step 5B2/12 split logic | Filter and split-ratio parity validation |
-| `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` | `Reg_Ext_CurrencyPriceMaxDateWithSplit` candidate | Step 5B1/6/12 split-price logic | Candidate comparison vs blocked `dwh_daily_process` source |
-| `main.regtech.gold_regtech_reg_instruments_scd` | `Reg_Instruments_SCD` | Instrument coverage across modules | Report-date validity-window validation |
-| `main.regtech.gold_regtech_reg_instruments_full_description` | `Reg_Instruments_Full_Description` | Instrument enrichment | Latest-description coverage validation |
-| `main.trading.bronze_etoro_trade_futuresmetadata` | `Trade.FuturesMetaData` | Step 12B3 futures enrichment | Required-column certification (`InstrumentID`, `CFICode`, `ExpirationDateTime`, `Multiplier`) |
-| `main.trading.bronze_etoro_trade_getinstrument` | `Trade.GetInstrument` | `Reg_Ext_Trade_GetInstrument` | Staging required-column contract validation |
-| `main.trading.bronze_etoro_trade_instrumentmetadata` | `Trade.InstrumentMetaData` | `Reg_Ext_Trade_InstrumentMetaData`, special-char conversion feeder | Staging required-column contract validation |
-| `main.general.bronze_etoro_dictionary_currency` | `Dictionary.Currency` | `Reg_Ext_DictionaryCurrency` | Staging required-column and cast parity validation |
-| `main.general.bronze_etoro_dictionary_currencytype` | `Dictionary.CurrencyType` | `Reg_Ext_DictionaryCurrencyType` | Staging required-column contract validation |
-| `main.regtech.gold_regtech_reg_migrationinout_population` | `Reg_MigrationInOut_Population` | Step 6/9 migration population | Snapshot/materialization policy validation |
-| `main.regtech.gold_regtech_reg_regulationinoutdailydata` | `Reg_RegulationInOutDailyData` | downstream reg-in/out consumers | Output-column contract validation |
-| `main.dealing.bronze_etoro_hedge_executionlog` | `Hedge.ExecutionLog` | Step 5B2/9/14 hedge staging | Package filter and required-column validation |
-| `main.dealing.bronze_etoro_hedge_hbcexecutionlog` | `Hedge.HBCExecutionLog` | Step 5B2/14 hedge staging | Success-filter and required-column validation |
-| `main.dealing.bronze_etoro_hedge_hbcorderlog` | `Hedge.HBCOrderLog` | Step 5B2/14 hedge staging | Date-window and required-column validation |
-| `main.trading.bronze_etoro_trade_liquidityaccounts` | `Trade.LiquidityAccounts` | Step 7 liquidity staging / SCD | Required-column validation; sensitive columns remain excluded |
-| `main.trading.bronze_etoro_trade_liquidityproviders` | `Trade.LiquidityProviders` | Step 7 liquidity staging | Provider coverage validation |
-| `main.bi_db.bronze_etoro_trade_liquidityprovidertype` | `Trade.LiquidityProviderType` | Step 7 liquidity staging | Provider-type coverage validation |
-| `main.general.bronze_fivetran_google_sheets_reg_liquidityaccountid_to_lei` | LEI mapping sheet | Step 7/14 LEI enrichment | LEI completeness validation |
-| `main.general.gold_ednf_coretrades` | Synapse EDNF core trades | Step 14 EDNF enrichment | Join coverage validation |
-| `main.general.gold_ib_u1059976_open_positions_all` | Synapse IB open positions | Step 14 IB enrichment | Join coverage validation |
-| `main.regtech_stg.silver_sharepoint_transactionreporting_isin_for_instrumentid_341` | InstrumentID 341 override | Step 12B3 override adapter | Required-column contract validation |
-| `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments` | excluded instruments | report exclusion logic | Report-scoped semantics validation |
-| `main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids` | excluded position IDs | report exclusion logic | Report-scoped semantics validation |
-| `main.regtech_stg.silver_sharepoint_transactionreporting_regulation_report_excluded_cids` | excluded CIDs | customer/report exclusion logic | Exclusion coverage validation |
+Primary source for `History.CurrencyPrice`, `History.CurrencyPrice_Active`, and `Reg_CurrencyPrice_Ext`:
 
-### Static reference resolved with explicit external LOCATION
+- `main.dealing.bronze_pricelog_history_currencyprice`
 
-These are RegTech static/reference tables in `main.regtech_ops_stg`, not raw DE source tables. They were previously classified as missing/table-not-found and are now recreated as external Delta tables with fixed LOCATION under:
+Required SSIS-selected columns are present:
 
-`abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/`
+- `CurrencyPriceID`
+- `ProviderID`
+- `InstrumentID`
+- `Bid`
+- `Ask`
+- `ValidFrom`
+- `ValidTo`
+- `OccurredOnProvider`
+- `Occurred`
+- `PriceRateID`
+- `ReceivedOnPriceServer`
+- `LiquidityAccountID`
+- `USDConversionRate`
+- `MarketPriceRateID`
+- `RateLastEx`
+- `BidSpreaded`
+- `AskSpreaded`
+- `BidMarketPriceRateID`
+- `AskMarketPriceRateID`
+- `MarkupPips`
+- `MarketReceivedTime`
+- `SkewValueBid`
+- `SkewValueAsk`
+- `SkewID`
+- `USDConversionRateBidSpreaded`
+- `USDConversionRateAskSpreaded`
+- `USDConversionPriceRateID`
 
-| Databricks object | Classification | LOCATION | Migration use |
-| --- | --- | --- | --- |
-| `main.regtech_ops_stg.bi_output_regtechops_dbo_internal_accounts` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/dbo_internal_accounts` | Customer/NPD TRAX internal-account and LEI logic |
-| `main.regtech_ops_stg.bi_output_regtechops_dictionary_ext_specialchar` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/dictionary_ext_specialchar` | ReplaceChar and special-char conversion |
-| `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro` | Static reference resolved with explicit external LOCATION | `abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/ed_f_to_istrument_id_e_toro` | EDNF-to-InstrumentID mapping for ETORO/Hedge enrichment |
+Execution notes:
 
-### Storage/data scan failure
+- Use report-date and one-hour lookback logic.
+- Use partition filters `etr_y`, `etr_ym`, `etr_ymd` where applicable.
+- Final execution still requires SQL Server baseline/date-window validation.
 
-| Databricks object | SQL Server / logical lineage | Impact | Required action |
-| --- | --- | --- | --- |
-| `main.trading.bronze_etoro_trade_currencyprice` | `History.CurrencyPrice_Active` / `Reg_CurrencyPrice_Ext` candidate | Step 5B1 `Reg_CurrencyPrice_Ext` remains gated | DE/Data Platform must resolve storage issue or certify an alternative source |
-| `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` | `Hedge.HedgeServerToLiquidityAccount` | Step 7 hedge liquidity mapping and Step 14 hedge activation remain gated | DE/Data Platform must resolve storage issue before hedge SCD activation |
+### Reclassified candidate
 
-### No schema access
+`main.trading.bronze_etoro_trade_currencyprice` is now:
 
-| Databricks object | SQL Server / logical lineage | Impact | Required action |
-| --- | --- | --- | --- |
-| `main.pii_data.bronze_etoro_customer_customer` | unmasked `Customer.Customer` | Final customer parity and NPD_TRAX identity fields remain gated | Grant `main.pii_data` schema access (masked general tables are dev-only workaround; see temporary policy above) |
-| `main.pii_data.bronze_etoro_history_customer` | unmasked `History.Customer` | Final customer as-of/history parity remains gated | Grant `main.pii_data` schema access (masked general tables are dev-only workaround; see temporary policy above) |
+- **Readable but not preferred** for `Reg_CurrencyPrice_Ext`.
+- Not selected as the primary parity source because it does not expose the full SSIS-selected `History.CurrencyPrice_Active` shape.
 
-### No catalog access
+## 3) CurrencyPriceMaxDateWithSplit source update
 
-| Databricks object | SQL Server / logical lineage | Impact | Required action |
-| --- | --- | --- | --- |
-| `dwh_daily_process.daily_snapshot.etoro_history_customer` | fallback/history customer candidate | Cannot profile fallback until catalog access is granted | Grant `USE CATALOG dwh_daily_process` or provide certified alternative |
-| `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` | `Reg_Ext_CurrencyPriceMaxDateWithSplit` candidate | Cannot compare against primary candidate until catalog access is granted | Grant `USE CATALOG dwh_daily_process` or certify `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` |
+### Primary source selected
 
-### Candidate source still needs certification
+Primary source for `Candles.CurrencyPriceMaxDateWithSplit` / `Reg_Ext_CurrencyPriceMaxDateWithSplit`:
 
-| Databricks object | Notes |
-| --- | --- |
-| `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` | Accessible, but still requires candidate-comparison certification against blocked `dwh_daily_process` source before final split-price source selection |
-| `main.trading.bronze_etoro_trade_futuresmetadata` | Accessible, but Step 12B3 still requires required-column certification before futures activation |
-| `main.trading.bronze_etoro_trade_getinstrument` | Accessible; staging required-column contract still pending |
-| `main.trading.bronze_etoro_trade_instrumentmetadata` | Accessible; staging required-column contract still pending |
-| `main.general.bronze_etoro_dictionary_currency` | Accessible; staging required-column contract still pending |
-| `main.general.bronze_etoro_dictionary_currencytype` | Accessible; staging required-column contract still pending |
+- `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`
 
-## Gate impact summary
+Required columns are present:
 
-### Gates improved by this profiling pass
+- `PriceRateID`
+- `ProviderID`
+- `InstrumentID`
+- `Occurred`
+- `OccurredDate`
+- `OccurredDateID`
+- `isvalid`
+- `MarkupPips`
+- `AskSpreaded`
+- `BidSpreaded`
+- `RateLastEx`
+- `SkewValueBid`
+- `SkewValueAsk`
+- `Ask`
+- `Bid`
 
-- Static reference availability for internal accounts, special-char dictionary, and EDNF mapping tables.
-- Source visibility for position, mirror, changelog, hedge execution, liquidity provider, instrument dictionary, futures metadata, migration gold, split-ratio, price-candle, and SharePoint exclusion sources.
-- Mapping confidence for `Trade.GetInstrument`, `Trade.InstrumentMetaData`, `Dictionary.Currency`, `Dictionary.CurrencyType`, and `FuturesMetaData`.
+Partition columns:
 
-### Gates that remain open
+- `etr_y`
+- `etr_ym`
+- `etr_ymd`
 
-- `Reg_CurrencyPrice_Ext` activation blocked by storage failure on `main.trading.bronze_etoro_trade_currencyprice`.
-- Step 7 hedge-server mapping blocked by storage failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`.
-- Final customer parity paths blocked by no schema access on `main.pii_data` customer tables (masked general tables approved for temporary development/structural testing only).
-- Split-price candidate comparison blocked by no catalog access on `dwh_daily_process` objects.
-- `Dictionary.Ext_TradeFund`, `Reg_Ext_CustomerLatinName`, PIN/UserAPI, RecordID, transaction-reference parity, and module activation gates remain unchanged by this profiling pass.
+Status:
 
-## Reference-only policy
+- Source identified.
+- Required columns present.
+- `dwh_daily_process` comparison is no longer an active blocker for this source decision.
+- Final execution still requires date-window validation and SQL Server baseline comparison.
 
-- Old Databricks attempt artifacts remain reference-only discovery material (includes delivery/SFTP/TRAX-style scope outside current table-generation phase).
-- NOC documents remain reference-only and are not implementation authority (monitoring/freshness scope; must not drive MiFID report-generation logic).
-- Delivery/SFTP/TRAX upload/response handling remains out of phase-1 scope.
+### Older candidates downgraded
+
+Fallback/reference only:
+
+- `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit`
+- `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit`
+
+## 4) HedgeServerToLiquidityAccount source update
+
+`main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is reclassified to:
+
+- **Confirmed accessible / readable**
+- Required columns present:
+  - `HedgeServerID`
+  - `LiquidityAccountID`
+  - `AltRatesLiquidityAccountID`
+- No longer an active DE/Data Platform storage blocker
+
+Remaining validation items (normal execution-phase checks):
+
+- duplicate/key checks
+- coverage checks
+- liquidity SCD validation during execution
+
+## 5) Historical seed strategy update (RegTech direction)
+
+Approved strategy:
+
+- Seed all historical data required for future reporting, retry logic, SCD validity, missed-trade back-reporting, identity continuity, and SQL Server baseline comparison.
+- If a minimum safe historical window cannot be proven, seed all available history for that object.
+
+Applies especially to:
+
+- `MIFID2_NPD_TRAX`
+- `MIFID2_Failed_TRAX`
+- `MIFID2_Hedge_Report`
+- `ASIC2_Transactions` and related ASIC2 history
+- `Reg_LiquidtyAcount_SCD`
+- `Reg_MigrationInOut_Population`
+- `Reg_RegulationInOutDailyData`
+- `Reg_Regulation_Movments_Positions`
+- relevant instrument/FIRDS history where needed
+
+Status: strategy approved; execution implementation still pending.
+
+## 6) RegTech parity clarifications
+
+### Hedge `RecordID`
+
+- Functional role is confirmed: required for missed-trade back-reporting.
+- Historical SQL Server `MIFID2_Hedge_Report.RecordID` values must be preserved exactly.
+- Approved direction:
+  - seed historical SQL Server RecordIDs,
+  - continue future allocation from `MAX(SQL Server RecordID) + 1`,
+  - use persistent Databricks RecordID registry/control-table mechanism (or equivalent),
+  - reuse existing RecordIDs for already-known trades,
+  - allocate new RecordIDs only for genuinely new/back-reported missed trades,
+  - define/document natural business key for row identity across reruns.
+- Status: design direction approved; implementation and validation pending.
+
+### Hedge `TransactionReferenceNumber`
+
+- Hard parity requirement: Databricks must match SQL Server/SSMS values exactly.
+- Uniqueness-only behavior is not acceptable.
+- Baseline comparison remains required.
+
+### CFI / `InstrumentClassification`
+
+- Hard parity requirement: exact SQL Server value matching is required.
+- Simplified fallback classification is not acceptable for final regulatory parity.
+- Baseline comparison remains required.
+
+## 7) Static reference objects (resolved)
+
+Static/reference tables in `main.regtech_ops_stg` remain resolved as external Delta with explicit LOCATION:
+
+- `main.regtech_ops_stg.bi_output_regtechops_dbo_internal_accounts`
+- `main.regtech_ops_stg.bi_output_regtechops_dictionary_ext_specialchar`
+- `main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro`
+
+## 8) Reference-only and scope boundaries
+
+- Old Databricks attempt artifacts remain reference-only and are not implementation authority.
+- NOC documents remain reference-only and are not implementation authority.
+- Delivery/upload/response and production deployment remain out of scope in this phase.
 
 ## Source artifact
 
-- Profiling input: `MiFID_Source_Profiling (1).csv`
-- Integration date: documentation update only; no runtime SQL executed from this step.
+- Profiling input lineage: `MiFID_Source_Profiling (1).csv`
+- Integration date: documentation/status update only (no runtime SQL executed)

@@ -21,7 +21,7 @@ Source registers:
 | Decision ID | Manual approval gate (MAG) |
 | --- | --- |
 | D-01 | MAG-05 (dev masked), MAG-06 (final PII) |
-| D-02, D-03 | MAG-03 |
+| D-02, D-03 | MAG-02 (source-certification follow-up); MAG-03 historical context only |
 | D-04 | MAG-01 |
 | D-05 | MAG-14 |
 | D-06 | MAG-10 |
@@ -50,19 +50,19 @@ Close decisions by updating this register, `docs/manual_approval_gates.md`, and 
 | ID | Decision | Options / notes | Owner | Blocks |
 | --- | --- | --- | --- | --- |
 | D-01 | PII source access / temporary masked fallback policy | **Resolved for dev only:** manager-approved masked tables (`main.general.bronze_etoro_customer_customer_masked`, `main.general.bronze_etoro_history_customer_masked`) for temporary development/structural testing. **Still open for final parity:** grant `main.pii_data` access or obtain formal RegTech SME/Compliance approval to treat masked data as regulatory parity source | DE + Governance + Business + RegTech SME/Compliance | Final identity-field parity and final validation of Customer, RegChange Customer, Failed TRAX, NPD TRAX |
-| D-02 | CurrencyPrice storage issue / alternative source | Fix `main.trading.bronze_etoro_trade_currencyprice` scan failure vs certify alternative for `History.CurrencyPrice_Active` | DE/Data Platform | `Reg_CurrencyPrice_Ext`, report pricing, movements |
-| D-03 | HedgeServerToLiquidityAccount storage issue | Fix `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` vs certified alternative | DE/Data Platform | Hedge liquidity ext, SCD, hedge report |
-| D-04 | `dwh_daily_process` access | Grant catalog access for comparison vs retire candidates | DE/Data Platform | Customer-history fallback profiling, split-price candidate comparison |
-| D-05 | CurrencyPriceMaxDateWithSplit source selection | `dwh_daily_process.migration_tables.ext_fcupnl_currencypricemaxdatewithsplit` vs certify `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` as sole source | DE + SME | Split-price staging, movement enrichment, report split logic |
-| D-06 | `MIFID2_NPD_TRAX` seed/cutover | Prior latest rows by `(CID, RegulationID)` for validation windows vs forward-only clean start (non-historical parity) | DE + SME | NPD TRAX, Failed TRAX retry logic |
-| D-07 | `MIFID2_Failed_TRAX` shared seed policy | Must align with D-06 NPD history availability | DE + SME | Failed TRAX staging, Customer output |
-| D-08 | `ASIC2_Transactions` seed/history window | Define optional seed boundaries for older ETORO parity windows | DE + SME | ASIC2 subset, ETORO report |
-| D-09 | Liquidity SCD seed/cutover | Seed/rebuild vs incremental; removed-account `IsLast` parity vs correction | DE + SME | `Reg_LiquidtyAcount_SCD`, hedge report |
-| D-10 | Migration population materialization | Prefixed snapshot from `main.regtech` gold vs SSIS-compatible recreation from run-date inputs | DE + SME | Movements, reg-change customer/position, report reg-change branches |
-| D-11 | Regulation in/out daily data materialization | Same policy family as D-10 for `Reg_RegulationInOutDailyData` consumers | DE + SME | Downstream reg-in/out consumers |
-| D-12 | Hedge `RecordID` strategy | Deterministic generation vs other approved approach (SQL Server: `IDENTITY(100000001,1)`) | SME + Engineering | `MIFID2_Hedge_Report` activation |
-| D-13 | Hedge transaction-reference parity | Approve SQL Server-style expression behavior and exclusion-key matching | SME + Validation | Hedge report reconciliation |
-| D-14 | Exact CFI / InstrumentClassification gates | Port/hard-gate closure for ETORO/Hedge/report flows where still open | SME | ETORO report, hedge report, report instrument enrichment |
+| D-02 | `Reg_CurrencyPrice_Ext` primary source selection | **Resolved (direction):** use `main.dealing.bronze_pricelog_history_currencyprice` as primary. `main.trading.bronze_etoro_trade_currencyprice` is readable but not preferred due to incomplete SSIS-selected shape | DE/Data Platform + Validation | Source certification and baseline/date-window validation before execution |
+| D-03 | HedgeServerToLiquidityAccount source readiness | **Resolved (direction):** `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is readable with required columns (`HedgeServerID`, `LiquidityAccountID`, `AltRatesLiquidityAccountID`) | DE/Data Platform + Validation | Duplicate/key and coverage validation during execution |
+| D-04 | `dwh_daily_process` access for split-price comparison | **Downgraded:** no longer active blocker for split-price selection; keep only as fallback/reference access if needed later | DE/Data Platform | None for primary split-price activation path |
+| D-05 | CurrencyPriceMaxDateWithSplit source selection | **Resolved (direction):** primary source is `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`; old `dwh_daily_process` and `main.dwh` candidates are fallback/reference only | DE + SME + Validation | Date-window validation + SQL Server baseline comparison |
+| D-06 | `MIFID2_NPD_TRAX` seed/cutover | **Approved direction:** seed historical data required for parity/retry; if minimum safe window cannot be proven, seed all available history | DE + SME | NPD TRAX, Failed TRAX retry and baseline windows |
+| D-07 | `MIFID2_Failed_TRAX` shared seed policy | **Approved direction:** follow D-06 shared history strategy for identity continuity and retry correctness | DE + SME | Failed TRAX staging, Customer output |
+| D-08 | `ASIC2_Transactions` seed/history window | **Approved direction:** seed all history required for ETORO parity windows; default to full available history if minimum safe window is unproven | DE + SME | ASIC2 subset, ETORO report |
+| D-09 | Liquidity SCD seed/cutover | **Approved direction:** seed historical validity required for SCD/reporting; implementation plan still required | DE + SME | `Reg_LiquidtyAcount_SCD`, hedge report |
+| D-10 | Migration population materialization | **Approved direction:** support historical replay/parity windows; implementation mechanism (snapshot vs recreation) still needs runbook-level plan | DE + SME | Movements, reg-change customer/position, report reg-change branches |
+| D-11 | Regulation in/out daily data materialization | **Approved direction:** same historical replay/parity policy family as D-10; implementation details pending | DE + SME | Downstream reg-in/out consumers |
+| D-12 | Hedge `RecordID` strategy | **Approved direction:** preserve historical SQL Server RecordIDs, continue from `MAX(SQL Server RecordID)+1`, use persistent registry/control mechanism, reuse known IDs, allocate new IDs only for truly new/back-reported missed trades, define natural business key | SME + Engineering + Validation | `MIFID2_Hedge_Report` activation and missed-trade back-reporting |
+| D-13 | Hedge transaction-reference parity | **Hard requirement:** must reproduce SQL Server/SSMS values exactly (uniqueness alone is insufficient); baseline comparison mandatory | SME + Validation | Hedge report reconciliation |
+| D-14 | Exact CFI / InstrumentClassification gates | **Hard requirement:** Databricks values must match SQL Server exactly; simplified fallback classification is not acceptable | SME + Validation | ETORO report, hedge report, report instrument enrichment |
 | D-15 | `Dictionary.Ext_TradeFund` mapping | Confirm Databricks object and columns (`FundAccountID`, `FundName`, `FundType`) | DE + SME | Customer, RegChange customer, report mirror enrichment |
 | D-16 | `Reg_Ext_CustomerLatinName` source | Confirm source table and staging population | DE + SME | Customer, RegChange customer, ASIC2 customer profile |
 | D-17 | PIN/UserAPI source contract | Finalize objects/columns for PIN enrichment | DE + SME | Customer ext, Failed TRAX |
@@ -83,6 +83,7 @@ Close decisions by updating this register, `docs/manual_approval_gates.md`, and 
 | Static reference tables (internal accounts, special-char dictionary, EDNF mapping) | Recreated as external Delta with explicit LOCATION under RegTechOps path |
 | NOC / old Databricks attempt | Reference-only; not implementation authority (NOC = monitoring/freshness; old attempt includes delivery/SFTP/TRAX scope outside current table-generation phase) |
 | Temporary masked customer tables | Manager-approved workaround for dev/structural testing only; not confirmed final/production/regulatory parity source |
+| Active blocker simplification | Only active access blocker category remains `main.pii_data` customer/history access |
 | Phase 1 delivery/upload/response | Out of scope |
 | Phase 1 production deployment | Out of scope (`main.regtech` not targeted) |
 
@@ -95,8 +96,8 @@ Close decisions by updating this register, `docs/manual_approval_gates.md`, and 
 
 ## Priority order (recommended)
 
-1. D-01, D-02, D-03, D-04 (access and storage)
-2. D-05, D-21 (source selection and column certification)
-3. D-06, D-07, D-08, D-09, D-10, D-11 (history/seed and materialization)
-4. D-12, D-13, D-14, D-15–D-20 (business parity)
-5. D-22–D-25 (conditional / evidence enhancements)
+1. D-01 (final PII access/exception) and D-21 (required-column certification)
+2. D-05 validation closure (selected split-price source), D-06–D-11 implementation planning for approved historical seed strategy
+3. D-12, D-13, D-14 (hard parity implementation + baseline evidence)
+4. D-15–D-20 and D-22 (remaining source contracts and staged dependency gates)
+5. D-23–D-25 (baseline evidence enhancements and conditional checks)

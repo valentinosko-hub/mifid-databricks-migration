@@ -87,6 +87,18 @@ This document tracks known or intentional differences for the currently implemen
   - `main.general.bronze_etoro_dictionary_country`
   - through view `main.regtech_ops_stg.bi_output_regtechops_vw_ext_country`.
 
+## Latest source-resolution and decision overrides
+
+These updates supersede older "blocker" wording where conflicts exist:
+
+- Active source-access blockers are simplified to `main.pii_data` customer/history access only.
+- `main.trading.bronze_etoro_trade_currencyprice` is readable but not preferred; selected primary source is `main.dealing.bronze_pricelog_history_currencyprice`.
+- `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is readable with required columns and is no longer an active storage blocker.
+- Selected split-price source is `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`; older `dwh_daily_process`/`main.dwh` candidates are fallback/reference only.
+- Historical seed direction is approved: seed all required history (or all available if minimum safe window is unproven); implementation remains pending.
+- `MIFID2_Hedge_Report.RecordID` is now classified as a functional back-reporting/audit field. Historical SQL Server RecordID values must be preserved exactly. Future Databricks allocation must use a persistent controlled allocation strategy, seeded from SQL Server history and continuing from `MAX(RecordID)+1`, so reruns and missed-trade back-reporting do not reassign existing IDs. Implementation details, natural key definition, and validation remain gated.
+- Hedge `TransactionReferenceNumber` and CFI/`InstrumentClassification` are hard exact SQL Server parity requirements.
+
 ## ReplaceChar parity notes
 
 - UDF object:
@@ -108,13 +120,13 @@ This document tracks known or intentional differences for the currently implemen
   - `main.regtech_ops_stg.bi_output_regtechops_reg_ext_trade_instrumentmetadata`
 - Deferred artifact note:
   - `databricks/sql/02_udfs/02_instrumentmetadata_specialchar_conversion_deferred.sql`
-- `Reg_Ext_CurrencyPriceMaxDateWithSplit` final source and staging materialization are deferred until candidate comparison evidence selects one authoritative Databricks source; `dwh_daily_process` candidate has no catalog access and `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` is confirmed accessible but not yet certified.
-- `Reg_CurrencyPrice_Ext` remains gated because latest profiling reports storage/data scan failure on `main.trading.bronze_etoro_trade_currencyprice`.
+- `Reg_Ext_CurrencyPriceMaxDateWithSplit` selected primary source is `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`; staging activation remains gated until date-window and SQL Server baseline validation complete.
+- `Reg_CurrencyPrice_Ext` selected primary source is `main.dealing.bronze_pricelog_history_currencyprice`; activation remains gated until required-column and baseline/date-window validation complete.
 - `Reg_Ext_Trade_GetInstrument`, `Reg_Ext_Trade_InstrumentMetaData`, `Reg_Ext_DictionaryCurrency`, and `Reg_Ext_DictionaryCurrencyType` now have confirmed accessible raw sources; staging required-column certification remains pending before active non-price staging SQL is enabled.
 - `Reg_Ext_Trade_InstrumentMetaData` staging population remains gated until required-column certification passes; this continues to block `InstrumentMetaData_SpecialChar_Conversion` population.
 - `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` remain gated until row-count/schema parity determines whether prefixed snapshots should be materialized from certified gold or recreated from SSIS-compatible logic.
 - Step 6 enrichment for `Reg_Regulation_Movments_Positions` remains gated until split-price parity (`Reg_Ext_CurrencyPriceMaxDateWithSplit`) is resolved.
-- Step 7 `Reg_LiquidtyAcount_SCD` activation remains gated until seed/cutover strategy is explicitly approved and hedge-server storage failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is resolved.
+- Step 7 `Reg_LiquidtyAcount_SCD` activation remains gated until approved seed/cutover strategy is implemented and execution-window duplicate/coverage validation is completed.
 - Final customer parity paths remain gated because `main.pii_data.bronze_etoro_customer_customer` and `main.pii_data.bronze_etoro_history_customer` have no schema access.
 - Manager-approved temporary development fallback: `main.general.bronze_etoro_customer_customer_masked` and `main.general.bronze_etoro_history_customer_masked` may be used for structural testing only (not final regulatory parity unless formally approved).
 - Step 8 compatibility view activation remains gated until `CDE_Execution_timestamp -> OpenTime` semantics are validated.
@@ -134,8 +146,8 @@ This document tracks known or intentional differences for the currently implemen
 
 ## Step 5B1 implementation differences and cautions
 
-- `Reg_CurrencyPrice_Ext` and `Reg_Ext_DailyMaxPrices` SQL is authored as provisional and must not be executed until required-column parity checks pass; `Reg_CurrencyPrice_Ext` additionally requires resolution of the storage/data scan failure on its candidate source.
-- `Reg_Ext_CurrencyPriceMaxDateWithSplit` is intentionally left as profiling/comparison-only in Step 5B1; no silent source choice was made.
+- `Reg_CurrencyPrice_Ext` and `Reg_Ext_DailyMaxPrices` SQL is authored as provisional and must not be executed until required-column parity checks pass; `Reg_CurrencyPrice_Ext` uses selected primary source `main.dealing.bronze_pricelog_history_currencyprice` and remains validation-gated.
+- `Reg_Ext_CurrencyPriceMaxDateWithSplit` selected primary source is `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`; activation remains date-window/baseline validation-gated.
 - `Reg_Ext_T_PriceCandle60Min` staging SQL preserves SSIS-style logic (`DateFrom < report_date + 1 day`, latest row per `InstrumentID`, `InstrumentID < 100000`) and materializes to Delta.
 - All Step 5B1 targets are prefixed and scoped to `main.regtech_ops_stg`.
 
@@ -417,8 +429,11 @@ This document tracks known or intentional differences for the currently implemen
   - no active EU-UK branch projection
   - no active UK branch projection
   - no active final report-date delete/insert logic
-- `RecordID` remains unresolved in Step 14B1:
-  - SQL Server has `IDENTITY(100000001,1)` and Databricks deterministic strategy is still gated.
+- `MIFID2_Hedge_Report.RecordID` in Step 14B1:
+  - classified as a functional back-reporting/audit field (team confirmed involvement in missed-trade back-reporting); historical SQL Server values must be preserved exactly.
+  - approved direction: seed historical SQL Server RecordIDs, continue from `MAX(RecordID)+1` via persistent registry/control allocation, reuse existing IDs on reruns, allocate new IDs only for new/back-reported missed trades; document natural business key.
+  - Databricks must not use non-deterministic identity, per-run `row_number()` reassignment, or any strategy that changes existing RecordIDs when missed trades are added later.
+  - implementation details, natural key definition, and validation remain gated; activation blocked until implemented and validated.
 - Exclusion semantics are explicitly report-scoped and row-level:
   - `table_name = '[MIFID2_Hedge_Report]'` is not interpreted as full-table suppression.
 - Step 14B1 keeps file-delivery/upload/response/deployment logic out of scope:
@@ -440,7 +455,7 @@ This document tracks known or intentional differences for the currently implemen
   - source fields are prepared only (`ProviderExecID` normalization, `RowID`, report-date token, fallback inputs),
   - final parity construction remains hard-gated for Step 14B3.
 - RecordID behavior in Step 14B2:
-  - remains unresolved and gated; no final strategy implementation is enabled.
+  - direction approved (historical preserve + `MAX(RecordID)+1` persistent registry); implementation and validation remain gated; no active allocator/registry load is enabled.
 - Step 14B2 keeps file-delivery/upload/response/deployment logic out of scope:
   - no CSV/7z/SFTP/TRAX/Cappitech/response handling
   - no production deployment behavior
@@ -455,8 +470,10 @@ This document tracks known or intentional differences for the currently implemen
   - template ports SQL Server-style expression pattern using normalized provider execution id, row id, and report-date token with liquidity-provider fallback expression.
   - activation remains gated until parity evidence is accepted.
 - RecordID behavior in Step 14B3:
-  - deterministic candidate strategy is authored (`100000000 + row_number()` over stable ordering key),
-  - activation remains approval-gated; no non-deterministic identity behavior is introduced.
+  - SQL template includes a gated `100000000 + row_number()` candidate for scaffold/documentation only; this is not the approved allocation approach.
+  - approved direction: seed historical SQL Server RecordIDs, continue from `MAX(RecordID)+1`, persistent registry/control allocation, reuse known IDs, new IDs only for new/back-reported missed trades.
+  - Databricks must not use non-deterministic identity, per-run `row_number()` reassignment, or strategies that change existing RecordIDs when missed trades are added later.
+  - activation remains gated until registry implementation, natural business key definition, and validation are complete.
 - Exclusion semantics in Step 14B3:
   - report scope remains row-level via `table_name = '[MIFID2_Hedge_Report]'`.
   - exclusion is applied to matching instrument ids and generated transaction-reference/position-equivalent keys only.
@@ -471,7 +488,7 @@ This document tracks known or intentional differences for the currently implemen
   - no CREATE/INSERT/UPDATE/DELETE/MERGE/DROP statements.
 - RecordID in Step 14B4:
   - validation gate checks are included.
-  - RecordID remains activation-gated unless deterministic strategy approval is provided.
+  - direction is approved (preserve historical SQL Server IDs, `MAX(RecordID)+1` persistent registry, reuse existing IDs, allocate only for new/back-reported missed trades); implementation, natural key definition, and validation remain activation-gated.
 - TransactionReferenceNumber in Step 14B4:
   - output-level checks are included.
   - deep exact parity checks remain optional/gated unless source placeholders/materialized sources are available.
