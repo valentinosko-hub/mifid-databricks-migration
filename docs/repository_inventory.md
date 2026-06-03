@@ -1,4 +1,4 @@
-# Repository Inventory (Step 16B2)
+# Repository Inventory (Step 16B2; indexed Step 18A)
 
 This inventory helps the next engineer or analyst find module SQL, validation SQL, and supporting documentation quickly.
 
@@ -22,6 +22,7 @@ Do not modify files under `reference/`.
 
 | File | Purpose |
 | --- | --- |
+| `final_repository_audit.md` | Objective final repository audit (Step 18A) |
 | `final_handoff_summary.md` | Primary handoff entry (Step 16B2) |
 | `final_readiness_assessment.md` | Cross-module readiness state (Step 16B1) |
 | `open_blockers_for_execution.md` | Consolidated execution blockers |
@@ -43,7 +44,9 @@ Do not modify files under `reference/`.
 | `workflow_skeleton_design.md` | Step 17B workflow skeleton design and mode policy |
 | `workflow_orchestration_plan.md` | Step 17B orchestration format and task graph |
 | `workflow_execution_runbook.md` | Step 17B runbook/checklist and stop criteria |
-| `workflow_manual_approval_checkpoints.md` | Manual approval gates and current status |
+| `workflow_manual_approval_checkpoints.md` | Step 17B manual approval summary (historical; see MAG register) |
+| `workflow_governance_controls.md` | Step 17C governance controls and run modes |
+| `manual_approval_gates.md` | Step 17C authoritative MAG register (MAG-01–17) |
 | `*_analysis.md` | Per-module output/staging analysis (customer, report, ETORO, hedge, NPD, etc.) |
 
 ## `databricks/sql/00_config/`
@@ -232,4 +235,4 @@ NOC documents and old Databricks attempt materials may appear elsewhere under `r
 | Hedge report | `08_outputs/08_*` | `docs/mifid2_hedge_report_output_analysis.md` |
 | NPD TRAX | `08_outputs/09_*` | `docs/mifid2_npd_trax_output_analysis.md` |
 | Cross-module readiness | `09_validation` | `docs/final_readiness_assessment.md` |
-| Workflow skeleton/gates | `10_workflow`, `workflows` | `docs/workflow_skeleton_design.md` |
+| Workflow skeleton/gates | `10_workflow`, `workflows` | `docs/workflow_skeleton_design.md`, `docs/final_repository_audit.md` |
