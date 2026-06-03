@@ -54,7 +54,7 @@ Close decisions by updating this register, `docs/manual_approval_gates.md`, and 
 | D-03 | HedgeServerToLiquidityAccount source readiness | **Resolved (direction):** `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is readable with required columns (`HedgeServerID`, `LiquidityAccountID`, `AltRatesLiquidityAccountID`) | DE/Data Platform + Validation | Duplicate/key and coverage validation during execution |
 | D-04 | `dwh_daily_process` access for split-price comparison | **Downgraded:** no longer active blocker for split-price selection; keep only as fallback/reference access if needed later | DE/Data Platform | None for primary split-price activation path |
 | D-05 | CurrencyPriceMaxDateWithSplit source selection | **Resolved (direction):** primary source is `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`; old `dwh_daily_process` and `main.dwh` candidates are fallback/reference only | DE + SME + Validation | Date-window validation + SQL Server baseline comparison |
-| D-06 | `MIFID2_NPD_TRAX` seed/cutover | **Approved direction:** seed historical data required for parity/retry; if minimum safe window cannot be proven, seed all available history | DE + SME | NPD TRAX, Failed TRAX retry and baseline windows |
+| D-06 | `MIFID2_NPD_TRAX` seed/cutover | **Approved direction:** seed historical data required for parity/retry; if minimum safe window cannot be proven, seed all available history. Seed implementation and extract ownership remain pending. | DE + SME | NPD TRAX, Failed TRAX retry and baseline windows |
 | D-07 | `MIFID2_Failed_TRAX` shared seed policy | **Approved direction:** follow D-06 shared history strategy for identity continuity and retry correctness | DE + SME | Failed TRAX staging, Customer output |
 | D-08 | `ASIC2_Transactions` seed/history window | **Approved direction:** seed all history required for ETORO parity windows; default to full available history if minimum safe window is unproven | DE + SME | ASIC2 subset, ETORO report |
 | D-09 | Liquidity SCD seed/cutover | **Approved direction:** seed historical validity required for SCD/reporting; implementation plan still required | DE + SME | `Reg_LiquidtyAcount_SCD`, hedge report |
@@ -97,7 +97,7 @@ Close decisions by updating this register, `docs/manual_approval_gates.md`, and 
 ## Priority order (recommended)
 
 1. D-01 (final PII access/exception) and D-21 (required-column certification)
-2. D-05 validation closure (selected split-price source), D-06–D-11 implementation planning for approved historical seed strategy
+2. D-05 validation closure (selected split-price source), D-06–D-11 implementation planning and extract-ownership assignment for approved historical seed strategy
 3. D-12, D-13, D-14 (hard parity implementation + baseline evidence)
 4. D-15–D-20 and D-22 (remaining source contracts and staged dependency gates)
 5. D-23–D-25 (baseline evidence enhancements and conditional checks)

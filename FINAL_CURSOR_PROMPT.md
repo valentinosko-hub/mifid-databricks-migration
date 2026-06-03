@@ -69,10 +69,14 @@ TRAX upload
 TRAX response-file processing
 archive-folder automation
 production deployment into main.regtech
-full historical backfill
 ```
 
-Historical data should be recreated or seeded only if needed for validation. Do not block initial table-generation implementation on full historical backfill for `MIFID2_NPD_TRAX` or `ASIC2_Transactions`. If exact parity for older dates requires history, document the dependency and create an optional seed/backfill step.
+Historical seed/backfill policy (approved; see `docs/history_seed_requirements.md`):
+
+- Seed all historical data required for reporting, retry logic, SCD validity, missed-trade back-reporting, identity continuity, and SQL Server baseline comparison.
+- If the minimum safe historical window cannot be proven, seed all available history for that object.
+- Strategy direction is approved; seed implementation, extract ownership, and sequencing remain pending and gated.
+- Do not block SQL template authoring on completed seed loads, but do not mark modules execution-ready or claim parity-complete while required historical seed implementation is still pending.
 
 ## 3. Important source-of-truth rule
 
@@ -655,9 +659,9 @@ For regulatory parity, prefer materialized Delta staging tables refreshed at wor
 Document these as open decisions/gates:
 
 ```text
-1. Historical seed/backfill strategy for MIFID2_NPD_TRAX.
-2. Historical seed/backfill strategy for ASIC2_Transactions.
-3. Exact currency/price/split source choices after SSIS inspection.
+1. Historical seed/backfill implementation and extract ownership for approved objects (NPD_TRAX, Failed_TRAX, ASIC2, Hedge_Report, liquidity SCD, migration/regulation in-out, movements, instrument/FIRDS history as needed).
+2. Runbook-level seed/cutover implementation details for objects with approved direction but pending execution (for example Reg_LiquidtyAcount_SCD per D-09 / MAG-11).
+3. Required-column certification and SQL Server baseline/date-window validation for selected primary price sources (dealing pricelog tables).
 4. Whether any file-delivery work is moved into a later phase.
 ```
 

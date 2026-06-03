@@ -135,15 +135,15 @@ Execution remains **not approved**. Canonical registers: `docs/open_blockers_for
 | `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` | Readable with required columns present |
 | `dwh_daily_process` split-price comparison path | Downgraded to fallback/reference context for this phase |
 
-### History / seed execution gates (approved direction, implementation pending)
+### History / seed execution gates (approved direction, implementation/extract ownership pending)
 
 | Topic | Status |
 | --- | --- |
-| `MIFID2_NPD_TRAX` history/cutover | Strategy approved; implementation pending |
-| `MIFID2_Failed_TRAX` dependency on NPD history | Strategy approved; implementation pending |
-| `ASIC2_Transactions` seed/history window | Strategy approved; implementation pending |
-| `Reg_LiquidtyAcount_SCD` seed/cutover | Strategy approved; implementation pending |
-| `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData` materialization | Strategy approved; implementation pending |
+| `MIFID2_NPD_TRAX` history/cutover | Strategy approved; implementation and extract ownership pending |
+| `MIFID2_Failed_TRAX` dependency on NPD history | Strategy approved; implementation and extract ownership pending |
+| `ASIC2_Transactions` seed/history window | Strategy approved; implementation and extract ownership pending |
+| `Reg_LiquidtyAcount_SCD` seed/cutover | Strategy approved; implementation and extract ownership pending |
+| `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData` materialization | Strategy approved; implementation and extract ownership pending |
 
 ### SME / business blockers (open)
 

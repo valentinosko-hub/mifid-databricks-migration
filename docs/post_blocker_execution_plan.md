@@ -52,7 +52,7 @@ Do not un-gate business DML if hard gates fail.
 
 | Step | Action |
 | --- | --- |
-| 4a | Implement approved historical seed strategy for parity/retry/SCD/baseline windows (NPD, Failed TRAX, ASIC2, Hedge, liquidity SCD, migration/regulation in-out) |
+| 4a | Implement approved historical seed strategy for parity/retry/SCD/baseline windows and confirm extract ownership (NPD, Failed TRAX, ASIC2, Hedge, liquidity SCD, migration/regulation in-out) |
 | 4b | If minimum safe historical windows cannot be proven, seed all available history for affected objects |
 
 Execution evidence from this phase must be captured before module activation.

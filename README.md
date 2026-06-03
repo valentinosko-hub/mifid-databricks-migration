@@ -29,7 +29,7 @@ Out of scope for this phase:
 - Cappitech/TRAX upload
 - TRAX response handling
 - production deployment
-- full historical backfill
+- unbounded full historical backfill by default (history seeding follows approved policy in `docs/history_seed_requirements.md`)
 
 Reference material is under:
 

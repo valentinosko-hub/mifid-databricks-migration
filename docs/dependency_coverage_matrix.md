@@ -16,6 +16,7 @@ Latest source profiling integration:
 - Profiling summary: `docs/source_profiling_results.md`
 - Access blockers: `docs/access_blockers.md`
 - Profiling input: `MiFID_Source_Profiling (1).csv`
+- Historical seed direction: approved (seed required history; if minimum safe window is unproven, seed all available history). Implementation and extract ownership remain pending.
 
 Profiling status values referenced in notes below:
 - Confirmed accessible

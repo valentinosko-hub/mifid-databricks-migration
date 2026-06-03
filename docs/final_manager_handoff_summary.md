@@ -34,7 +34,7 @@ Concise status for program and engineering management. Technical detail: [handof
 Execution remains blocked until the following categories close (detail: [open_blockers_for_execution.md](open_blockers_for_execution.md)):
 
 1. **Access** — `main.pii_data` customer/history tables are still not accessible for final parity mode.
-2. **History/seed implementation** — strategy direction is approved, but historical-seed implementation is still pending for NPD/Failed TRAX/ASIC2/liquidity/migration paths.
+2. **History/seed implementation** — strategy direction is approved, but historical-seed implementation and extract ownership are still pending for NPD/Failed TRAX/ASIC2/liquidity/migration paths.
 3. **SME/certification** — selected price sources require final certification/baseline checks; hedge RecordID approved direction must be implemented; transaction reference and CFI/classification require exact SQL Server parity evidence.
 4. **Approvals** — MAG gates required for execution remain largely **OPEN** and evidence must be recorded externally (not in repo).
 
@@ -50,7 +50,7 @@ See [de_data_platform_action_list.md](de_data_platform_action_list.md):
 
 - Grant `main.pii_data` access for final parity
 - Certify selected primary price/split-price sources and pending accessible sources
-- Support historical seed extraction/access for approved strategy implementation
+- Support historical seed extraction/access and confirm extract ownership for approved strategy implementation
 
 ### RegTech SME / business
 

@@ -27,7 +27,7 @@ Only active access blockers:
 These are no longer active source-access/storage blockers, but execution still requires closure of validation/approval gates:
 
 - Final required-column certification for selected sources (MAG-02 / D-21).
-- Historical seed implementation per approved strategy (MAG-07/08/09/10/11; implementation pending).
+- Historical seed implementation per approved strategy (MAG-07/08/09/10/11; implementation and extract ownership pending).
 - Hedge `RecordID` approved design implementation and validation (MAG-12 / D-12).
 - Hedge `TransactionReferenceNumber` exact SQL Server parity validation (MAG-13 / D-13).
 - CFI / `InstrumentClassification` exact SQL Server parity validation (MAG-15 / D-14).

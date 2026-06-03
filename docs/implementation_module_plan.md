@@ -2,7 +2,7 @@
 
 This plan translates the Phase 1 documentation into implementation modules only. It does not contain implementation SQL, notebook definitions, Databricks table creation statements, or Databricks plugin actions.
 
-Current scope remains table/report generation in `main.regtech_ops_stg`. CSV export, 7z compression, SFTP delivery, Cappitech upload, TRAX upload, TRAX response handling, production deployment into `main.regtech`, and full historical backfill remain out of scope.
+Current scope remains table/report generation in `main.regtech_ops_stg`. CSV export, 7z compression, SFTP delivery, Cappitech upload, TRAX upload, TRAX response handling, and production deployment into `main.regtech` remain out of scope. Historical seed/backfill for parity, retry, SCD, missed-trade back-reporting, identity continuity, and SQL Server baseline comparison follows the **approved direction** in `docs/history_seed_requirements.md` (strategy approved; implementation and extract ownership pending).
 
 All persistent target objects in `main.regtech_ops_stg` must use the `bi_output_regtechops_` prefix.
 
@@ -116,7 +116,7 @@ Step 4 boundary note:
 | Target Databricks object names | `main.regtech_ops_stg.bi_output_regtechops_reg_currencyprice_ext`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_currencypricemaxdatewithsplit`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dailymaxprices`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_t_pricecandle60min`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_migrationinout_stg`, `main.regtech_ops_stg.bi_output_regtechops_reg_migrationinout_population`, `main.regtech_ops_stg.bi_output_regtechops_reg_regulationinoutdailydata`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_customerlatinname`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_historysplitratio`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_trade_getinstrument`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_trade_instrumentmetadata`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrency`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_dictionarycurrencytype`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_hedgeexecutionlog`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_hedgehbcexecutionlog`, `main.regtech_ops_stg.bi_output_regtechops_reg_ext_hedgehbcorderlog`, `main.regtech_ops_stg.bi_output_regtechops_reg_instruments_ext`. |
 | Dependencies on prior modules | Modules 1 and 2. Module 3B depends on this module for `Reg_Ext_Trade_InstrumentMetaData` population. |
 | Validation checks | Row counts, source freshness, package filter parity, selected-column parity, price completeness, split-ratio parity, max-price checks, row-count parity against gold where applicable. |
-| Open risks | Final source selection for `Reg_Ext_CurrencyPriceMaxDateWithSplit`; materialization policy for `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` versus direct gold consumption; exact SSIS filters/date logic. These are carried forward and should not block initial implementation planning. |
+| Open risks | Primary sources selected for `Reg_CurrencyPrice_Ext` and `Reg_Ext_CurrencyPriceMaxDateWithSplit` (dealing pricelog tables); baseline/date-window validation and certification remain open. Materialization policy for `Reg_MigrationInOut_Population` and `Reg_RegulationInOutDailyData` has approved historical replay direction (D-10 / D-11) with runbook implementation pending; exact SSIS filters/date logic still require validation. |
 | Implementation files to create under `databricks/` | `databricks/sql/03_pre_regulation_ext/01_price_currency_staging.sql`, `databricks/sql/03_pre_regulation_ext/02_migration_inout_staging.sql`, `databricks/sql/03_pre_regulation_ext/03_customer_instrument_dictionary_staging.sql`, `databricks/sql/03_pre_regulation_ext/04_hedge_extract_staging.sql`, `databricks/sql/03_pre_regulation_ext/05_pre_regulation_validation.sql`. |
 | Docs to update | `docs/unresolved_dependencies.md`, `docs/source_to_databricks_mapping_review.md`, `docs/dependency_coverage_matrix.md`, `docs/known_differences.md`. |
 | Databricks plugin needed later for testing | Later for testing only; not for documentation or local SQL authoring. |
@@ -167,7 +167,7 @@ Step 4 boundary note:
 | Target Databricks object names | `main.regtech_ops_stg.bi_output_regtechops_asic2_ext_openpositions_positionsreport`, `main.regtech_ops_stg.bi_output_regtechops_asic2_ext_positionchangelog`, `main.regtech_ops_stg.bi_output_regtechops_asic2_customer_positionreport`, `main.regtech_ops_stg.bi_output_regtechops_asic2_positions`, `main.regtech_ops_stg.bi_output_regtechops_asic2_instrumentmetadata`, `main.regtech_ops_stg.bi_output_regtechops_asic2_removed_op_partials`, `main.regtech_ops_stg.bi_output_regtechops_asic2_transactions`, `main.regtech_ops_stg.bi_output_regtechops_mifid2_asic2_transactions`, `main.regtech_ops_stg.bi_output_regtechops_vw_mifid2_asic_transactions`. |
 | Dependencies on prior modules | Modules 1, 2, 4, and 5. |
 | Validation checks | Row counts, position key checks, event continuity, instrument metadata coverage, transaction field parity, compatibility-view schema checks, `CDE_Execution_timestamp -> OpenTime` validation. |
-| Open risks | ASIC2 compatibility replacement details for legacy `ASIC_Transactions`; `CDE_Execution_timestamp -> OpenTime` timezone/semantic parity; optional history seed strategy for `ASIC2_Transactions`; `Reg_DWH_StaticPosition` remains conditional/legacy and should not block unless proven to affect MiFID fields. |
+| Open risks | ASIC2 compatibility replacement details for legacy `ASIC_Transactions`; `CDE_Execution_timestamp -> OpenTime` timezone/semantic parity; approved ASIC2 historical seed direction (D-08 / MAG-10) with implementation/extract ownership still pending; `Reg_DWH_StaticPosition` remains conditional/legacy and should not block unless proven to affect MiFID fields. |
 | Implementation files to create under `databricks/` | `databricks/sql/06_asic2_subset/01_asic2_ext_staging.sql`, `databricks/sql/06_asic2_subset/02_asic2_positions.sql`, `databricks/sql/06_asic2_subset/03_asic2_transactions.sql`, `databricks/sql/06_asic2_subset/04_mifid_asic_compatibility.sql`, `databricks/sql/06_asic2_subset/05_asic2_validation.sql`. |
 | Docs to update | `docs/unresolved_dependencies.md`, `docs/source_to_databricks_mapping_review.md`, `docs/dependency_coverage_matrix.md`, `docs/history_seed_requirements.md`, `docs/known_differences.md`. |
 | Databricks plugin needed later for testing | Later for testing only; not for documentation or local SQL authoring. |
@@ -286,7 +286,7 @@ Step 4 boundary note:
 | Target Databricks object names | `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax`. |
 | Dependencies on prior modules | Modules 1 through 13, especially customer, report, and failed TRAX staging outputs. |
 | Validation checks | Row counts, required-field null checks, acceptance/status flag checks, duplicate checks, comparison against SQL Server output for current validation windows. |
-| Open risks | `MIFID2_NPD_TRAX` history seed strategy remains unresolved for older parity windows; full historical backfill remains out of scope. TRAX upload and response processing remain out of scope. |
+| Open risks | Approved NPD/Failed TRAX historical seed direction (D-06 / D-07 / MAG-07–09) with implementation/extract ownership still pending for older parity/retry windows. TRAX upload and response processing remain out of scope. |
 | Implementation files to create under `databricks/` | `databricks/sql/08_outputs/08_mifid2_npd_trax.sql`, `databricks/sql/08_outputs/08_mifid2_npd_trax_validation.sql`. |
 | Docs to update | `docs/unresolved_dependencies.md`, `docs/history_seed_requirements.md`, `docs/dependency_coverage_matrix.md`, `docs/known_differences.md`. |
 | Databricks plugin needed later for testing | Later for testing only; not for documentation or local SQL authoring. |
@@ -335,11 +335,12 @@ Step 4 boundary note:
 
 ## Risks Carried Into Implementation
 
-- `Reg_Ext_CurrencyPriceMaxDateWithSplit` final source selection is unresolved and belongs to Module 4.
-- `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData` materialization policy belongs to Modules 4 and 5.
+- Module 4 price/split primary source direction is selected; certification, baseline/date-window validation, and activation evidence belong to Modules 4 and 15.
+- `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData` approved historical replay direction (D-10 / D-11) with implementation runbook pending belongs to Modules 4 and 5.
 - `dbo.ReplaceChar` behavior parity tests belong to Module 3A.
 - ASIC2 compatibility replacement details and `CDE_Execution_timestamp -> OpenTime` validation belong to Modules 7 and 12.
-- `ASIC2_Transactions` history seed strategy belongs to Module 7.
-- `MIFID2_Hedge_Report.RecordID` identity strategy belongs to Module 13.
-- `MIFID2_NPD_TRAX` history seed strategy belongs to Module 14.
+- `ASIC2_Transactions` approved historical seed implementation (D-08 / MAG-10) belongs to Module 7.
+- `MIFID2_Hedge_Report.RecordID` approved allocation/registry implementation (D-12 / MAG-12) belongs to Module 13.
+- `MIFID2_NPD_TRAX` / Failed TRAX approved historical seed implementation (D-06 / D-07 / MAG-07–09) belongs to Module 14.
+- `Reg_LiquidtyAcount_SCD` approved seed/cutover implementation (D-09 / MAG-11) belongs to Module 6.
 - Audit/control persistence scope belongs to Modules 15 and 16.

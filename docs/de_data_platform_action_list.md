@@ -38,11 +38,11 @@ Related registers:
 - `main.general.bronze_etoro_dictionary_currency`
 - `main.general.bronze_etoro_dictionary_currencytype`
 
-## Priority 3 — Historical seed support (approved strategy, implementation pending)
+## Priority 3 — Historical seed support (approved strategy, implementation/extract ownership pending)
 
 | # | Action | Scope |
 | --- | --- | --- |
-| 6 | Provide extraction/access support for historical seed loads required by approved strategy | NPD, Failed TRAX, Hedge, ASIC2, liquidity SCD, migration/regulation in-out, movement history |
+| 6 | Provide extraction/access support and assign extract ownership for historical seed loads required by approved strategy | NPD, Failed TRAX, Hedge, ASIC2, liquidity SCD, migration/regulation in-out, movement history |
 | 7 | Confirm availability windows and partition guidance for selected price/candle sources | Include `etr_y`, `etr_ym`, `etr_ymd` filter guidance |
 
 ---

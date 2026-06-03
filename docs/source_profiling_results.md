@@ -175,7 +175,7 @@ Applies especially to:
 - `Reg_Regulation_Movments_Positions`
 - relevant instrument/FIRDS history where needed
 
-Status: strategy approved; execution implementation still pending.
+Status: strategy approved; seed implementation and extract ownership are still pending.
 
 ## 6) RegTech parity clarifications
 

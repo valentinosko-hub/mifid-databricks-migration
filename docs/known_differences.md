@@ -74,7 +74,7 @@ This document tracks known or intentional differences for the currently implemen
 - No population logic for `InstrumentMetaData_SpecialChar_Conversion`.
 - No CSV/7z/SFTP/Cappitech/TRAX upload/response handling.
 - No production deployment to `main.regtech`.
-- No full historical backfill.
+- No unconditional full historical backfill by default; historical seeding follows the approved seed policy (seed all required history, or all available if safe minimum cannot be proven).
 
 ## Implementation-phase assumptions
 

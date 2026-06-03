@@ -24,7 +24,7 @@ Applies especially to:
 Status:
 
 - Strategy approved.
-- Execution implementation and sequencing remain pending and gated.
+- Execution implementation, extract ownership, and sequencing remain pending and gated.
 
 ## Step 6 - Regulation movement staging
 
@@ -48,9 +48,10 @@ To validate a specific `ReportDate`, the following history scope must exist for 
 
 ## Seed/cutover policy for Step 6
 
-- Phase 1 default: seed only the validation date windows requested by reconciliation checks.
-- If older dates are required:
-  - expand seed range for migration population and position/history inputs first,
+- Follow approved strategy: seed all history required for reporting/retry/SCD/parity/baseline windows.
+- If the minimum safe Step 6 historical window cannot be proven, seed all available Step 6-relevant history.
+- For execution planning, expand seed range in this order:
+  - migration population and position/history inputs first,
   - then validate movement branch composition and enrichment completeness by date.
 
 ## Known Step 6 history risks
@@ -303,7 +304,7 @@ For a requested Step 12 `ReportDate`, ensure:
 
 - Follow approved strategy for historical windows required by parity and baseline comparisons.
 - Step 12 report targets should be rebuilt as report-date scoped delete/insert after upstream snapshots refresh.
-- Full historical backfill is not required for Step 12B1 and is deferred until explicitly requested for reconciliation windows.
+- If minimum safe historical coverage for requested parity windows cannot be proven, seed all available Step 12-relevant history.
 
 ### Known Step 12 history risks
 
@@ -507,15 +508,15 @@ Additional Step 14B3 seed dependencies:
   - report-date-complete EU / EU-UK / UK prepared source contracts.
 - Transaction reference parity boundary:
   - stable provider execution id normalization and row id determinism for requested windows.
-- Deterministic RecordID boundary:
-  - stable ordering fields available for each requested report date:
-    - `ReportDate`, `RegulationReportID`, `rowSource`, `TransactionReferenceNumber`, `ExecutionID`, `LiquidityAccountID`, `InstrumentID`.
+- RecordID registry/control boundary:
+  - approved allocation path implemented (seed historical SQL Server RecordIDs, continue from `MAX(RecordID)+1`, persistent registry/control mechanism).
+  - natural business key is defined and used to reuse existing RecordIDs for already-known trades across reruns.
 - Exclusion parity boundary:
   - report-scoped instrument and position/reference exclusion sources must contain expected historical entries for requested dates.
 
 Step 14B3 historical caution:
 
-- If transaction-reference seed inputs are unstable across reruns, deterministic RecordID ordering can drift even with a fixed ordering specification.
+- If natural-key matching or registry writes are incomplete, reruns and missed-trade back-reporting can incorrectly allocate new RecordIDs or fail to reuse existing IDs.
 - If exclusion history is incomplete, Step 14B3 projection template parity may appear correct while branch-level exclusion evidence fails in Step 14B4.
 
 ## Step 14B4-specific seed notes (hedge validation/reconciliation)
@@ -596,8 +597,7 @@ Step 15B3 seed limitations:
 
 ## Out of scope
 
-- Full historical backfill of all movement dates.
-- Full historical backfill of hedge liquidity SCD history.
+- Unscoped all-object historical backfill beyond approved seed-policy needs.
 - Production deployment/cutover workflows.
 - File-delivery and response handling flows.
 

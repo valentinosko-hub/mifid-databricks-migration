@@ -80,6 +80,7 @@ For future reporting and parity validation:
 
 - Seed all historical data required for retry logic, SCD validity, missed-trade back-reporting, identity continuity, and SQL Server baseline comparison.
 - If minimum safe history cannot be proven, seed all available history for that object.
+- Strategy is approved; implementation planning and extract ownership remain pending.
 
 ---
 

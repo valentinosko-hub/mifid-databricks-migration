@@ -78,7 +78,7 @@ Use [open_blockers_for_execution.md](open_blockers_for_execution.md) as the cano
 - [ ] `main.pii_data.bronze_etoro_customer_customer`
 - [ ] `main.pii_data.bronze_etoro_history_customer`
 
-### History / seed (approved direction; implementation pending)
+### History / seed (approved direction; implementation/extract ownership pending)
 
 - [ ] `MIFID2_NPD_TRAX` seed implementation
 - [ ] `MIFID2_Failed_TRAX` / NPD shared history implementation
@@ -133,7 +133,7 @@ Legacy Step 17B checklist: [workflow_manual_approval_checkpoints.md](workflow_ma
 1. Keep selected price/hedge source classifications current in profiling and blocker registers (no longer active storage blockers).
 2. Grant `main.pii_data` for final parity.
 3. Certify selected primary price/split-price source contracts and complete required-column certifications.
-4. Support historical seed extraction/access for approved strategy implementation.
+4. Support historical seed extraction/access and assign extract ownership for approved strategy implementation.
 5. Update `docs/source_profiling_results.md` after certification/confirmation updates.
 6. Later: confirm warehouse/SP permissions when execution enablement is approved.
 

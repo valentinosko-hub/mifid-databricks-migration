@@ -491,7 +491,7 @@ Step 15 note (`MIFID2_NPD_TRAX`):
   - `main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report`
 - Step 15 gate posture:
   - customer-shaping parity remains gated by no schema access on unmasked `main.pii_data` customer sources.
-  - exact NPD new-vs-existing/retry parity remains gated by unresolved history/cutover seed policy.
+- exact NPD new-vs-existing/retry parity remains gated by pending implementation of the approved history/cutover seed policy and extract ownership.
   - `MIFID2_Failed_TRAX` and Step 15 remain coupled through `MIFID2_NPD_TRAX` history dependency.
   - Step 15B1/15B2 exclude all file delivery/export/upload/response logic.
 

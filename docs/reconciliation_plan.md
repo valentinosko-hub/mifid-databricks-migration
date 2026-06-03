@@ -48,19 +48,20 @@ Latest source profiling integration:
 
 ### Gates that remain open
 
-- `Reg_CurrencyPrice_Ext` blocked by storage/data scan failure on `main.trading.bronze_etoro_trade_currencyprice`.
-- Step 7 hedge-server mapping and Step 14 hedge liquidity SCD blocked by storage/data scan failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`.
-- Customer and NPD_TRAX customer-dependent paths blocked by no schema access on `main.pii_data` customer tables.
-- Split-price candidate comparison blocked by no catalog access on `dwh_daily_process` objects.
+- `Reg_CurrencyPrice_Ext` primary source selected (`main.dealing.bronze_pricelog_history_currencyprice`); `main.trading.bronze_etoro_trade_currencyprice` is readable but not preferred. Execution remains gated by required-column certification, date-window validation, and SQL Server baseline comparison (MAG-14 / D-05).
+- Step 7 hedge-server mapping source (`main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount`) is readable with required columns present; execution remains gated by duplicate/key/coverage validation and liquidity SCD seed implementation (D-09 / MAG-11).
+- `Reg_Ext_CurrencyPriceMaxDateWithSplit` primary source selected (`main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`); `dwh_daily_process` split-price objects are fallback/reference only (not an active access blocker for primary-path activation).
+- Customer and NPD_TRAX customer-dependent paths blocked by no schema access on `main.pii_data` customer tables (masked tables are dev/structural fallback only).
+- Historical seed strategy direction is approved; seed implementation and extract ownership remain pending for parity/retry/SCD/baseline windows (`docs/history_seed_requirements.md`).
 - Required-column certification still pending for many confirmed-accessible sources before module activation.
 
 ## Gate prerequisites before Step 12 activation
 
-- Resolve `Reg_CurrencyPrice_Ext` storage failure or certify alternative source; then close Step 5B1 price/split source gates.
+- Close Step 5B1 price/split source gates using selected primary sources (`main.dealing.bronze_pricelog_history_currencyprice`, `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`) plus required-column certification and SQL Server baseline/date-window validation.
 - Resolve Step 5B2 non-price required-column certification for accessible sources (`GetInstrument`, `InstrumentMetaData`, dictionary currency/type).
-- Resolve Step 7 hedge-server storage failure before hedge SCD and Step 14 hedge activation reconciliation.
-- Grant PII schema access or approve masked/alternative customer source before customer-module reconciliation.
-- Grant `USE CATALOG dwh_daily_process` or certify `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` before split-price reconciliation.
+- Complete Step 7 hedge-server duplicate/key/coverage validation and implement approved liquidity SCD seed/cutover (D-09 / MAG-11) before hedge SCD and Step 14 hedge activation reconciliation.
+- Grant PII schema access or approve a formal regulatory exception before customer-module reconciliation (masked tables do not close this gate).
+- Use `dwh_daily_process` / `main.dwh` split-price candidates only as fallback/reference if primary-source validation requires comparison evidence.
 - Step 6 movement/reg-change parity gates resolved.
 - Step 9 position/reg-change-position staging gates resolved.
 - `InstrumentMetaData_SpecialChar_Conversion` dependency cleared.
@@ -497,7 +498,7 @@ Step 14B3 evidence is template-level and gating-focused:
   - `main.pii_data.bronze_etoro_customer_customer` (no schema access)
   - `main.pii_data.bronze_etoro_history_customer` (no schema access)
 - History/cutover gate:
-  - prior/latest `MIFID2_NPD_TRAX` seed policy for exact new-vs-existing/retry/REPL parity.
+  - approved `MIFID2_NPD_TRAX` / Failed TRAX historical seed implementation (D-06 / D-07 / MAG-07–09) for exact new-vs-existing/retry/REPL parity; extract ownership and load sequencing remain pending.
 - Step 9 coupling gate:
   - `MIFID2_Failed_TRAX` latest-row behavior depends on `MIFID2_NPD_TRAX` history.
 - Response boundary gate:
@@ -563,11 +564,13 @@ Step 15B2 CTE/template coverage (authored, non-active):
 
 ## DE/Data Platform action list (from latest profiling)
 
-1. Resolve storage/data scan failure on `main.trading.bronze_etoro_trade_currencyprice` or provide a certified alternative for `Reg_CurrencyPrice_Ext`.
-2. Resolve storage/data scan failure on `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` for hedge liquidity mapping.
-3. Grant schema access to `main.pii_data` customer tables or approve a masked/alternative customer source for MiFID customer modules.
-4. Grant `USE CATALOG dwh_daily_process` so fallback customer-history and split-price candidate objects can be profiled, or formally retire those candidates in favor of accessible alternatives.
-5. Confirm whether `main.dwh.gold_sql_dp_prod_we_dwh_dbo_fact_currencypricewithsplit` should be promoted from accessible candidate to certified source for `Reg_Ext_CurrencyPriceMaxDateWithSplit`.
+1. Grant schema access to `main.pii_data.bronze_etoro_customer_customer` and `main.pii_data.bronze_etoro_history_customer` (only active access blockers), or approve a formal regulatory exception.
+2. Support historical seed extraction/access and assign extract ownership per approved strategy (`docs/history_seed_requirements.md`, `docs/de_data_platform_action_list.md`).
+3. Complete required-column certification and baseline/date-window validation for selected primary price sources:
+   - `main.dealing.bronze_pricelog_history_currencyprice` (`Reg_CurrencyPrice_Ext`)
+   - `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit` (`Reg_Ext_CurrencyPriceMaxDateWithSplit`)
+4. Complete Step 7 duplicate/key/coverage validation for `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` (readable; no longer a storage blocker).
+5. Keep `main.trading.bronze_etoro_trade_currencyprice` and `dwh_daily_process` / `main.dwh` split-price objects as fallback/reference only unless comparison evidence is explicitly required.
 
 ## Step 16 final consolidation gate
 
