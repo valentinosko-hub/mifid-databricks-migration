@@ -1,6 +1,8 @@
-# Open Blockers for Execution (Step 16B1)
+# Open Blockers for Execution (Step 16B1; aligned with Step 17C)
 
 This document is a consolidated execution blocker register for phase-1 MiFID migration in `main.regtech_ops_stg`.
+
+Governance mapping: each blocker below maps to manual approval gates in `docs/manual_approval_gates.md` and stop/go rules in `docs/workflow_governance_controls.md`. Workflow activation remains blocked until these are closed or formally waived.
 
 ## Temporary masked customer workaround (manager-approved)
 
@@ -36,11 +38,11 @@ Does not replace final PII sources or close final identity-field parity gates. P
 
 ## Certification/SME blockers
 
-- `CurrencyPriceMaxDateWithSplit` final source selection/certification.
-- Exact CFI / InstrumentClassification parity where still gated.
-- `RecordID` strategy for Hedge report.
-- TransactionReferenceNumber parity for Hedge report.
-- Source certification for required-column mappings where pending.
+- `CurrencyPriceMaxDateWithSplit` final source selection/certification (MAG-14; D-05).
+- Exact CFI / InstrumentClassification parity where still gated (MAG-15; D-14).
+- `RecordID` strategy for Hedge report (MAG-12; D-12).
+- TransactionReferenceNumber parity for Hedge report (MAG-13; D-13).
+- Source certification for required-column mappings where pending (MAG-02; D-21).
 
 ## Resolved blockers
 
@@ -66,4 +68,7 @@ Does not replace final PII sources or close final identity-field parity gates. P
 ## Execution status
 
 - Execution remains blocked until active blocker categories above are closed.
-- This step does not introduce workflow/orchestration, delivery/upload logic, response handling, or production deployment actions.
+- Step 17C documents governance and manual approvals only; it does not close blockers or enable workflow execution.
+- Workflow skeleton deployment/execution remains gated (`docs/workflow_governance_controls.md`).
+- Delivery/upload/response handling and production deployment remain out of scope.
+- NOC and old Databricks attempt materials remain reference-only and are not implementation authority.

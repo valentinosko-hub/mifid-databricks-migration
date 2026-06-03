@@ -57,5 +57,7 @@ Additional handoff support:
 - [Workflow orchestration plan (Step 17B)](docs/workflow_orchestration_plan.md)
 - [Workflow execution runbook (Step 17B)](docs/workflow_execution_runbook.md)
 - [Workflow manual approval checkpoints (Step 17B)](docs/workflow_manual_approval_checkpoints.md)
+- [Workflow governance controls (Step 17C)](docs/workflow_governance_controls.md)
+- [Manual approval gates (Step 17C)](docs/manual_approval_gates.md)
 
-**Status:** SQL templates, validation packages, and a Step 17B workflow skeleton are authored; Databricks execution has not been performed. Manager-approved masked customer tables may be used for temporary development/structural testing only. Final parity remains blocked until `main.pii_data` access and other prerequisites in the blocker and decision documents are resolved.
+**Status:** SQL templates, validation packages, a Step 17B workflow skeleton, and Step 17C governance documentation are authored; Databricks execution has not been performed. Manager-approved masked customer tables may be used for temporary development/structural testing only. Final parity remains blocked until `main.pii_data` access, manual approvals, and other prerequisites in the blocker and decision documents are resolved.

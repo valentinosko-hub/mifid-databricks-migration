@@ -8,6 +8,28 @@ Source registers:
 - `docs/unresolved_dependencies.md`
 - `docs/open_questions_and_decisions.md`
 - `docs/history_seed_requirements.md`
+- `docs/manual_approval_gates.md` (Step 17C approval gate register)
+
+## Decision-to-approval gate mapping (Step 17C)
+
+| Decision ID | Manual approval gate (MAG) |
+| --- | --- |
+| D-01 | MAG-05 (dev masked), MAG-06 (final PII) |
+| D-02, D-03 | MAG-03 |
+| D-04 | MAG-01 |
+| D-05 | MAG-14 |
+| D-06 | MAG-10 |
+| D-07 | MAG-07 |
+| D-08 | MAG-09 |
+| D-09 | MAG-11 |
+| D-10, D-11 | MAG-08 |
+| D-12 | MAG-12 |
+| D-13 | MAG-13 |
+| D-14 | MAG-15 |
+| D-21 | MAG-02 |
+| D-23 | MAG-16 |
+
+Close decisions by updating this register, `docs/manual_approval_gates.md`, and `docs/open_blockers_for_execution.md`.
 
 ## Decision register
 

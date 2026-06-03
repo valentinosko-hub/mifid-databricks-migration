@@ -42,6 +42,25 @@ Related wrappers:
 - `databricks/sql/10_workflow/gates/gate_global_scope.sql`
 - `databricks/sql/10_workflow/gates/gate_cross_module_readiness.sql`
 
+## Governance prerequisites before final workflow activation (Step 17C)
+
+Workflow activation is **not approved** until governance controls in `docs/workflow_governance_controls.md` are satisfied and manual gates in `docs/manual_approval_gates.md` are closed with recorded evidence.
+
+Minimum governance prerequisites:
+
+1. All applicable `MAG-*` gates in `docs/manual_approval_gates.md` are `CLOSED` or formally waived with documented alternative.
+2. `docs/open_blockers_for_execution.md` active blockers are closed for the intended run mode.
+3. `docs/remaining_decisions.md` parity-sensitive decisions (D-01 through D-14, D-21, D-23 as applicable) are approved and recorded.
+4. Run mode matches policy:
+   - `development_structural_test` — masked fallback only with MAG-05; no final parity claims.
+   - `final_parity_production` — MAG-06 unmasked PII or formal approval; masked fallback disabled.
+5. `dry_run` remains `true` until explicit final go/no-go removes dry-run restriction.
+6. Validation evidence captured per `docs/final_validation_execution_plan.md` before MAG-17 signoff.
+7. Workflow deployment/execution requires explicit change approval separate from this documentation step.
+8. No delivery/upload/response or production deployment is authorized by Step 17C documentation alone.
+
+Stop/go criteria and audit expectations: `docs/workflow_governance_controls.md`, `docs/workflow_execution_runbook.md`.
+
 ## Required access grants (final parity; blockers remain open)
 
 | Object / scope | Issue | Owner action |

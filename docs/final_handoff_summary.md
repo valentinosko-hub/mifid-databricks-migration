@@ -30,6 +30,7 @@ Phase-1 migration work in this repository is **documentation and gated SQL autho
 | Step 16B2 handoff package | This document set |
 | Databricks execution | **Not performed** |
 | Workflow/orchestration | **Step 17B skeleton authored and execution-gated** (`databricks/workflows/` + `databricks/sql/10_workflow/`) |
+| Workflow governance (17C) | **Authored** (`docs/workflow_governance_controls.md`, `docs/manual_approval_gates.md`); no runtime enforcement |
 | Delivery / TRAX upload / response | **Out of scope** |
 
 All persistent targets are intended for:
@@ -127,6 +128,13 @@ Each module below has SQL under `databricks/sql/` and supporting analysis under 
 - **SQL wrappers:** `databricks/sql/10_workflow/` and `databricks/sql/10_workflow/gates/`
 - **Docs:** `docs/workflow_skeleton_design.md`, `docs/workflow_orchestration_plan.md`, `docs/workflow_execution_runbook.md`, `docs/workflow_manual_approval_checkpoints.md`
 
+### Step 17C governance package
+
+- Governance controls and manual approval workflow documentation authored (documentation only).
+- **Docs:** `docs/workflow_governance_controls.md`, `docs/manual_approval_gates.md`
+- **Updated:** `docs/execution_prerequisites.md`, `docs/workflow_execution_runbook.md`, `docs/open_blockers_for_execution.md`, `docs/remaining_decisions.md`, `docs/final_readiness_assessment.md`
+- Does not deploy, execute, or enforce approvals in Databricks
+
 ## What has not been executed
 
 - No Databricks jobs, notebooks, or bundles were run from this repository for module activation.
@@ -195,7 +203,8 @@ See `docs/execution_prerequisites.md` and `docs/remaining_decisions.md`.
 | Workflow skeleton design | `docs/workflow_skeleton_design.md` |
 | Workflow orchestration plan | `docs/workflow_orchestration_plan.md` |
 | Workflow execution runbook | `docs/workflow_execution_runbook.md` |
-| Workflow manual approvals | `docs/workflow_manual_approval_checkpoints.md` |
+| Workflow manual approvals | `docs/manual_approval_gates.md` (Step 17C); `docs/workflow_manual_approval_checkpoints.md` (Step 17B summary) |
+| Workflow governance | `docs/workflow_governance_controls.md` |
 | Reconciliation | `docs/reconciliation_plan.md` |
 | History/seed | `docs/history_seed_requirements.md` |
 | Known differences | `docs/known_differences.md` |

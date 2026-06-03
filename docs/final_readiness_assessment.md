@@ -15,6 +15,7 @@ Readiness basis:
 - Module SQL authoring is complete through Step 15 as gated templates and validation packages.
 - Final-output modules remain non-executable because source access, seed/cutover, and SME certification gates are still open.
 - Step 16B1 adds consolidated readiness and validation packaging only; it does not add business transformation logic or workflow/orchestration.
+- Step 17B adds a non-executing workflow skeleton; Step 17C adds governance controls and manual approval documentation only (no runtime enforcement).
 
 ## Modules completed as gated templates
 
@@ -94,9 +95,16 @@ Final field-level parity remains gated (identity fields and final Customer / Reg
 - `MIFID2_Hedge_Report` transaction-reference parity approval.
 - Pending source certification for required-column mappings in accessible sources.
 
+## Step 17C governance readiness
+
+- Governance model authored: `docs/workflow_governance_controls.md`
+- Manual approval gates authored: `docs/manual_approval_gates.md`
+- Workflow activation remains blocked until MAG gates close and evidence is recorded externally
+- No Databricks runtime enforcement is implemented in Step 17C
+
 ## Readiness status
 
-**Not ready for execution until open blockers are resolved.**
+**Not ready for execution until open blockers are resolved and Step 17C manual approvals are closed.**
 
 ## Recommended next actions before Databricks execution
 
@@ -104,4 +112,5 @@ Final field-level parity remains gated (identity fields and final Customer / Reg
 2. Complete required-column certification for confirmed-accessible inputs used by active module gates.
 3. Approve history/seed and cutover policies for stateful modules (`MIFID2_NPD_TRAX`, `MIFID2_Failed_TRAX`, `ASIC2_Transactions`, liquidity SCD).
 4. Resolve parity-sensitive business decisions (Hedge `RecordID`, hedge transaction reference, ETORO/Hedge classification parity).
-5. Run validation in the consolidated execution order in `docs/final_validation_execution_plan.md` after execution is enabled.
+5. Close manual approval gates in `docs/manual_approval_gates.md` per `docs/workflow_governance_controls.md`.
+6. Run validation in the consolidated execution order in `docs/final_validation_execution_plan.md` after execution is enabled.
