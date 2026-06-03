@@ -1,6 +1,8 @@
-# Final Handoff Summary (Step 16B2)
+# Final Handoff Summary (Step 16B2; updated Step 18B)
 
 This document is the primary handoff entry point for engineers and analysts continuing the MiFID SQL Server / SSIS to Databricks migration.
+
+**Step 18 handoff:** Final repository audit (18A) and consolidated handoff package (18B) are authored. Use [handoff_index.md](handoff_index.md) for full navigation. The repository remains **not execution-ready** until blockers in [open_blockers_for_execution.md](open_blockers_for_execution.md) close and manual approvals in [manual_approval_gates.md](manual_approval_gates.md) are recorded externally.
 
 Related readiness artifacts (Step 16B1):
 - `docs/final_readiness_assessment.md`
@@ -135,6 +137,17 @@ Each module below has SQL under `databricks/sql/` and supporting analysis under 
 - **Updated:** `docs/execution_prerequisites.md`, `docs/workflow_execution_runbook.md`, `docs/open_blockers_for_execution.md`, `docs/remaining_decisions.md`, `docs/final_readiness_assessment.md`
 - Does not deploy, execute, or enforce approvals in Databricks
 
+### Step 18A final repository audit
+
+- Objective audit of structure, completeness, safety, blockers, and non-execution posture.
+- **Docs:** `docs/final_repository_audit.md`
+
+### Step 18B final handoff package
+
+- Consolidated role-based handoff, manager summary, DE/SME action lists, post-blocker execution plan, and handoff index.
+- **Docs:** `docs/handoff_index.md`, `docs/final_handoff_package.md`, `docs/final_manager_handoff_summary.md`, `docs/de_data_platform_action_list.md`, `docs/regtech_sme_decision_list.md`, `docs/post_blocker_execution_plan.md`
+- Repo remains **not execution-ready** until blockers close (see audit and package).
+
 ## What has not been executed
 
 - No Databricks jobs, notebooks, or bundles were run from this repository for module activation.
@@ -175,7 +188,7 @@ See `docs/execution_prerequisites.md` and `docs/remaining_decisions.md`.
 
 ## How the next engineer/analyst should continue
 
-1. Read `docs/final_handoff_summary.md` (this file), then `docs/open_blockers_for_execution.md` and `docs/execution_prerequisites.md`.
+1. Read [handoff_index.md](handoff_index.md), then `docs/final_handoff_summary.md` (this file), `docs/open_blockers_for_execution.md`, and `docs/execution_prerequisites.md`.
 2. Use `docs/repository_inventory.md` to locate module SQL and validation files.
 3. Track decisions in `docs/remaining_decisions.md`; update gate docs when blockers close.
 4. After blockers close, follow **recommended sequence** below and `docs/final_validation_execution_plan.md`.
@@ -205,6 +218,13 @@ See `docs/execution_prerequisites.md` and `docs/remaining_decisions.md`.
 | Workflow execution runbook | `docs/workflow_execution_runbook.md` |
 | Workflow manual approvals | `docs/manual_approval_gates.md` (Step 17C); `docs/workflow_manual_approval_checkpoints.md` (Step 17B summary) |
 | Workflow governance | `docs/workflow_governance_controls.md` |
+| Handoff index (Step 18B) | `docs/handoff_index.md` |
+| Final handoff package (Step 18B) | `docs/final_handoff_package.md` |
+| Manager handoff summary (Step 18B) | `docs/final_manager_handoff_summary.md` |
+| Repository audit (Step 18A) | `docs/final_repository_audit.md` |
+| DE/Data Platform actions (Step 18B) | `docs/de_data_platform_action_list.md` |
+| RegTech SME decisions (Step 18B) | `docs/regtech_sme_decision_list.md` |
+| Post-blocker execution plan (Step 18B) | `docs/post_blocker_execution_plan.md` |
 | Reconciliation | `docs/reconciliation_plan.md` |
 | History/seed | `docs/history_seed_requirements.md` |
 | Known differences | `docs/known_differences.md` |

@@ -1,4 +1,4 @@
-# Repository Inventory (Step 16B2; indexed Step 18A)
+# Repository Inventory (Step 16B2; indexed Step 18A–18B)
 
 This inventory helps the next engineer or analyst find module SQL, validation SQL, and supporting documentation quickly.
 
@@ -22,8 +22,14 @@ Do not modify files under `reference/`.
 
 | File | Purpose |
 | --- | --- |
+| `handoff_index.md` | Step 18B navigation index for all handoff artifacts |
 | `final_repository_audit.md` | Objective final repository audit (Step 18A) |
-| `final_handoff_summary.md` | Primary handoff entry (Step 16B2) |
+| `final_handoff_package.md` | Step 18B consolidated role-based handoff package |
+| `final_manager_handoff_summary.md` | Step 18B manager-ready summary |
+| `de_data_platform_action_list.md` | Step 18B DE/Data Platform action list |
+| `regtech_sme_decision_list.md` | Step 18B RegTech SME decision list |
+| `post_blocker_execution_plan.md` | Step 18B sequence after blockers close |
+| `final_handoff_summary.md` | Primary handoff entry (Step 16B2; Step 18B updates) |
 | `final_readiness_assessment.md` | Cross-module readiness state (Step 16B1) |
 | `open_blockers_for_execution.md` | Consolidated execution blockers |
 | `final_validation_execution_plan.md` | Validation run order after execution is enabled |

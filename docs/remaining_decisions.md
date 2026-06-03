@@ -1,6 +1,12 @@
-# Remaining Decisions (Step 16B2)
+# Remaining Decisions (Step 16B2; aligned Step 18B)
 
 This document consolidates open technical and business decisions that must be closed before Databricks execution and module un-gating.
+
+Role-based closure tracking:
+
+- DE/Data Platform: `docs/de_data_platform_action_list.md`
+- RegTech SME: `docs/regtech_sme_decision_list.md`
+- Post-blocker sequence: `docs/post_blocker_execution_plan.md`
 
 Source registers:
 
@@ -26,8 +32,16 @@ Source registers:
 | D-12 | MAG-12 |
 | D-13 | MAG-13 |
 | D-14 | MAG-15 |
+| D-15, D-16, D-17, D-18 | MAG-02 (required-column / source contract); D-18 also requires Validation sign-off before customer activation |
+| D-19 | MAG-09 (ASIC2 seed/history; OpenTime semantics) |
+| D-20 | MAG-15 (classification / exclusion parity family) |
 | D-21 | MAG-02 |
+| D-22 | MAG-02 (supports MAG-15 / instrument enrichment after staging certified) |
 | D-23 | MAG-16 |
+| D-24 | MAG-17 (evidence enhancement; non-blocking for minimal forward run) |
+| D-25 | MAG-09 / SME module notes (conditional ASIC2 OpenPrice) |
+
+**Traceability rule:** One decision may support closure of multiple MAG gates; closing a MAG gate does not automatically close a decision until this register and `docs/open_blockers_for_execution.md` are updated.
 
 Close decisions by updating this register, `docs/manual_approval_gates.md`, and `docs/open_blockers_for_execution.md`.
 

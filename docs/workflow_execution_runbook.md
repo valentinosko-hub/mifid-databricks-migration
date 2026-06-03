@@ -4,6 +4,18 @@ This runbook defines how to use the Step 17B workflow skeleton as a readiness an
 
 Governance controls and manual approval workflow: `docs/workflow_governance_controls.md`, `docs/manual_approval_gates.md`.
 
+## Step 18 pre-activation evidence gate
+
+Before treating this runbook as actionable for any run (including dry-run), confirm:
+
+1. [final_repository_audit.md](final_repository_audit.md) (Step 18A) — preparation complete; **not execution-ready** while blockers remain.
+2. [final_handoff_package.md](final_handoff_package.md) and [handoff_index.md](handoff_index.md) (Step 18B) — role actions and transition criteria understood.
+3. [open_blockers_for_execution.md](open_blockers_for_execution.md) — no unresolved hard blockers for the intended run mode.
+4. [manual_approval_gates.md](manual_approval_gates.md) — applicable MAG gates **CLOSED** with external evidence.
+5. [post_blocker_execution_plan.md](post_blocker_execution_plan.md) — team aligned on post-blocker sequence if enabling execution.
+
+If any item above fails, remain in documentation/validation-only mode. Do not deploy the workflow skeleton.
+
 ## Pre-run policy notes
 
 NOC and old Databricks attempt materials remain reference-only and are not implementation authority.
