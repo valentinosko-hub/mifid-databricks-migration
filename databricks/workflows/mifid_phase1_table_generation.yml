@@ -1,0 +1,213 @@
+# TEMPLATE ONLY - STEP 17B NON-EXECUTING WORKFLOW SKELETON
+# Do not deploy or execute this workflow until blockers in docs/open_blockers_for_execution.md
+# are closed and manual approvals in docs/workflow_manual_approval_checkpoints.md are recorded.
+#
+# Scope:
+# - Table/report generation orchestration skeleton only
+# - No CSV/7z/SFTP/TRAX upload/response handling
+# - No production deployment to main.regtech
+# - No business transformation logic activation
+
+bundle:
+  name: mifid_phase1_table_generation_skeleton
+
+variables:
+  sql_warehouse_id:
+    description: Placeholder SQL warehouse ID for future execution enablement
+    default: "REPLACE_WITH_SQL_WAREHOUSE_ID"
+
+resources:
+  jobs:
+    mifid_phase1_table_generation_skeleton:
+      name: mifid_phase1_table_generation_skeleton_do_not_deploy
+      description: >
+        Step 17B Databricks workflow skeleton for MiFID table/report generation ordering.
+        This file is template-only and intentionally non-executing.
+      max_concurrent_runs: 1
+      tags:
+        phase: step17b
+        state: template_only_execution_gated
+        delivery_scope: excluded
+      parameters:
+        - name: report_date
+          default: "YYYY-MM-DD"
+        - name: catalog
+          default: "main"
+        - name: schema
+          default: "regtech_ops_stg"
+        - name: object_prefix
+          default: "bi_output_regtechops_"
+        - name: run_mode
+          default: "development_structural_test"
+        - name: dry_run
+          default: "true"
+        - name: dev_customer_source_mode
+          default: "masked_fallback"
+        - name: customer_source_policy
+          default: "temporary_masked_dev_only_v1"
+        - name: allow_masked_customer_sources
+          default: "false"
+        - name: require_unmasked_pii_for_parity
+          default: "true"
+        - name: skip_delivery_steps
+          default: "true"
+        - name: enable_validation_only
+          default: "true"
+        - name: sql_warehouse_id
+          default: "REPLACE_WITH_SQL_WAREHOUSE_ID"
+        - name: git_branch
+          default: "REPLACE_WITH_BRANCH_NAME"
+      tasks:
+        - task_key: preflight_readiness_checks
+          description: >
+            Gate-only preflight checks: source access, storage blockers, masked-customer policy,
+            history/seed decisions, and parameter validation.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_global_scope.sql
+
+        - task_key: static_references_and_udfs
+          depends_on:
+            - task_key: preflight_readiness_checks
+          description: >
+            Placeholder group for static reference checks and ReplaceChar checks.
+            Planned SQL references: databricks/sql/01_static_references/*,
+            databricks/sql/02_udfs/01_fn_replacechar.sql, databricks/sql/validation/*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: pre_regulation_ext_staging
+          depends_on:
+            - task_key: static_references_and_udfs
+          description: >
+            Placeholder group for pre-regulation price/currency/split and non-price staging.
+            Planned SQL references: databricks/sql/03_pre_regulation_ext/*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: regulation_movements
+          depends_on:
+            - task_key: pre_regulation_ext_staging
+          description: >
+            Placeholder group for regulation movements staging and parity checks.
+            Planned SQL references: databricks/sql/04_regulation_movements/*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: hedge_liquidity_scd
+          depends_on:
+            - task_key: regulation_movements
+          description: >
+            Placeholder group for liquidity ext, liquidity SCD, and LEI coverage checks.
+            Planned SQL references: databricks/sql/05_hedge_liquidity/*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: asic2_compatible_subset
+          depends_on:
+            - task_key: hedge_liquidity_scd
+          description: >
+            Placeholder group for ASIC2 subset and MiFID ASIC compatibility checks.
+            Planned SQL references: databricks/sql/06_asic2_subset/*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: mifid2_ext_staging
+          depends_on:
+            - task_key: asic2_compatible_subset
+          description: >
+            Placeholder group for MIFID2_ext customer/position/mirror/hedge/failed TRAX staging.
+            Planned SQL references: databricks/sql/07_mifid2_ext/*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: customer_outputs
+          depends_on:
+            - task_key: mifid2_ext_staging
+          description: >
+            Placeholder group for MIFID2_Customer and MIFID2_RegChange_Customer.
+            Planned SQL references: databricks/sql/08_outputs/01_* and 02_*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: main_report_outputs
+          depends_on:
+            - task_key: customer_outputs
+          description: >
+            Placeholder group for MIFID2_Report, MIFID2_ME_Report, MIFID2_Removed_OP_Partials.
+            Planned SQL references: databricks/sql/08_outputs/03_* through 06_*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: etoro_report
+          depends_on:
+            - task_key: main_report_outputs
+          description: >
+            Placeholder group for MIFID2_ETORO_Report.
+            Planned SQL references: databricks/sql/08_outputs/07_*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: hedge_report
+          depends_on:
+            - task_key: etoro_report
+          description: >
+            Placeholder group for MIFID2_Hedge_Report.
+            Planned SQL references: databricks/sql/08_outputs/08_*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: npd_trax_table_generation
+          depends_on:
+            - task_key: hedge_report
+          description: >
+            Placeholder group for MIFID2_NPD_TRAX table generation only.
+            Planned SQL references: databricks/sql/08_outputs/09_*.
+            Explicitly excludes upload/response handling.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: validation_packages
+          depends_on:
+            - task_key: npd_trax_table_generation
+          description: >
+            Placeholder group for module validations and cross-module readiness SQL.
+            Planned SQL references: databricks/sql/validation/* and databricks/sql/09_validation/*.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: final_readiness_summary
+          depends_on:
+            - task_key: validation_packages
+          description: >
+            Final readiness summary and blocker-status placeholder, including optional SQL Server
+            baseline comparison checkpoint.
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_cross_module_readiness.sql

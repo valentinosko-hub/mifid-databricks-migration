@@ -53,5 +53,9 @@ Additional handoff support:
 - [Remaining decisions](docs/remaining_decisions.md)
 - [Manager status summary](docs/manager_status_summary.md)
 - [Customer source policy (masked temporary fallback)](docs/source_to_databricks_mapping_review.md#customer-source-path-policy-temporary-masked-fallback--final-pii-gates)
+- [Workflow skeleton design (Step 17B)](docs/workflow_skeleton_design.md)
+- [Workflow orchestration plan (Step 17B)](docs/workflow_orchestration_plan.md)
+- [Workflow execution runbook (Step 17B)](docs/workflow_execution_runbook.md)
+- [Workflow manual approval checkpoints (Step 17B)](docs/workflow_manual_approval_checkpoints.md)
 
-**Status:** SQL templates and validation packages are authored; Databricks execution has not been performed. Manager-approved masked customer tables may be used for temporary development/structural testing only. Final parity remains blocked until `main.pii_data` access and other prerequisites in the blocker and decision documents are resolved.
+**Status:** SQL templates, validation packages, and a Step 17B workflow skeleton are authored; Databricks execution has not been performed. Manager-approved masked customer tables may be used for temporary development/structural testing only. Final parity remains blocked until `main.pii_data` access and other prerequisites in the blocker and decision documents are resolved.

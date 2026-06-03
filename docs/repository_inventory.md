@@ -13,6 +13,7 @@ Environment convention for all persistent targets:
 | --- | --- |
 | `docs/` | Analysis, gates, profiling, reconciliation, readiness, and handoff documentation |
 | `databricks/sql/` | Gated SQL templates, profiling gates, validation, and config helpers |
+| `databricks/workflows/` | Step 17B non-executing workflow skeleton templates |
 | `reference/mifid_databricks_migration_context/` | **Read-only** SQL Server SPs, DDLs, SSIS packages, mappings (implementation authority for business logic) |
 
 Do not modify files under `reference/`.
@@ -39,6 +40,10 @@ Do not modify files under `reference/`.
 | `known_differences.md` | Intentional or gated differences vs SQL Server |
 | `migration_execution_order.md` | Canonical module activation order |
 | `implementation_module_plan.md` | Module-by-module implementation plan |
+| `workflow_skeleton_design.md` | Step 17B workflow skeleton design and mode policy |
+| `workflow_orchestration_plan.md` | Step 17B orchestration format and task graph |
+| `workflow_execution_runbook.md` | Step 17B runbook/checklist and stop criteria |
+| `workflow_manual_approval_checkpoints.md` | Manual approval gates and current status |
 | `*_analysis.md` | Per-module output/staging analysis (customer, report, ETORO, hedge, NPD, etc.) |
 
 ## `databricks/sql/00_config/`
@@ -174,6 +179,29 @@ Do not modify files under `reference/`.
 | `08_cross_module_validation_manifest.sql` | Module manifest (outputs, validation paths, placeholders) |
 | `09_cross_module_dependency_gate_checks.sql` | Dependency/blocker/placeholder gate checks |
 
+## `databricks/sql/10_workflow/`
+
+**Purpose:** Step 17B workflow control and gate wrappers (SELECT-only, non-executing).
+
+| File | Role |
+| --- | --- |
+| `00_workflow_parameters.sql` | Workflow parameter manifest and policy checks |
+| `01_run_control.sql` | Run-control checkpoint manifest (SELECT-only) |
+| `02_audit_logging.sql` | Audit/event placeholder manifest (SELECT-only) |
+| `03_workflow_readme.md` | Wrapper usage and restrictions |
+| `gates/gate_global_scope.sql` | Global scope and policy gate checks |
+| `gates/gate_module_validation_chain.sql` | Module order and validation-chain gate manifest |
+| `gates/gate_cross_module_readiness.sql` | Cross-module readiness and blocker-summary checks |
+
+## `databricks/workflows/`
+
+**Purpose:** Step 17B workflow skeleton templates (not deployment-ready).
+
+| File | Role |
+| --- | --- |
+| `mifid_phase1_table_generation.yml` | Non-executing task/dependency skeleton |
+| `README.md` | Workflow-skeleton usage and scope restrictions |
+
 ## `reference/mifid_databricks_migration_context/`
 
 **Purpose:** Authoritative SQL Server and SSIS lineage (read-only).
@@ -204,3 +232,4 @@ NOC documents and old Databricks attempt materials may appear elsewhere under `r
 | Hedge report | `08_outputs/08_*` | `docs/mifid2_hedge_report_output_analysis.md` |
 | NPD TRAX | `08_outputs/09_*` | `docs/mifid2_npd_trax_output_analysis.md` |
 | Cross-module readiness | `09_validation` | `docs/final_readiness_assessment.md` |
+| Workflow skeleton/gates | `10_workflow`, `workflows` | `docs/workflow_skeleton_design.md` |

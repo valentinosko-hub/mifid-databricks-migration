@@ -15,7 +15,7 @@ Related readiness artifacts (Step 16B1):
 Phase-1 migration work in this repository is **documentation and gated SQL authoring complete** through Step 16B1, with **Step 16B2 final handoff documentation** added here.
 
 - **Built:** gated table-generation templates, staging templates, validation/reconciliation SQL, and cross-module readiness packaging for all in-scope MiFID modules in `main.regtech_ops_stg` (`bi_output_regtechops_` prefix).
-- **Not executed:** no Databricks runtime execution, no production object creation in `main.regtech`, no workflow/orchestration, and no delivery/upload/response handling.
+- **Not executed:** no Databricks runtime execution, no production object creation in `main.regtech`, and no delivery/upload/response handling.
 - **Blocked:** final execution parity remains blocked by `main.pii_data` access, storage, history/seed, and business/SME gates documented in `docs/open_blockers_for_execution.md`.
 - **Temporary workaround:** manager-approved masked customer tables (`main.general.bronze_etoro_customer_customer_masked`, `main.general.bronze_etoro_history_customer_masked`) enable development/structural testing only; they do not close final PII parity gates.
 - **Authority:** SQL Server stored procedures, SSIS packages, and DDLs under `reference/mifid_databricks_migration_context/` remain authoritative for business logic. NOC and old Databricks attempt artifacts are reference-only.
@@ -29,7 +29,7 @@ Phase-1 migration work in this repository is **documentation and gated SQL autho
 | Step 16B1 readiness consolidation | Authored (`databricks/sql/09_validation/`, readiness docs) |
 | Step 16B2 handoff package | This document set |
 | Databricks execution | **Not performed** |
-| Workflow/orchestration | **Not implemented** (documented order only) |
+| Workflow/orchestration | **Step 17B skeleton authored and execution-gated** (`databricks/workflows/` + `databricks/sql/10_workflow/`) |
 | Delivery / TRAX upload / response | **Out of scope** |
 
 All persistent targets are intended for:
@@ -120,13 +120,20 @@ Each module below has SQL under `databricks/sql/` and supporting analysis under 
 - **SQL:** `databricks/sql/09_validation/07_*` through `09_*`
 - **Docs:** `docs/final_readiness_assessment.md`, `docs/final_validation_execution_plan.md`, `docs/open_blockers_for_execution.md`
 
+### Step 17B workflow skeleton package
+
+- Non-executing workflow skeleton and gate-wrapper SQL authored.
+- **Workflow:** `databricks/workflows/mifid_phase1_table_generation.yml`, `databricks/workflows/README.md`
+- **SQL wrappers:** `databricks/sql/10_workflow/` and `databricks/sql/10_workflow/gates/`
+- **Docs:** `docs/workflow_skeleton_design.md`, `docs/workflow_orchestration_plan.md`, `docs/workflow_execution_runbook.md`, `docs/workflow_manual_approval_checkpoints.md`
+
 ## What has not been executed
 
 - No Databricks jobs, notebooks, or bundles were run from this repository for module activation.
 - No un-gated DELETE/INSERT/MERGE into final MiFID output tables.
 - No writes to `main.regtech` production schema.
 - No SQL Server baseline reconciliation runs (optional/gated until baseline sources exist).
-- No workflow/orchestration, scheduling, or operational runbooks beyond documentation.
+- No workflow/orchestration execution, scheduling activation, or Databricks deployment from this repository.
 
 ## What remains blocked
 
@@ -155,7 +162,7 @@ See `docs/execution_prerequisites.md` and `docs/remaining_decisions.md`.
 - TRAX/Cappitech upload and response import/update
 - Production deployment to `main.regtech`
 - Full historical backfill as a hard prerequisite
-- Workflow/orchestration implementation (skeleton documented only in planning docs; not built in repo)
+- Workflow/orchestration execution or deployment (Step 17B skeleton exists but remains non-executing)
 - Using NOC or old Databricks attempt as implementation authority (NOC = monitoring/freshness only; old attempt includes out-of-phase delivery/SFTP/TRAX scope)
 
 ## How the next engineer/analyst should continue
@@ -174,7 +181,7 @@ See `docs/execution_prerequisites.md` and `docs/remaining_decisions.md`.
 3. **Activate staging modules in dependency order** (static → Pre_Regulation → movements → hedge liquidity → ASIC2 → MIFID2_ext → customer → report family → ETORO → hedge → NPD TRAX).
 4. **Run validations** per module and Step 16B1 cross-module SQL (SELECT-only).
 5. **Compare to SQL Server baseline** where normalized baseline sources are available.
-6. **Only then** consider workflow/orchestration design (separate phase; not in this repo’s completed scope).
+6. **Only then** consider workflow/orchestration activation from the Step 17B skeleton (still a separate approval phase).
 
 ## Key reference documents
 
@@ -185,6 +192,10 @@ See `docs/execution_prerequisites.md` and `docs/remaining_decisions.md`.
 | Open dependencies | `docs/unresolved_dependencies.md` |
 | Coverage matrix | `docs/dependency_coverage_matrix.md` |
 | Validation gates | `docs/validation_gates.md` |
+| Workflow skeleton design | `docs/workflow_skeleton_design.md` |
+| Workflow orchestration plan | `docs/workflow_orchestration_plan.md` |
+| Workflow execution runbook | `docs/workflow_execution_runbook.md` |
+| Workflow manual approvals | `docs/workflow_manual_approval_checkpoints.md` |
 | Reconciliation | `docs/reconciliation_plan.md` |
 | History/seed | `docs/history_seed_requirements.md` |
 | Known differences | `docs/known_differences.md` |

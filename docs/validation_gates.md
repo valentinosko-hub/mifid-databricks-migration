@@ -95,6 +95,28 @@ Must be true:
 Evidence:
 - `docs/open_questions_and_decisions.md`
 
+## Step 17B workflow gate-wrapper mapping
+
+Step 17B introduces non-executing gate-wrapper SQL for orchestration skeleton checks:
+
+- `databricks/sql/10_workflow/gates/gate_global_scope.sql`
+- `databricks/sql/10_workflow/gates/gate_module_validation_chain.sql`
+- `databricks/sql/10_workflow/gates/gate_cross_module_readiness.sql`
+
+Gate-to-wrapper mapping:
+
+| Validation gate | Workflow wrapper check |
+| --- | --- |
+| Gate 1 Scope gate | `gate_global_scope.sql` (`scope_gate`, delivery/upload exclusion checks) |
+| Gate 2 Naming/environment gate | `gate_global_scope.sql` (`environment_naming_gate`) |
+| Gate 3 Source-of-truth gate | `gate_module_validation_chain.sql` (module manifest and source-of-truth chain expectations) |
+| Gate 4 SSIS staging coverage gate | `gate_module_validation_chain.sql` (module sequence and staging-scope references) |
+| Gate 5 Final output target gate | `gate_module_validation_chain.sql` (output module placeholders and dependency ordering) |
+| Gate 6 Static/reference availability gate | `gate_global_scope.sql` + `gate_cross_module_readiness.sql` (`static_reference_availability`) |
+| Gate 7 Mapping quality gate | `gate_cross_module_readiness.sql` policy and approval checkpoint statuses |
+| Gate 8 Data validation checklist gate | `gate_module_validation_chain.sql` + `gate_cross_module_readiness.sql` validation completion checks |
+| Gate 9 Open-questions governance gate | `gate_cross_module_readiness.sql` decision and approval status checks |
+
 ## Step 16 final gate categories
 
 The consolidated gate categories for cross-module execution readiness are:
@@ -141,3 +163,4 @@ The consolidated gate categories for cross-module execution readiness are:
 
 - Production deployment remains blocked until execution-readiness gates pass and deployment-specific approvals are complete.
 - Step 16B1 itself is documentation/validation consolidation only and does not perform deployment actions.
+- Step 17B workflow assets remain template-only and do not perform deployment actions.

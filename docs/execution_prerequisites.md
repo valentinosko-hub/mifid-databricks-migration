@@ -21,6 +21,27 @@ Final field-level parity remains gated for identity-sensitive customer fields an
 
 Future orchestration must distinguish development/structural test mode (masked) from final parity/production mode (unmasked PII or formal approval).
 
+## Workflow parameter semantics (Step 17B skeleton)
+
+The Step 17B workflow skeleton is defined in `databricks/workflows/mifid_phase1_table_generation.yml` and must remain non-executing until prerequisites are closed.
+
+Required parameter behavior:
+
+| Parameter | Meaning | Required behavior |
+| --- | --- | --- |
+| `run_mode` | Workflow mode selector | Use `development_structural_test` for structural checks only; use `final_parity_production` only after blocker closure and manual approvals |
+| `dry_run` | Activation safety switch | Keep `true` until explicit final go/no-go approval |
+| `customer_source_policy` | Customer-source governance policy | Keep `temporary_masked_dev_only_v1` unless a formally approved replacement policy is documented |
+| `dev_customer_source_mode` | Customer source path for development mode | `masked_fallback` is structural-test only; `pii_required` is mandatory for final parity mode |
+| `allow_masked_customer_sources` | Explicit masked-source override | Keep `false` by default; set `true` only for approved structural checks |
+| `require_unmasked_pii_for_parity` | Final parity enforcement flag | Keep `true` in final parity mode |
+
+Related wrappers:
+
+- `databricks/sql/10_workflow/00_workflow_parameters.sql`
+- `databricks/sql/10_workflow/gates/gate_global_scope.sql`
+- `databricks/sql/10_workflow/gates/gate_cross_module_readiness.sql`
+
 ## Required access grants (final parity; blockers remain open)
 
 | Object / scope | Issue | Owner action |
