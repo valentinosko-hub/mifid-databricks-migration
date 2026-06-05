@@ -31,6 +31,7 @@ Status values:
 | MAG-15 | Exact CFI / InstrumentClassification parity approval | RegTech SME | OPEN | Classification parity test evidence |
 | MAG-16 | SQL Server baseline comparison approval | Validation Owner + SQL Server Team | OPEN | Baseline comparison outputs where required |
 | MAG-17 | Final validation signoff | Validation Owner | OPEN | Module + cross-module validation acceptance |
+| MAG-18 | Staging smoke-test workflow enablement | DE + Validation Owner | OPEN | `mifid_phase1_staging_smoke_test.yml` review; MAG-01–04 minimum; staging write access to `main.regtech_ops_stg`; no delivery/production scope |
 
 ## Evidence detail by gate
 
@@ -53,6 +54,7 @@ Status values:
 | MAG-15 | CFI/classification parity evidence (maps to D-14) |
 | MAG-16 | SQL Server baseline comparison tables/reports (maps to D-23) |
 | MAG-17 | Full validation chain per `docs/final_validation_execution_plan.md` + `09_validation/*` |
+| MAG-18 | Signed enablement for staging smoke-test deployment; `docs/reporting_job_preparation_plan.md` checklist; parameter review against `databricks/config/workflow_parameters.yml` |
 
 ## Approval record placeholders
 
@@ -222,6 +224,17 @@ Status after approval: CLOSED
 | Approval date | _TBD_ |
 | Jira ticket | _TBD_ |
 | Status | OPEN |
+
+### MAG-18 — Staging smoke-test workflow enablement
+
+| Field | Value |
+| --- | --- |
+| Approval owner | _TBD_ |
+| Approval date | _TBD_ |
+| Jira ticket | _TBD_ |
+| Status | OPEN |
+
+Applies to `databricks/workflows/mifid_phase1_staging_smoke_test.yml` only. Does not authorize final NPD_TRAX, Hedge report, PII parity, delivery, or production deployment.
 
 ## Policy reminders
 

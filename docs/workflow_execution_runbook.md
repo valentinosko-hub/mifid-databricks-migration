@@ -1,6 +1,10 @@
 # Workflow Execution Runbook (Step 17B Skeleton; Step 17C Governance)
 
-This runbook defines how to use the Step 17B workflow skeleton for **staging-only RegTechOps** execution and governance. Jobs/workflows in this repository are **not production-grade**; they write to `main.regtech_ops_stg` only. Data Engineering will later adapt them for production.
+This runbook defines how to use the **staging smoke-test** and Step 17B workflow skeletons for **staging-only RegTechOps** execution and governance. Jobs/workflows in this repository are **not production-grade**; they write to `main.regtech_ops_stg` only. Data Engineering will later adapt them for production.
+
+**Primary staging artifact:** `databricks/workflows/mifid_phase1_staging_smoke_test.yml`  
+**Parameter defaults:** `databricks/config/workflow_parameters.yml`  
+**Preparation plan:** `docs/reporting_job_preparation_plan.md`
 
 Governance controls and manual approval workflow: `docs/workflow_governance_controls.md`, `docs/manual_approval_gates.md`.
 
@@ -51,11 +55,25 @@ Before any execution enablement, confirm:
 
 Intended purpose: staging validation in `main.regtech_ops_stg` — not final parity.
 
+Workflow: `mifid_phase1_staging_smoke_test.yml` (template-only until deployment authorized).
+
+| Parameter | Default |
+| --- | --- |
+| `source_catalog` / `source_schema` | `main` / `regtech` |
+| `target_catalog` / `target_schema` | `main` / `regtech_ops_stg` |
+| `object_prefix` | `bi_output_regtechops_` |
+| `run_mode` | `development_structural_test` |
+| `dry_run` | `true` |
+| `skip_delivery_steps` | `true` |
+
+Task groups (in order): source readiness → static refs → price/currency/split → non-price Reg_Ext → regulation movements → hedge/liquidity ext → ASIC2 structural → MIFID2_ext non-PII → optional masked customer → optional manual seed → validation summary.
+
 - `run_mode=development_structural_test`
 - Writes target `main.regtech_ops_stg` only (`bi_output_regtechops_` / `bi_output_regtechops_seed_`)
+- Read `main.regtech` when DE-migrated; dev fallback to confirmed alternate schemas only with documented evidence
 - Approved CSV seed loads permitted via `databricks/sql/11_seed_testing/` (e.g. initial `MIFID2_NPD_TRAX` into `bi_output_regtechops_seed_test_mifid2_npd_trax`) — see [manual_seed_testing_plan.md](manual_seed_testing_plan.md)
-- `dry_run=false` permitted for staging smoke tests when scoped to staging schema only
-- Masked customer permitted for structural tests only
+- `dry_run=false` permitted for staging smoke tests when scoped to staging schema only and MAG/blocker checks pass
+- Masked customer permitted for structural tests only when `allow_masked_customer_sources=true` and MAG-05 is CLOSED
 
 Allowed outcomes:
 
@@ -152,9 +170,11 @@ Rollback action in this step:
 
 ## What not to run
 
+- Do not deploy `mifid_phase1_staging_smoke_test.yml` or other skeletons until blockers/MAG gates allow.
 - Do not deploy staging jobs to **production schedules** or adapt them as production-grade without DE's separate program.
 - Do not write to `main.regtech` from RegTech staging jobs.
 - Do not run regulatory delivery/upload/response logic.
+- Do not activate final NPD_TRAX, Hedge report, or PII customer parity from the smoke-test workflow.
 - Do not claim final regulatory parity without MAG closure.
 
-**Permitted:** execute staging-only smoke-test and seed-load jobs scoped to `main.regtech_ops_stg` per this runbook.
+**Permitted (when approved):** execute staging-only smoke-test and seed-load jobs scoped to `main.regtech_ops_stg` per this runbook.

@@ -13,11 +13,16 @@ Jobs and workflows defined here are **staging-only RegTechOps jobs** for `main.r
 
 ## Recommended format
 
-Use a Databricks Asset Bundle YAML skeleton:
+Use Databricks Asset Bundle YAML skeletons:
 
-- `databricks/workflows/mifid_phase1_table_generation.yml`
+| Workflow | File | Scope |
+| --- | --- | --- |
+| Staging smoke test | `databricks/workflows/mifid_phase1_staging_smoke_test.yml` | Ext/staging/audit structural validation |
+| Full Phase 1 generation | `databricks/workflows/mifid_phase1_table_generation.yml` | Broader report/output ordering (gated) |
 
-This format expresses ordered task dependencies and parameterized run modes for **staging smoke-test and validation** orchestration.
+Shared defaults: `databricks/config/workflow_parameters.yml`
+
+The staging smoke-test workflow is the **primary** orchestration artifact for non-production ext/staging/audit validation. The table-generation workflow remains a separate, broader skeleton for later enablement.
 
 ## Execution posture
 
@@ -27,7 +32,25 @@ This format expresses ordered task dependencies and parameterized run modes for 
 
 NOC and old Databricks attempt materials remain reference-only.
 
-## Task graph
+## Task graph — staging smoke test (primary)
+
+```mermaid
+flowchart TD
+  sourceReadinessChecks --> staticReferenceChecks
+  staticReferenceChecks --> priceCurrencySplitExtStaging
+  priceCurrencySplitExtStaging --> nonPriceRegExtStaging
+  nonPriceRegExtStaging --> regulationMovementStaging
+  regulationMovementStaging --> hedgeLiquidityExtStaging
+  hedgeLiquidityExtStaging --> asic2StructuralStaging
+  asic2StructuralStaging --> mifid2ExtNonPiiStaging
+  mifid2ExtNonPiiStaging --> maskedCustomerStructuralTests
+  maskedCustomerStructuralTests --> manualSeedTestingChecks
+  manualSeedTestingChecks --> validationSummary
+```
+
+Optional groups: `maskedCustomerStructuralTests` (MAG-05), `manualSeedTestingChecks` (seed load evidence).
+
+## Task graph — full Phase 1 generation (gated; separate workflow)
 
 ```mermaid
 flowchart TD
@@ -46,7 +69,20 @@ flowchart TD
   validationPackages --> finalReadinessSummary
 ```
 
-## Dependency chain by module group
+## Dependency chain — staging smoke test
+
+- Source readiness gates all downstream groups (MAG-01, MAG-02).
+- Static reference checks gate price/currency and non-price Reg_Ext staging.
+- Price/currency/split staging gates non-price Reg_Ext staging.
+- Non-price Reg_Ext gates regulation movement staging.
+- Regulation movements gate hedge/liquidity ext staging.
+- Hedge/liquidity ext gates ASIC2 structural subset.
+- ASIC2 structural gates MIFID2_ext non-PII staging.
+- MIFID2_ext non-PII gates optional masked customer tests (parameter + MAG-05).
+- Masked customer gates optional manual seed checks.
+- Manual seed gates validation summary.
+
+## Dependency chain — full Phase 1 generation (gated)
 
 - Preflight checks gate all downstream groups.
 - Static/UDF checks gate pre-regulation and output normalization.
@@ -84,7 +120,7 @@ No existing business SQL is modified by Step 17B.
   - `databricks/sql/09_validation/08_cross_module_validation_manifest.sql`
   - `databricks/sql/09_validation/09_cross_module_dependency_gate_checks.sql`
 
-## Explicit exclusions
+## Explicit exclusions (both workflows)
 
 - Regulatory CSV export/delivery (TRAX paths)
 - 7z compression
@@ -93,6 +129,13 @@ No existing business SQL is modified by Step 17B.
 - TRAX response handling
 - Writes to `main.regtech`
 - Production-grade schedules and production deployment claims
+
+## Staging smoke-test gated exclusions (not in `mifid_phase1_staging_smoke_test.yml`)
+
+- Final `MIFID2_NPD_TRAX` flow (MAG-10)
+- Final `MIFID2_Hedge_Report` activation (MAG-12, MAG-13; RecordID registry)
+- Final PII customer parity (`main.pii_data`, MAG-06)
+- Customer/report/NPD output chain (reserved for `mifid_phase1_table_generation.yml`)
 
 ## Explicit inclusions (staging)
 

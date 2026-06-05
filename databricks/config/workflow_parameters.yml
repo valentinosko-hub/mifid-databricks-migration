@@ -1,0 +1,78 @@
+# Shared workflow parameter defaults — staging smoke-test and Step 17B skeletons
+# Template-only; not deployed. Referenced by workflow YAML and execution docs.
+#
+# Environment policy:
+# - Read: main.regtech (DE-migrated sources) when available
+# - Dev fallback: alternate confirmed source schemas documented in docs only
+# - Write: main.regtech_ops_stg only; prefix bi_output_regtechops_
+# - Never write main.regtech from RegTech staging jobs
+
+staging_smoke_test:
+  description: Non-production ext/staging/audit structural smoke-test defaults
+  workflow_file: databricks/workflows/mifid_phase1_staging_smoke_test.yml
+  job_key: mifid_phase1_staging_smoke_test_skeleton
+  schedule: null
+  deploy: false
+  parameters:
+    source_catalog: main
+    source_schema: regtech
+    target_catalog: main
+    target_schema: regtech_ops_stg
+    # Compatibility aliases for gate SQL wrappers (target = write schema)
+    catalog: main
+    schema: regtech_ops_stg
+    object_prefix: bi_output_regtechops_
+    report_date: "YYYY-MM-DD"
+    run_mode: development_structural_test
+    dry_run: "true"
+    allow_masked_customer_sources: "false"
+    require_unmasked_pii_for_parity: "true"
+    skip_delivery_steps: "true"
+    enable_validation_only: "true"
+    dev_customer_source_mode: masked_fallback
+    customer_source_policy: temporary_masked_dev_only_v1
+
+phase1_table_generation:
+  description: Step 17B full table-generation ordering skeleton (separate workflow)
+  workflow_file: databricks/workflows/mifid_phase1_table_generation.yml
+  job_key: mifid_phase1_table_generation_skeleton
+  schedule: null
+  deploy: false
+  parameters:
+    catalog: main
+    schema: regtech_ops_stg
+    object_prefix: bi_output_regtechops_
+    report_date: "YYYY-MM-DD"
+    run_mode: development_structural_test
+    dry_run: "true"
+    allow_masked_customer_sources: "false"
+    require_unmasked_pii_for_parity: "true"
+    skip_delivery_steps: "true"
+    enable_validation_only: "true"
+
+source_read_policy:
+  primary:
+    catalog: main
+    schema: regtech
+    note: DE-migrated SQL Server / RegReportDB sources
+  development_fallback:
+    enabled: false
+    note: >
+      When a main.regtech object is not yet available, teams may read from an
+      already-confirmed alternate schema for structural debugging only. Document
+      the fallback in run evidence; do not treat as production authority.
+
+write_policy:
+  catalog: main
+  schema: regtech_ops_stg
+  object_prefix: bi_output_regtechops_
+  seed_prefix: bi_output_regtechops_seed_
+  forbidden_write_schemas:
+    - main.regtech
+
+gated_exclusions:
+  - final MIFID2_NPD_TRAX flow
+  - final MIFID2_Hedge_Report activation
+  - final PII customer parity (main.pii_data)
+  - delivery upload response production deployment
+  - production schedules

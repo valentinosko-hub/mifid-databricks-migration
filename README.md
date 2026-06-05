@@ -77,9 +77,12 @@ Additional handoff support:
 - [Remaining decisions](docs/remaining_decisions.md)
 - [Manager status summary](docs/manager_status_summary.md)
 - [Customer source policy (masked temporary fallback)](docs/source_to_databricks_mapping_review.md#customer-source-path-policy-temporary-masked-fallback--final-pii-gates)
+- [Reporting job preparation plan (staging smoke test)](docs/reporting_job_preparation_plan.md)
 - [Workflow skeleton design (Step 17B)](docs/workflow_skeleton_design.md)
 - [Workflow orchestration plan (Step 17B)](docs/workflow_orchestration_plan.md)
 - [Workflow execution runbook (Step 17B)](docs/workflow_execution_runbook.md)
+- Staging smoke-test workflow: `databricks/workflows/mifid_phase1_staging_smoke_test.yml`
+- Shared workflow parameters: `databricks/config/workflow_parameters.yml`
 - [Workflow manual approval checkpoints (Step 17B)](docs/workflow_manual_approval_checkpoints.md)
 - [Workflow governance controls (Step 17C)](docs/workflow_governance_controls.md)
 - [Manual approval gates (Step 17C)](docs/manual_approval_gates.md)

@@ -54,8 +54,9 @@ Permitted when secure seed extracts and `main.regtech_ops_stg` write access exis
 | --- | --- |
 | 0a | Load approved CSV seed for `MIFID2_NPD_TRAX` using `databricks/sql/11_seed_testing/` templates into `bi_output_regtechops_seed_test_mifid2_npd_trax` (initial feasibility test) |
 | 0b | Run `04_manual_seed_validation.sql` (SELECT-only); document as **staging evidence only** — see [manual_seed_testing_plan.md](manual_seed_testing_plan.md) |
-| 0c | Run staging smoke-test jobs for ext/staging/audit modules not requiring final PII |
+| 0c | Run staging smoke-test workflow (`databricks/workflows/mifid_phase1_staging_smoke_test.yml`) for ext/staging/audit modules not requiring final PII — see [reporting_job_preparation_plan.md](reporting_job_preparation_plan.md) |
 | 0d | Confirm NPD remains later in reporting flow (history/state dependency); seed test does not close NPD parity gates |
+| 0e | Keep final NPD_TRAX, Hedge report, PII customer parity, and delivery paths disabled in smoke-test workflow |
 
 Do not treat Phase 0.5 as final-parity or production readiness.
 

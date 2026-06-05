@@ -1,40 +1,57 @@
-# Step 17B Workflow Skeleton
+# Workflow Skeletons (Step 17B + Staging Smoke Test)
 
-This folder contains **template-only** workflow artifacts for Phase 1 MiFID table/report generation in `main.regtech_ops_stg`.
+This folder contains **template-only** workflow artifacts for Phase 1 MiFID work in `main.regtech_ops_stg`.
 
-## Important status
+## Workflows
 
-- `mifid_phase1_table_generation.yml` is a **non-executing skeleton**.
-- It is not an approved deployment artifact.
-- Do not deploy or execute it until blockers are closed and manual approvals are recorded.
+| File | Purpose | Status |
+| --- | --- | --- |
+| `mifid_phase1_staging_smoke_test.yml` | Ext/staging/audit structural smoke tests | Template-only; **do not deploy** |
+| `mifid_phase1_table_generation.yml` | Full table/report generation ordering skeleton | Template-only; **do not deploy** |
 
-## What this skeleton is for
+Shared parameter defaults: `databricks/config/workflow_parameters.yml`
 
-- Representing task-group order and dependencies.
-- Defining parameter placeholders and run modes.
-- Documenting gate checkpoints before any execution enablement.
+## Staging smoke-test workflow (`mifid_phase1_staging_smoke_test.yml`)
 
-## What this skeleton does not do
+Non-production orchestration for validating ext/staging/audit tables before final reporting activation.
 
-- No workflow deployment.
-- No Databricks job creation in workspace.
-- No activation of business transformation SQL.
-- No CSV/7z/SFTP delivery.
-- No TRAX/Cappitech upload or response handling.
-- No production deployment to `main.regtech`.
+- **Read:** `main.regtech` (primary); dev fallback to confirmed alternate schemas documented only in run evidence
+- **Write:** `main.regtech_ops_stg` with `bi_output_regtechops_` prefix
+- **Defaults:** `run_mode=development_structural_test`, `dry_run=true`, no schedule
+- **11 task groups:** source readiness → static refs → price/currency/split → non-price Reg_Ext → regulation movements → hedge/liquidity ext → ASIC2 structural → MIFID2_ext non-PII → optional masked customer → optional manual seed → validation summary
+
+**Not included (gated):** final NPD_TRAX, final Hedge report, final PII customer parity, delivery/upload/response/production.
+
+See `docs/reporting_job_preparation_plan.md` and `docs/workflow_execution_runbook.md`.
+
+## Table-generation workflow (`mifid_phase1_table_generation.yml`)
+
+Broader Phase 1 ordering skeleton including customer outputs, reports, hedge, and NPD table generation placeholders. Remains execution-gated separately from the smoke-test workflow.
+
+## Important status (both workflows)
+
+- Non-executing skeletons — not approved deployment artifacts
+- Do not deploy or execute until blockers are closed and manual approvals are recorded
+- No workflow deployment or Databricks job creation from this repo step
+- No activation of business transformation SQL from YAML alone
+- No CSV/7z/SFTP delivery, TRAX/Cappitech upload, or response handling
+- No production deployment to `main.regtech`
 
 ## Policy reminders
 
-- Development/structural-test mode may use masked customer fallback only when explicitly enabled:
+- Development/structural-test mode may use masked customer fallback only when explicitly enabled and MAG-05 is CLOSED:
   - `main.general.bronze_etoro_customer_customer_masked`
   - `main.general.bronze_etoro_history_customer_masked`
-- Final parity mode requires unmasked PII sources or formal approval:
+- Final parity mode requires unmasked PII sources or formal approval (MAG-06):
   - `main.pii_data.bronze_etoro_customer_customer`
   - `main.pii_data.bronze_etoro_history_customer`
 - NOC and old Databricks attempt artifacts remain reference-only.
 
-See:
+## Related docs
+
+- `docs/reporting_job_preparation_plan.md`
 - `docs/workflow_skeleton_design.md`
 - `docs/workflow_orchestration_plan.md`
 - `docs/workflow_execution_runbook.md`
-- `docs/workflow_manual_approval_checkpoints.md`
+- `docs/manual_approval_gates.md`
+- `docs/workflow_governance_controls.md`

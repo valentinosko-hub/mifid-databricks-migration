@@ -1,0 +1,243 @@
+# TEMPLATE ONLY — STAGING SMOKE-TEST WORKFLOW SKELETON (NON-PRODUCTION)
+# Do not deploy or execute until blockers in docs/open_blockers_for_execution.md are closed
+# and applicable manual approvals in docs/manual_approval_gates.md are recorded.
+#
+# Scope:
+# - Ext/staging/audit table structural smoke tests in main.regtech_ops_stg only
+# - Read sources from main.regtech when DE-migrated; dev fallback documented in docs only
+# - No writes to main.regtech; no delivery/upload/response; no production schedules
+# - run_mode default: development_structural_test; dry_run default: true
+#
+# Explicitly DISABLED / GATED (not included as runnable tasks):
+# - final MIFID2_NPD_TRAX flow (MAG-10; NPD history unavailable)
+# - final Hedge report activation (MAG-12/MAG-13; RecordID registry not ready)
+# - final PII customer parity (MAG-06; main.pii_data blocked)
+# - delivery / upload / response / production deployment
+# - mifid_phase1_table_generation customer/report/NPD output chain
+#
+# Optional task groups (parameter-gated at execution time; template tasks remain in graph):
+# - masked_customer_structural_tests — only when allow_masked_customer_sources=true (MAG-05)
+# - manual_seed_testing_checks — only when seed tables loaded (see manual_seed_testing_plan.md)
+#
+# Parameter defaults: databricks/config/workflow_parameters.yml
+
+bundle:
+  name: mifid_phase1_staging_smoke_test_skeleton
+
+variables:
+  sql_warehouse_id:
+    description: Placeholder SQL warehouse ID for future execution enablement
+    default: "REPLACE_WITH_SQL_WAREHOUSE_ID"
+
+resources:
+  jobs:
+    mifid_phase1_staging_smoke_test_skeleton:
+      name: mifid_phase1_staging_smoke_test_skeleton_do_not_deploy
+      description: >
+        Staging-only smoke-test workflow skeleton for MiFID ext/staging/audit tables.
+        Template-only, intentionally non-executing, no schedule, no production deployment.
+        Writes target main.regtech_ops_stg with bi_output_regtechops_ prefix only.
+      max_concurrent_runs: 1
+      tags:
+        phase: staging_smoke_test
+        state: template_only_execution_gated
+        environment: regtech_ops_stg
+        delivery_scope: excluded
+        production_scope: excluded
+      parameters:
+        - name: source_catalog
+          default: "main"
+        - name: source_schema
+          default: "regtech"
+        - name: target_catalog
+          default: "main"
+        - name: target_schema
+          default: "regtech_ops_stg"
+        - name: catalog
+          default: "main"
+        - name: schema
+          default: "regtech_ops_stg"
+        - name: object_prefix
+          default: "bi_output_regtechops_"
+        - name: report_date
+          default: "YYYY-MM-DD"
+        - name: run_mode
+          default: "development_structural_test"
+        - name: dry_run
+          default: "true"
+        - name: allow_masked_customer_sources
+          default: "false"
+        - name: require_unmasked_pii_for_parity
+          default: "true"
+        - name: skip_delivery_steps
+          default: "true"
+        - name: enable_validation_only
+          default: "true"
+        - name: dev_customer_source_mode
+          default: "masked_fallback"
+        - name: customer_source_policy
+          default: "temporary_masked_dev_only_v1"
+        - name: sql_warehouse_id
+          default: "REPLACE_WITH_SQL_WAREHOUSE_ID"
+        - name: git_branch
+          default: "REPLACE_WITH_BRANCH_NAME"
+      tasks:
+        - task_key: source_readiness_checks
+          description: >
+            Group 1 — Source and target readiness.
+            Verify DE-migrated source tables exist in main.regtech; required columns;
+            row counts/date ranges where applicable; target schema main.regtech_ops_stg exists;
+            manual seed test tables if used.
+            Dev fallback: read from confirmed alternate schemas only when main.regtech source
+            not yet available (documented fallback — not production authority).
+            Planned SQL: databricks/sql/validation/* profiling;
+            databricks/sql/03_pre_regulation_ext/01_price_currency_source_profiling.sql,
+            04_non_price_source_profiling.sql; module *_source_profiling.sql;
+            databricks/sql/11_seed_testing/04_manual_seed_validation.sql (if seeds used).
+            Gate: databricks/sql/10_workflow/gates/gate_global_scope.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_global_scope.sql
+
+        - task_key: static_reference_checks
+          depends_on:
+            - task_key: source_readiness_checks
+          description: >
+            Group 2 — Static reference availability and required-column checks.
+            Planned SQL: databricks/sql/01_static_references/*;
+            databricks/sql/validation/01_static_reference_row_counts.sql through 07_*;
+            databricks/sql/validation/02_static_reference_required_columns.sql.
+            Gate: databricks/sql/10_workflow/gates/gate_module_validation_chain.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: price_currency_split_ext_staging
+          depends_on:
+            - task_key: static_reference_checks
+          description: >
+            Group 3 — Price/currency/split ext staging structural checks.
+            Targets (staging prefix): Reg_CurrencyPrice_Ext, Reg_Ext_CurrencyPriceMaxDateWithSplit,
+            Reg_Ext_DailyMaxPrices, Reg_Ext_T_PriceCandle60Min, Reg_Ext_HistorySplitRatio.
+            Planned SQL: databricks/sql/03_pre_regulation_ext/02_price_currency_staging.sql,
+            03_price_currency_validation.sql.
+            Gate: databricks/sql/10_workflow/gates/gate_module_validation_chain.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: non_price_reg_ext_staging
+          depends_on:
+            - task_key: price_currency_split_ext_staging
+          description: >
+            Group 4 — Non-price Reg_Ext staging structural checks.
+            Targets: Reg_Ext_Trade_GetInstrument, Reg_Ext_Trade_InstrumentMetaData,
+            Reg_Ext_DictionaryCurrency, Reg_Ext_DictionaryCurrencyType, Reg_Instruments_ext,
+            and other non-history Reg_Ext staging where already authored.
+            Planned SQL: databricks/sql/03_pre_regulation_ext/05_non_price_staging_gates.sql,
+            06_non_price_validation.sql.
+            Gate: databricks/sql/10_workflow/gates/gate_module_validation_chain.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: regulation_movement_staging
+          depends_on:
+            - task_key: non_price_reg_ext_staging
+          description: >
+            Group 5 — Regulation movement staging structural checks.
+            Targets: Reg_Regulation_Movments_Positions; migration/regulation snapshots.
+            Planned SQL: databricks/sql/04_regulation_movements/*.
+            Gate: databricks/sql/10_workflow/gates/gate_module_validation_chain.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: hedge_liquidity_ext_staging
+          depends_on:
+            - task_key: regulation_movement_staging
+          description: >
+            Group 6 — Hedge/liquidity ext staging (SCD structural checks only).
+            Targets: Reg_HedgeServerToLiquidityAccount_Ext, Reg_LiquidtyAcount_Ext,
+            Reg_Ext_LiquidityAccountID, Reg_Ext_LiquidityProviders.
+            Full historical SCD validation remains gated (MAG-11).
+            Planned SQL: databricks/sql/05_hedge_liquidity/* (structural subset).
+            Gate: databricks/sql/10_workflow/gates/gate_module_validation_chain.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: asic2_structural_staging
+          depends_on:
+            - task_key: hedge_liquidity_ext_staging
+          description: >
+            Group 7 — ASIC2-compatible subset structural checks only (no final seed parity).
+            Planned SQL: databricks/sql/06_asic2_subset/* (structural validation subset).
+            Gate: databricks/sql/10_workflow/gates/gate_module_validation_chain.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: mifid2_ext_non_pii_staging
+          depends_on:
+            - task_key: asic2_structural_staging
+          description: >
+            Group 8 — MIFID2_ext non-PII staging structural checks.
+            Targets: MIFID2_ext_Position, MIFID2_ext_RegChange_Position,
+            MIFID2_ext_PositionChangeLog, MIFID2_ext_Mirror, MIFID2_ext_HedgeExecutionLog.
+            MIFID2_Failed_TRAX remains gated if NPD history unavailable (not in this workflow).
+            Planned SQL: databricks/sql/07_mifid2_ext/* (non-PII subset).
+            Gate: databricks/sql/10_workflow/gates/gate_module_validation_chain.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: masked_customer_structural_tests
+          depends_on:
+            - task_key: mifid2_ext_non_pii_staging
+          description: >
+            Group 9 — OPTIONAL masked customer structural tests.
+            Execute only when allow_masked_customer_sources=true and MAG-05 is CLOSED.
+            No final parity claim. Sources: main.general bronze masked customer tables only.
+            Does not activate MIFID2_Customer final parity or main.pii_data paths.
+            Gate: databricks/sql/10_workflow/gates/gate_module_validation_chain.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: manual_seed_testing_checks
+          depends_on:
+            - task_key: masked_customer_structural_tests
+          description: >
+            Group 10 — OPTIONAL manual seed table checks.
+            Validates staging seed tables such as bi_output_regtechops_seed_test_mifid2_npd_trax
+            when CSV seed loads have been performed per docs/manual_seed_testing_plan.md.
+            Staging evidence only — does not close NPD_TRAX parity gates.
+            Planned SQL: databricks/sql/11_seed_testing/04_manual_seed_validation.sql.
+            Gate: databricks/sql/10_workflow/gates/gate_module_validation_chain.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
+
+        - task_key: validation_summary
+          depends_on:
+            - task_key: manual_seed_testing_checks
+          description: >
+            Group 11 — Module validation packages (where safe) and cross-module readiness.
+            Planned SQL: databricks/sql/validation/*; databricks/sql/09_validation/*;
+            module *_validation.sql where structural-only and staging-scoped.
+            Gate: databricks/sql/10_workflow/gates/gate_cross_module_readiness.sql
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../sql/10_workflow/gates/gate_cross_module_readiness.sql
