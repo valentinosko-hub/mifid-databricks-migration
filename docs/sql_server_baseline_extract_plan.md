@@ -6,6 +6,20 @@ Documents how SQL Server baseline extracts and historical seed loads should be p
 
 **Evidence:** BI-21 MCP metadata (2026-06-05) and manual SQL aggregates (evidence outside repo). Inventory detail: [historical_seed_inventory.md](historical_seed_inventory.md).
 
+**Staging context:** Approved CSV seed extracts may be loaded into `main.regtech_ops_stg` seed tables for staging tests. RegTech staging jobs are not production-grade; DE migrates SQL Server sources to `main.regtech` via the general pipeline and will later adapt staging jobs for production.
+
+---
+
+## Environment policy (staging loads)
+
+| Setting | Value |
+| --- | --- |
+| Read sources (when available) | `main.regtech` and other DE-migrated catalogs |
+| Write target | `main.regtech_ops_stg` only |
+| Generated object prefix | `bi_output_regtechops_` |
+| Seed object prefix | `bi_output_regtechops_seed_` |
+| Control/registry prefix | `bi_output_regtechops_` |
+
 ---
 
 ## Scope boundaries
@@ -19,10 +33,15 @@ Documents how SQL Server baseline extracts and historical seed loads should be p
 
 ### Out of scope (unless explicitly approved)
 
-- Full export of `dbo.MIFID2_Report` — **do not full-export** unless RegTech SME / Validation explicitly approves scope and storage
-- CSV export, 7z, SFTP, TRAX upload/response
-- Production deployment to `main.regtech`
-- Storing PII samples or raw query outputs in Git
+- Full export of `dbo.MIFID2_Report` — **do not full-export** unless RegTech SME / Validation explicitly approves scope and storage; use selected baseline dates only
+- Regulatory delivery: CSV export to TRAX paths, 7z, SFTP, TRAX upload/response
+- Production deployment to `main.regtech` from RegTech staging jobs
+- Storing seed CSVs, PII samples, or raw query outputs in Git
+
+### In scope for staging tests
+
+- Approved CSV **seed** extracts landed in secure storage and loaded into `main.regtech_ops_stg` with `bi_output_regtechops_seed_` prefix
+- Initial feasible seed test: `MIFID2_NPD_TRAX` (~4.6M rows) — staging validation only until PII and MAG gates close
 
 ---
 
@@ -92,9 +111,11 @@ Validation also includes:
 
 ---
 
-## Secure storage requirements
+## Secure storage and CSV seed policy
 
-- Land extracts in **approved secure storage** (Databricks volume, ADLS, or equivalent) — not Git
+- Land extracts and seed CSVs in **approved secure storage** (Databricks volume, ADLS, or equivalent) — **never Git**
+- Load seeds into `main.regtech_ops_stg` tables prefixed `bi_output_regtechops_seed_`
+- PII-sensitive extracts must remain in approved secure locations only
 - Restrict access to DE/Data Platform and Validation principals on need-to-know basis
 - No `.env`, credentials, or connection secrets in repository
 - No PII field samples in documentation or commit history

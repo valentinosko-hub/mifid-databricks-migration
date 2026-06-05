@@ -1,25 +1,63 @@
 # Post-Blocker Execution Plan (Step 18B)
 
-This plan describes the **controlled sequence** after open blockers close and manual approvals are recorded. It does not authorize immediate execution while blockers remain open.
+This plan describes the **controlled sequence** for RegTech staging execution and final-parity enablement. Jobs/workflows in this repository are **staging-only RegTechOps jobs** — they write to `main.regtech_ops_stg` only and are not production-grade. Data Engineering will later adapt them for production.
 
-Prerequisites before starting:
+## Staging-only execution (permitted before final-parity gates close)
+
+The following may proceed **without** claiming final regulatory parity:
+
+| Activity | Target / constraint |
+| --- | --- |
+| Create staging job/workflow skeletons and smoke-test jobs | `main.regtech_ops_stg` only; `bi_output_regtechops_` prefix |
+| Load approved CSV seed extracts | `main.regtech_ops_stg` seed tables; `bi_output_regtechops_seed_` prefix; CSV in secure storage only — **not Git** |
+| Initial NPD_TRAX seed/load test | `bi_output_regtechops_seed_mifid2_npd_trax` (or equivalent); manageable volume; **not final parity** until PII/validation gates close |
+| Test ext/staging/audit tables | Modules not requiring final PII or final production state |
+| `development_structural_test` runs | Masked customer fallback permitted for structural tests only |
+| Read DE-migrated sources | `main.regtech` when available |
+
+**Not permitted:** writes to `main.regtech`; production schedules; delivery/upload/response; seed CSVs or PII in Git; final parity claims without MAG closure.
+
+---
+
+## Final-parity prerequisites (blockers must close)
+
+Prerequisites before **final-parity** module activation:
 
 - `docs/open_blockers_for_execution.md` — active blockers closed or formally waived
 - `docs/manual_approval_gates.md` — applicable MAG gates **CLOSED** with external evidence
 - `docs/execution_prerequisites.md` — checklist complete
 - `docs/de_data_platform_action_list.md` and `docs/regtech_sme_decision_list.md` — relevant actions closed
 
-**Out of scope for this plan:** CSV export, 7z, SFTP, TRAX/Cappitech upload, TRAX response handling, production deployment to `main.regtech`.
+**Out of scope for this plan:** regulatory CSV export/delivery, 7z, SFTP, TRAX/Cappitech upload, TRAX response handling, production deployment to `main.regtech`, production-grade job adaptation (DE's separate program).
+
+**In scope for staging:** approved CSV **seed loads** into `main.regtech_ops_stg` (not committed to Git).
 
 ---
 
-## Phase 0 — Confirm enablement (no DML yet)
+## Phase 0 — Confirm enablement
 
 1. Re-read [final_repository_audit.md](final_repository_audit.md) and confirm go/no-go with Manager/PM.
 2. Set run posture per [workflow_governance_controls.md](workflow_governance_controls.md):
    - Development structural test: `development_structural_test`, masked only if MAG-05 satisfied.
    - Final parity path: `final_parity_production`, unmasked PII required (MAG-06).
-3. Keep workflow skeleton **non-deployed** until Phase 6 criteria are met.
+3. Confirm run is **staging-only** — writes target `main.regtech_ops_stg`; no `main.regtech` writes.
+4. For staging smoke tests: `run_mode=development_structural_test`; no final parity claims.
+5. Production workflow schedules remain blocked until Phase 6 final-parity criteria are met.
+
+---
+
+## Phase 0.5 — Staging seed and smoke tests (optional; before full blocker closure)
+
+Permitted when secure seed extracts and `main.regtech_ops_stg` write access exist:
+
+| Step | Action |
+| --- | --- |
+| 0a | Load approved CSV seed for `MIFID2_NPD_TRAX` into `bi_output_regtechops_seed_mifid2_npd_trax` (initial feasibility test) |
+| 0b | Validate seed row counts and keys; document as **staging evidence only** |
+| 0c | Run staging smoke-test jobs for ext/staging/audit modules not requiring final PII |
+| 0d | Confirm NPD remains later in reporting flow (history/state dependency); seed test does not close NPD parity gates |
+
+Do not treat Phase 0.5 as final-parity or production readiness.
 
 ---
 
@@ -55,7 +93,7 @@ BI-21 MCP metadata confirms all nine seed-critical tables exist; manual SQL aggr
 | Step | Action |
 | --- | --- |
 | 4a | Assign historical seed **extraction ownership** and secure landing process (DE/Data Platform) |
-| 4b | Extract and load seed tables per inventory — chunk by month where documented (`MIFID2_Hedge_Report`, `MIFID2_NPD_TRAX`, `ASIC2_Transactions`, `ASIC2_Positions`, migration/regulation in-out) |
+| 4b | Extract and load seed tables per inventory — CSV/secure landing → `bi_output_regtechops_seed_*` in `main.regtech_ops_stg`; chunk by month where documented. **Start with `MIFID2_NPD_TRAX`** as feasible initial test; expand to Hedge, ASIC2, migration/regulation in-out |
 | 4c | If minimum safe historical windows cannot be proven, seed all available history for affected objects |
 | 4d | **Validate** seed row counts, keys, and date ranges (reconcile known MCP vs manual count variances for Hedge and ASIC2_Transactions) |
 | 4e | **Build Hedge RecordID registry** per [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md) before Hedge module DML activation |
@@ -140,16 +178,22 @@ Stop and update blocker docs if:
 
 ---
 
-## Recommended next-phase sequence (summary)
+## Recommended sequence (summary)
 
-1. Complete PII access or formal exception (D-01 / MAG-06)
-2. Complete seed extraction ownership and landing process
-3. Extract/load seed tables per [historical_seed_inventory.md](historical_seed_inventory.md)
-4. Validate seed row counts, keys, and date ranges
-5. Build Hedge RecordID registry per [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md)
-6. Run controlled structural dry run
-7. Run baseline comparisons on approved dates
-8. **Only then** consider workflow activation (Phase 6)
+**Staging track (may start earlier):**
+
+1. Create/run staging-only smoke-test jobs in `main.regtech_ops_stg`
+2. Load approved CSV seed (initial: `MIFID2_NPD_TRAX`) into `bi_output_regtechops_seed_*`
+3. Validate seed row counts/keys as staging evidence
+
+**Final-parity track (after blockers/MAG close):**
+
+4. Complete PII access or formal exception (D-01 / MAG-06)
+5. Complete seed extraction ownership for remaining inventory tables
+6. Validate all seed row counts, keys, and date ranges
+7. Build Hedge RecordID registry per [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md)
+8. Run controlled structural dry run → baseline comparisons on approved dates
+9. **Only then** consider production-schedule workflow activation (Phase 6); DE adapts to production separately
 
 ---
 

@@ -1,8 +1,24 @@
 # Execution Prerequisites (Step 16B2)
 
-This document lists what must be in place **before** any Databricks module execution or DML un-gating in `main.regtech_ops_stg`.
+This document lists prerequisites for RegTech staging execution in `main.regtech_ops_stg` and for **final-parity** module activation.
 
-Current status: **execution is not approved** until prerequisites below are satisfied. See `docs/open_blockers_for_execution.md`.
+## Staging-only execution (permitted now, with constraints)
+
+Databricks jobs/workflows in this repo are **staging-only RegTechOps jobs** — not production-grade.
+
+| Prerequisite | Staging smoke-test / seed-load | Final-parity activation |
+| --- | --- | --- |
+| Write target `main.regtech_ops_stg` only | Required | Required |
+| `bi_output_regtechops_` / `bi_output_regtechops_seed_` prefixes | Required | Required |
+| Approved CSV seed in secure storage (not Git) | Required for seed loads | Required for historical seed |
+| `development_structural_test` run mode | Required | N/A for final parity |
+| `main.pii_data` access | Not required for non-PII staging tests | Required (or formal exception) |
+| MAG gates for final parity | Not required for staging evidence | Required |
+| Masked customer fallback | Permitted for structural tests only | Not permitted |
+
+**DE production path:** SQL Server / `RegReportDB_Prod` migration into `main.regtech` via the general DE pipeline is separate. RegTech staging jobs may read `main.regtech` when DE-migrated sources exist. DE will later adapt staging jobs for production.
+
+Current status: **final-parity execution is not approved** until final-parity prerequisites below are satisfied. **Staging-only smoke tests and seed loads** may proceed when staging prerequisites are met. See `docs/open_blockers_for_execution.md`.
 
 ## Temporary masked customer policy (manager-approved)
 
@@ -23,7 +39,7 @@ Future orchestration must distinguish development/structural test mode (masked) 
 
 ## Workflow parameter semantics (Step 17B skeleton)
 
-The Step 17B workflow skeleton is defined in `databricks/workflows/mifid_phase1_table_generation.yml` and must remain non-executing until prerequisites are closed.
+The Step 17B workflow skeleton is defined in `databricks/workflows/mifid_phase1_table_generation.yml`. Staging smoke-test and seed-load runs are permitted when scoped to `main.regtech_ops_stg`. Production schedules and final-parity runs remain blocked until prerequisites are closed.
 
 Required parameter behavior:
 

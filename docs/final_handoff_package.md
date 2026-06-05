@@ -10,6 +10,27 @@ This package consolidates the **final role-based handoff** for phase-1 MiFID SQL
 
 ---
 
+## Staging-only execution strategy (RegTechOps)
+
+Databricks jobs and workflows in this repository are **staging-only RegTechOps jobs**. They generate and test migration, staging, audit, and reporting tables in `main.regtech_ops_stg`. They are **not** production-grade jobs and must **not** create or overwrite production objects.
+
+| Policy | Detail |
+| --- | --- |
+| **Read sources** | `main.regtech` (and other catalogs) when DE-migrated sources are available; DE is migrating SQL Server / `RegReportDB_Prod` tables into `main.regtech` via the general pipeline |
+| **Write target** | `main.regtech_ops_stg` only |
+| **Generated object prefix** | `bi_output_regtechops_` |
+| **Seed object prefix** | `bi_output_regtechops_seed_` |
+| **Control/registry prefix** | `bi_output_regtechops_` |
+| **DE production role** | Data Engineering will later use these staging jobs/workflows as **implementation input** and adapt them to meet production criteria — outside this repository's scope |
+
+**Allowed now:** staging-only job/workflow skeletons; staging smoke-test jobs; approved CSV seed loads into `main.regtech_ops_stg` seed tables; ext/staging/audit table tests that do not require final PII or final production state; `development_structural_test` mode; masked customer fallback for structural tests only.
+
+**Not allowed:** writes to `main.regtech`; production readiness claims; final regulatory parity without validation; production schedules; CSV/SFTP/TRAX/Cappitech delivery; response handling; seed CSVs or PII samples in Git.
+
+See also: [workflow_execution_runbook.md](workflow_execution_runbook.md), [execution_prerequisites.md](execution_prerequisites.md), [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md).
+
+---
+
 ## Package index
 
 | Document | Role |
@@ -41,10 +62,12 @@ This package consolidates the **final role-based handoff** for phase-1 MiFID SQL
 | Workflow skeleton (17B) non-executing | **Yes** |
 | Governance / manual approvals documented (17C) | **Yes** |
 | Step 18B handoff package | **Yes** (this document set) |
-| Databricks execution performed | **No** |
-| Workflow deployed | **No** |
-| Production deployment | **No** |
-| Execution-ready | **No** — blockers and MAG gates remain open |
+| Staging-only RegTechOps jobs/workflows authored | **Yes** (skeleton; not production-grade) |
+| Staging smoke-test / seed-load execution | **Permitted** under staging-only policy when prerequisites met |
+| Databricks execution performed (full parity) | **No** |
+| Workflow deployed to production schedules | **No** |
+| Production deployment to `main.regtech` | **No** |
+| Final parity / production execution-ready | **No** — blockers and MAG gates remain open |
 
 Attestation date: _TBD_ (record when program accepts handoff).
 
@@ -55,20 +78,22 @@ Attestation date: _TBD_ (record when program accepts handoff).
 - **SQL:** Gated templates under `databricks/sql/` (config, static, UDFs, Pre_Regulation, movements, hedge liquidity, ASIC2, MIFID2_ext, outputs, cross-module validation, workflow gates).
 - **Workflow:** Non-executing skeleton `databricks/workflows/mifid_phase1_table_generation.yml` and `databricks/sql/10_workflow/`.
 - **Docs:** Analysis, profiling, gates, reconciliation, readiness, workflow, governance, Step 18A audit, Step 18B handoff (this package).
-- **Target convention:** `main.regtech_ops_stg` with `bi_output_regtechops_` prefix only for phase-1 writes.
+- **Target convention:** `main.regtech_ops_stg` only; `bi_output_regtechops_` for generated objects; `bi_output_regtechops_seed_` for seed tables.
+- **Staging jobs:** Non-production RegTechOps job/workflow skeletons intended as DE implementation input.
 
-Business logic authority remains **read-only** under `reference/mifid_databricks_migration_context/`.
+Business logic authority remains **read-only** under `reference/mifid_databricks_migration_context/`. NOC and old Databricks attempt docs remain **reference-only**.
 
 ---
 
-## What has not been executed
+## What has not been executed (final parity / production)
 
-- No Databricks jobs, notebooks, or bundles run for module activation.
-- No un-gated DELETE/INSERT/MERGE into final MiFID output tables.
-- No writes to `main.regtech` production schema.
-- No SQL Server baseline reconciliation runs (until enabled post-blockers).
-- No workflow deployment, scheduling, or production orchestration.
-- No CSV export, 7z, SFTP, TRAX upload, or TRAX response processing.
+- No final-parity module activation or un-gated DML claiming regulatory sign-off.
+- No writes to `main.regtech` production schema from this repository's jobs.
+- No SQL Server baseline reconciliation runs claiming final parity (until MAG gates close).
+- No production workflow schedules or production-grade orchestration.
+- No regulatory delivery: CSV export to TRAX paths, 7z, SFTP, TRAX upload, or TRAX response processing.
+
+**Permitted under staging-only policy:** staging smoke-test runs, approved CSV seed loads into `main.regtech_ops_stg` seed tables (e.g. initial `MIFID2_NPD_TRAX` feasibility test), and structural tests of ext/staging/audit tables in `development_structural_test` mode.
 
 ---
 
@@ -86,7 +111,7 @@ Use [open_blockers_for_execution.md](open_blockers_for_execution.md) as the cano
 - [ ] Assign seed extraction ownership and secure landing (see [historical_seed_inventory.md](historical_seed_inventory.md))
 - [ ] Extract/load nine seed-critical tables; validate row counts and keys
 - [ ] `MIFID2_Hedge_Report` seed + RecordID registry ([hedge_recordid_registry_design.md](hedge_recordid_registry_design.md))
-- [ ] `MIFID2_NPD_TRAX` seed implementation
+- [ ] `MIFID2_NPD_TRAX` seed implementation (initial feasible staging seed/load test — `bi_output_regtechops_seed_*`; not final parity until PII/validation gates close)
 - [ ] `MIFID2_Failed_TRAX` / NPD shared history implementation
 - [ ] `ASIC2_Transactions` / `ASIC2_Positions` history implementation (ASIC2_Positions chunked)
 - [ ] `Reg_LiquidtyAcount_SCD` historical validity implementation
@@ -136,12 +161,12 @@ Legacy Step 17B checklist: [workflow_manual_approval_checkpoints.md](workflow_ma
 
 **Primary doc:** [de_data_platform_action_list.md](de_data_platform_action_list.md)
 
-1. Keep selected price/hedge source classifications current in profiling and blocker registers (no longer active storage blockers).
-2. Grant `main.pii_data` for final parity.
-3. Certify selected primary price/split-price source contracts and complete required-column certifications.
-4. Support historical seed extraction/access and assign extract ownership for approved strategy implementation.
-5. Update `docs/source_profiling_results.md` after certification/confirmation updates.
-6. Later: confirm warehouse/SP permissions when execution enablement is approved.
+1. Continue SQL Server / `RegReportDB_Prod` migration into `main.regtech` via the general DE pipeline (production path — separate from RegTech staging jobs).
+2. Keep selected price/hedge source classifications current in profiling and blocker registers (no longer active storage blockers).
+3. Grant `main.pii_data` for final parity.
+4. Certify selected primary price/split-price source contracts and complete required-column certifications.
+5. Support historical seed extraction/access and assign extract ownership; land approved CSV seeds in secure storage (not Git).
+6. Later: adapt RegTech staging jobs to production criteria (outside this repo); confirm warehouse/SP write permissions for `main.regtech_ops_stg` only.
 
 ### RegTech SME
 
@@ -168,9 +193,9 @@ Legacy Step 17B checklist: [workflow_manual_approval_checkpoints.md](workflow_ma
 
 1. Prioritize `main.pii_data` access and source-certification/historical-seed implementation readiness.
 2. Schedule SME sessions for history/seed and hedge/classification decisions.
-3. Enforce **no execution** until blockers and MAG closures are evidenced.
-4. Accept Step 18A audit and this package as preparation-complete, not execution-ready.
-5. Approve transition to controlled execution only when [transition criteria](#transition-criteria-to-execution-enablement) are met.
+3. Enforce **no final-parity or production execution** until blockers and MAG closures are evidenced; staging-only smoke tests and seed loads may proceed per staging policy.
+4. Accept Step 18A audit and this package as preparation-complete, not final-parity execution-ready.
+5. Approve transition to controlled final-parity execution only when [transition criteria](#transition-criteria-to-execution-enablement) are met.
 
 ---
 
@@ -180,8 +205,9 @@ Do **not** run from this repository or approve others to run:
 
 | Boundary | Reason |
 | --- | --- |
-| Deploy `databricks/workflows/mifid_phase1_table_generation.yml` | Skeleton only; separate deployment approval |
-| Un-gated DML on final MiFID outputs | Blockers and validations not closed |
+| Deploy staging jobs to production schedules or `main.regtech` | Staging-only; production adaptation is DE's separate program |
+| Un-gated DML claiming final regulatory parity | Blockers and validations not closed |
+| Writes to `main.regtech` from RegTech staging jobs | Staging writes must target `main.regtech_ops_stg` only |
 | Use masked customer tables for final parity | Policy violation; MAG-06 not satisfied |
 | CSV / 7z / SFTP / TRAX upload / TRAX response | Out of phase-1 scope |
 | Writes to `main.regtech` production | Out of phase-1 scope |
@@ -201,7 +227,7 @@ Move from **documentation-only** to **controlled execution enablement** only whe
 6. **Go/no-go:** Manager/Validation explicit NO-GO lifted for the specific run type (`development_structural_test` vs `final_parity_production`).
 7. **Workflow:** Workflow deployment remains a **later** gate after module validation and MAG-17.
 
-Until then, the repository remains **ready for blocker resolution and planning only**.
+Until final-parity criteria are met, the repository remains **ready for staging-only execution, blocker resolution, and planning** — not final-parity or production deployment.
 
 ---
 

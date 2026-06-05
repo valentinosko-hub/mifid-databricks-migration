@@ -2,7 +2,21 @@
 
 This document is a consolidated execution blocker register for phase-1 MiFID migration in `main.regtech_ops_stg`.
 
-Governance mapping: each blocker below maps to manual approval gates in `docs/manual_approval_gates.md` and stop/go rules in `docs/workflow_governance_controls.md`. Workflow activation remains blocked until these are closed or formally waived.
+Governance mapping: each blocker below maps to manual approval gates in `docs/manual_approval_gates.md` and stop/go rules in `docs/workflow_governance_controls.md`. **Final-parity** workflow activation remains blocked until these are closed or formally waived.
+
+## Staging-only execution (not blocked)
+
+The following are **permitted** under the staging-only RegTechOps policy and do **not** close final-parity blockers:
+
+- Create and run staging-only Databricks job/workflow skeletons and smoke-test jobs
+- Load approved CSV seed extracts into `main.regtech_ops_stg` (`bi_output_regtechops_seed_*` prefix)
+- Initial `MIFID2_NPD_TRAX` seed/load test (manageable volume; staging evidence only)
+- Test ext/staging/audit tables not requiring final PII or production state
+- `development_structural_test` mode with masked customer fallback for structural tests only
+
+**Constraints:** writes to `main.regtech_ops_stg` only; read `main.regtech` when DE-migrated sources exist; no seed CSVs or PII in Git; no production schedules; no regulatory delivery/upload/response; no final parity claims.
+
+Jobs in this repo are not production-grade. DE will later adapt them for production via the general pipeline.
 
 ## Temporary masked customer workaround (manager-approved)
 
@@ -67,8 +81,12 @@ These are no longer active source-access/storage blockers, but execution still r
 
 ## Execution status
 
-- Execution remains blocked until active PII blockers close and execution-gate approvals/validations are completed.
-- Step 17C documents governance and manual approvals only; it does not close blockers or enable workflow execution.
-- Workflow skeleton deployment/execution remains gated (`docs/workflow_governance_controls.md`).
-- Delivery/upload/response handling and production deployment remain out of scope.
+- **Final-parity execution** remains blocked until active PII blockers close and execution-gate approvals/validations are completed.
+- **Staging-only** smoke-test, seed-load, and structural validation in `main.regtech_ops_stg` may proceed per staging policy (see above).
+- Step 17C documents governance and manual approvals; it does not close final-parity blockers.
+- Production-schedule workflow deployment remains gated (`docs/workflow_governance_controls.md`).
+- Writes to `main.regtech` from RegTech staging jobs are not permitted.
+- Regulatory delivery/upload/response and production deployment remain out of scope.
+- TransactionReferenceNumber and CFI/`InstrumentClassification` exact SQL Server parity requirements remain in force.
+- Hedge RecordID registry/control requirement remains in force.
 - NOC and old Databricks attempt materials remain reference-only and are not implementation authority.

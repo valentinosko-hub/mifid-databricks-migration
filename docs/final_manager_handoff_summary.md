@@ -18,20 +18,39 @@ Concise status for program and engineering management. Technical detail: [handof
 
 ---
 
+## Staging-only RegTechOps strategy
+
+Jobs and workflows in this repo are **staging-only** — not production-grade. They test migration/staging/audit/reporting table generation in `main.regtech_ops_stg` only.
+
+| Layer | Role |
+| --- | --- |
+| **DE general pipeline** | Migrates SQL Server / `RegReportDB_Prod` into production schema `main.regtech` |
+| **RegTech staging jobs (this repo)** | May **read** `main.regtech` when DE-migrated sources exist; **write** only to `main.regtech_ops_stg` with `bi_output_regtechops_` / `bi_output_regtechops_seed_` prefixes |
+| **DE production adaptation (later)** | Uses staging jobs as implementation input; adapts to production criteria outside this repo |
+
+**Permitted now:** staging job/workflow skeletons, smoke-test runs, approved CSV seed loads into staging seed tables, `development_structural_test` mode, masked customer fallback for structural tests.
+
+**Not permitted:** writes to `main.regtech`, production schedules, delivery/upload/response, claiming final regulatory parity, seed CSVs in Git.
+
+Initial feasible seed test: `MIFID2_NPD_TRAX` (~4.6M rows) into `bi_output_regtechops_seed_*` — staging validation only until PII and MAG gates close.
+
+---
+
 ## Execution status
 
 | Item | Status |
 | --- | --- |
-| Databricks SQL / report module execution | **Not performed** |
-| Workflow deployment or job runs | **Not performed** |
-| Production deployment to `main.regtech` | **Not performed** |
+| Staging-only RegTechOps jobs/workflows authored | **Yes** (skeleton; not production-grade) |
+| Staging smoke-test / CSV seed-load runs | **Permitted** under staging-only policy |
+| Final-parity module execution | **Not performed** |
+| Production deployment to `main.regtech` from this repo | **Not performed** |
 | TRAX file delivery / upload / response | **Out of scope** (phase 1) |
 
 ---
 
-## Why not execution-ready
+## Why not final-parity execution-ready
 
-Execution remains blocked until the following categories close (detail: [open_blockers_for_execution.md](open_blockers_for_execution.md)):
+**Staging-only work may proceed** (smoke tests, seed loads, structural validation in `main.regtech_ops_stg`). **Final regulatory parity** remains blocked until the following close (detail: [open_blockers_for_execution.md](open_blockers_for_execution.md)):
 
 1. **Access** — `main.pii_data` customer/history tables are still not accessible for final parity mode.
 2. **History/seed implementation** — strategy direction is approved, but historical-seed implementation and extract ownership are still pending for NPD/Failed TRAX/ASIC2/liquidity/migration paths.
@@ -48,9 +67,11 @@ Execution remains blocked until the following categories close (detail: [open_bl
 
 See [de_data_platform_action_list.md](de_data_platform_action_list.md):
 
+- Migrate SQL Server sources into `main.regtech` via the general pipeline (production path)
 - Grant `main.pii_data` access for final parity
 - Certify selected primary price/split-price sources and pending accessible sources
-- Support historical seed extraction/access and confirm extract ownership for approved strategy implementation
+- Support historical seed extraction/access; land approved CSV seeds in secure storage (not Git); confirm extract ownership
+- Later: adapt RegTech staging jobs to production criteria (separate program)
 
 ### RegTech SME / business
 
@@ -74,7 +95,8 @@ See [regtech_sme_decision_list.md](regtech_sme_decision_list.md):
 | --- | --- |
 | Blocker closure | `main.pii_data` access + source certification/historical-seed readiness evidenced in profiling |
 | Required-column validation | MAG-02 closed; module column contracts certified |
-| Controlled execution dry run | SELECT-only validations under `development_structural_test` |
+| Staging smoke-test / NPD seed load | Approved CSV seed into `bi_output_regtechops_seed_*`; structural validation only |
+| Controlled execution dry run | SELECT-only and gated staging validations under `development_structural_test` |
 | SQL Server baseline comparison | MAG-16 where required per module |
 | Parity sign-off | MAG-17; known differences accepted |
 | Workflow activation consideration | Only after above; separate deployment approval |
@@ -85,7 +107,7 @@ Sequence after blockers: [post_blocker_execution_plan.md](post_blocker_execution
 
 ## Risk statement
 
-**Do not execute** Databricks module DML, deploy the workflow skeleton, or treat masked customer data as production/regulatory parity **before** blockers and manual approvals close. Premature execution risks incorrect regulatory outputs, PII policy violations, and unreconciled differences vs SQL Server.
+**Do not** claim final regulatory parity, write to `main.regtech`, deploy production schedules, or treat masked customer data as production/regulatory parity **before** blockers and manual approvals close. Staging-only smoke tests and seed loads in `main.regtech_ops_stg` are permitted under the staging policy. Premature final-parity execution risks incorrect regulatory outputs, PII policy violations, and unreconciled differences vs SQL Server.
 
 ---
 
@@ -93,11 +115,12 @@ Sequence after blockers: [post_blocker_execution_plan.md](post_blocker_execution
 
 | Rule | Decision |
 | --- | --- |
-| Execution enablement | **NO-GO** while open blockers in `open_blockers_for_execution.md` remain |
-| Final parity / production-candidate | **NO-GO** until MAG-06, MAG-07–17, and applicable SME decisions close |
+| Final parity / production-candidate execution | **NO-GO** until MAG-06, MAG-07–17, and applicable SME decisions close |
+| Writes to `main.regtech` from RegTech jobs | **NO-GO** — staging writes to `main.regtech_ops_stg` only |
 | Delivery / production deployment | **NO-GO** — out of phase-1 scope |
+| Staging smoke-test / seed-load / structural validation | **GO** under staging-only policy and `development_structural_test` mode |
 
-**GO** for controlled planning, blocker triage, and documentation updates only.
+**GO** for staging-only execution, controlled planning, blocker triage, and documentation updates.
 
 Source-resolution note:
 

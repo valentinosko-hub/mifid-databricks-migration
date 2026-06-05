@@ -19,9 +19,18 @@ Source registers:
 - `docs/hedge_recordid_registry_design.md`
 - `docs/manual_approval_gates.md` (Step 17C approval gate register)
 
-## Policy status (2026-06-05)
+## Policy status (2026-06-05; staging execution update)
 
-**Broad policy decisions are mostly made.** Approved direction covers historical seed strategy, Hedge `RecordID` preservation, hard parity for `TransactionReferenceNumber` and CFI/`InstrumentClassification`, masked-customer dev-only fallback, and phase-1 scope boundaries (no delivery/production).
+**Broad policy decisions are mostly made.** Approved direction covers:
+
+- **Staging-only RegTechOps jobs** — write `main.regtech_ops_stg` only; read `main.regtech` when DE-migrated; not production-grade; DE adapts later
+- Historical seed strategy and approved CSV seed loads (`bi_output_regtechops_seed_*`; not in Git)
+- Initial feasible staging seed test: `MIFID2_NPD_TRAX` (not final parity until PII/validation gates close)
+- Hedge `RecordID` preservation and registry/control requirement
+- Hard parity for `TransactionReferenceNumber` and CFI/`InstrumentClassification`
+- Masked-customer dev-only fallback
+- Phase-1 scope boundaries (no delivery/production/`main.regtech` writes from RegTech jobs)
+- NOC and old Databricks attempt reference-only
 
 **Remaining open items** are execution prerequisites and signoffs — not re-litigation of seed-all-history policy:
 
@@ -31,8 +40,9 @@ Source registers:
 | 2 | Historical seed extraction ownership and landing process | DE / Data Platform | [historical_seed_inventory.md](historical_seed_inventory.md) |
 | 3 | Hedge `RecordID` natural business key final signoff | RegTech SME | D-12 / [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md) |
 | 4 | SQL Server baseline dates and scoped extracts | Validation + SME | D-23 / [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md) |
-| 5 | Execution warehouse / principal / write permissions | Data Platform | [de_data_platform_action_list.md](de_data_platform_action_list.md) |
-| 6 | Final validation evidence capture | Validation | MAG-17 / [final_validation_execution_plan.md](final_validation_execution_plan.md) |
+| 5 | Staging write permissions for `main.regtech_ops_stg` (smoke-test / seed-load) | Data Platform | [execution_prerequisites.md](execution_prerequisites.md) |
+| 6 | DE production adaptation of staging jobs (separate program) | DE | Outside this repo |
+| 7 | Final validation evidence capture | Validation | MAG-17 / [final_validation_execution_plan.md](final_validation_execution_plan.md) |
 
 ## Decision-to-approval gate mapping (Step 17C)
 
@@ -103,7 +113,10 @@ Close decisions by updating this register, `docs/manual_approval_gates.md`, and 
 | Temporary masked customer tables | Manager-approved workaround for dev/structural testing only; not confirmed final/production/regulatory parity source |
 | Active blocker simplification | Only active access blocker category remains `main.pii_data` customer/history access |
 | Phase 1 delivery/upload/response | Out of scope |
-| Phase 1 production deployment | Out of scope (`main.regtech` not targeted) |
+| Phase 1 production deployment | Out of scope — RegTech jobs write `main.regtech_ops_stg` only; DE owns `main.regtech` migration |
+| Staging-only RegTechOps execution | Permitted — smoke tests, seed loads, structural validation; not production-grade |
+| CSV seed testing | Permitted — secure storage only; `bi_output_regtechops_seed_*` targets; not in Git |
+| NPD_TRAX initial staging seed | Permitted as feasibility test; not final parity until gates close |
 
 ## How to close decisions
 

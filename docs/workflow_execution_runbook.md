@@ -1,8 +1,23 @@
 # Workflow Execution Runbook (Step 17B Skeleton; Step 17C Governance)
 
-This runbook defines how to use the Step 17B workflow skeleton as a readiness and governance artifact. It is not an approval to execute Databricks workflow tasks.
+This runbook defines how to use the Step 17B workflow skeleton for **staging-only RegTechOps** execution and governance. Jobs/workflows in this repository are **not production-grade**; they write to `main.regtech_ops_stg` only. Data Engineering will later adapt them for production.
 
 Governance controls and manual approval workflow: `docs/workflow_governance_controls.md`, `docs/manual_approval_gates.md`.
+
+## Staging-only environment policy
+
+| Setting | Value |
+| --- | --- |
+| Job type | Staging-only RegTechOps (smoke-test, seed-load, structural validation) |
+| Read sources | `main.regtech` when DE-migrated sources are available |
+| Write target | `main.regtech_ops_stg` only — **never** `main.regtech` |
+| Generated prefix | `bi_output_regtechops_` |
+| Seed prefix | `bi_output_regtechops_seed_` |
+| CSV seeds | Approved extracts in secure storage only — **not Git** |
+
+**Allowed:** staging job/workflow skeletons; smoke-test runs; CSV seed loads; ext/staging/audit tests without final PII; `development_structural_test`; masked customer for structural tests.
+
+**Not allowed:** `main.regtech` writes; production schedules; delivery/upload/response; final parity claims without MAG closure; seed CSVs in Git.
 
 ## Step 18 pre-activation evidence gate
 
@@ -14,7 +29,7 @@ Before treating this runbook as actionable for any run (including dry-run), conf
 4. [manual_approval_gates.md](manual_approval_gates.md) — applicable MAG gates **CLOSED** with external evidence.
 5. [post_blocker_execution_plan.md](post_blocker_execution_plan.md) — team aligned on post-blocker sequence if enabling execution.
 
-If any item above fails, remain in documentation/validation-only mode. Do not deploy the workflow skeleton.
+If any item above fails for the **intended run mode**, remain in documentation-only mode or restrict to permitted staging smoke tests. Do not deploy production schedules or write to `main.regtech`.
 
 ## Pre-run policy notes
 
@@ -32,12 +47,35 @@ Before any execution enablement, confirm:
 - `run_mode`, `dry_run`, and customer-source policy parameters are set correctly.
 - `skip_delivery_steps=true` and no delivery/upload/response tasks are included.
 
-## Development / structural-test run path
+## Staging smoke-test / seed-load run path
 
-Intended purpose: structural validation only.
+Intended purpose: staging validation in `main.regtech_ops_stg` — not final parity.
 
 - `run_mode=development_structural_test`
-- `dry_run=true`
+- Writes target `main.regtech_ops_stg` only (`bi_output_regtechops_` / `bi_output_regtechops_seed_`)
+- Approved CSV seed loads permitted (e.g. initial `MIFID2_NPD_TRAX` feasibility test)
+- `dry_run=false` permitted for staging smoke tests when scoped to staging schema only
+- Masked customer permitted for structural tests only
+
+Allowed outcomes:
+
+- Seed table load and row-count/key validation
+- Ext/staging/audit table smoke tests
+- Schema/required-column checks
+- Row-count and join-path checks against `main.regtech` read sources
+
+Not allowed:
+
+- Writes to `main.regtech`
+- Final parity or production readiness claims
+- Regulatory delivery/upload/response
+
+## Development / structural-test run path
+
+Intended purpose: structural validation only (subset of staging smoke-test path).
+
+- `run_mode=development_structural_test`
+- `dry_run=true` unless explicitly running scoped staging seed/smoke tasks above
 - `dev_customer_source_mode=masked_fallback` only when explicitly approved
 - `allow_masked_customer_sources=true` only for structural checks
 - `enable_validation_only=true`
@@ -51,7 +89,7 @@ Allowed outcomes:
 Not allowed:
 
 - Final parity sign-off
-- Final customer/NPD parity certification
+- Final customer/NPD parity certification (NPD seed test is staging evidence only until PII/MAG gates close)
 
 ## Parity run path (pre-final)
 
@@ -114,7 +152,9 @@ Rollback action in this step:
 
 ## What not to run
 
-- Do not deploy `databricks/workflows/mifid_phase1_table_generation.yml`.
-- Do not execute Databricks jobs from this skeleton.
-- Do not run delivery/upload/response logic.
-- Do not run production deployment logic.
+- Do not deploy staging jobs to **production schedules** or adapt them as production-grade without DE's separate program.
+- Do not write to `main.regtech` from RegTech staging jobs.
+- Do not run regulatory delivery/upload/response logic.
+- Do not claim final regulatory parity without MAG closure.
+
+**Permitted:** execute staging-only smoke-test and seed-load jobs scoped to `main.regtech_ops_stg` per this runbook.

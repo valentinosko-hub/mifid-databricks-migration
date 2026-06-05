@@ -4,31 +4,35 @@ This repository contains the MiFID SQL Server / SSIS to Databricks migration wor
 
 ## Current phase
 
-Build MiFID table-generation parity in Databricks Ops staging.
+Build and test MiFID table-generation in **staging-only RegTechOps** jobs targeting Databricks Ops staging. Jobs in this repo are **not production-grade**; Data Engineering will later adapt them for production.
 
-Target environment:
+| Setting | Value |
+| --- | --- |
+| Write target | `main.regtech_ops_stg` only |
+| Read sources | `main.regtech` when DE-migrated sources are available |
+| Generated prefix | `bi_output_regtechops_` |
+| Seed prefix | `bi_output_regtechops_seed_` |
 
-main.regtech_ops_stg
-
-All persistent objects created in this schema must start with:
-
-bi_output_regtechops_
+DE migrates SQL Server / `RegReportDB_Prod` into `main.regtech` via the general pipeline (separate from RegTech staging jobs).
 
 ## Scope
 
 In scope for this phase:
-- Databricks staging/report table generation
+- Staging-only Databricks job/workflow skeletons and smoke-test jobs
+- Databricks staging/report table generation in `main.regtech_ops_stg`
+- Approved CSV seed loads into staging seed tables (secure storage; not Git)
 - SSIS-created staging/ext table recreation
 - ASIC2-compatible MiFID subset
 - validation and reconciliation SQL
+- `development_structural_test` mode (masked customer for structural tests only)
 
 Out of scope for this phase:
-- CSV export
-- 7z compression
-- SFTP delivery
-- Cappitech/TRAX upload
-- TRAX response handling
-- production deployment
+- Writes to `main.regtech` from RegTech staging jobs
+- Production-grade jobs or production schedules
+- Regulatory CSV export/delivery (TRAX paths), 7z, SFTP
+- Cappitech/TRAX upload and TRAX response handling
+- Claiming final regulatory parity without validation
+- Storing seed CSVs or PII samples in Git
 - unbounded full historical backfill by default (history seeding follows approved policy in `docs/history_seed_requirements.md`)
 
 Reference material is under:
@@ -79,4 +83,4 @@ Additional handoff support:
 - [Workflow governance controls (Step 17C)](docs/workflow_governance_controls.md)
 - [Manual approval gates (Step 17C)](docs/manual_approval_gates.md)
 
-**Status:** Phase-1 preparation and Step 18B handoff documentation are complete per the [final repository audit (Step 18A)](docs/final_repository_audit.md) and [final handoff package (Step 18B)](docs/final_handoff_package.md). SQL templates, validation packages, a Step 17B workflow skeleton, and Step 17C governance documentation are authored. The repository is ready for blocker resolution and controlled execution planning, but **not** ready for Databricks execution or production deployment while blockers/gates remain open. Active source-access blockers are currently limited to `main.pii_data` customer/history access; other source issues were downgraded to validation/implementation gates. Manager-approved masked customer tables may be used for temporary development/structural testing only and must not be treated as final regulatory parity sources.
+**Status:** Phase-1 preparation and Step 18B handoff documentation are complete per the [final repository audit (Step 18A)](docs/final_repository_audit.md) and [final handoff package (Step 18B)](docs/final_handoff_package.md). SQL templates, validation packages, staging-only RegTechOps job/workflow skeletons, and Step 17C governance documentation are authored. The repository supports **staging-only** smoke-test and seed-load execution in `main.regtech_ops_stg` but is **not** ready for final-parity execution or production deployment while blockers/gates remain open. Active source-access blockers are limited to `main.pii_data` customer/history access for final parity. Masked customer tables are development/structural-test only. Initial feasible seed test: `MIFID2_NPD_TRAX` into `bi_output_regtechops_seed_*` (staging evidence only). NOC and old Databricks attempt docs remain reference-only.

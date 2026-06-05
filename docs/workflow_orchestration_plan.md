@@ -1,20 +1,31 @@
 # Workflow Orchestration Plan (Step 17B)
 
+## Staging-only RegTechOps scope
+
+Jobs and workflows defined here are **staging-only RegTechOps jobs** for `main.regtech_ops_stg`. They are **not production-grade** and must not create or overwrite `main.regtech` objects. Data Engineering will later use them as implementation input and adapt them to production criteria.
+
+| Setting | Value |
+| --- | --- |
+| Read sources | `main.regtech` (and other catalogs) when DE-migrated sources are available |
+| Write target | `main.regtech_ops_stg` |
+| Generated prefix | `bi_output_regtechops_` |
+| Seed prefix | `bi_output_regtechops_seed_` |
+
 ## Recommended format
 
 Use a Databricks Asset Bundle YAML skeleton:
 
 - `databricks/workflows/mifid_phase1_table_generation.yml`
 
-This format is chosen because it can express ordered task dependencies and parameterized run modes while remaining template-only.
+This format expresses ordered task dependencies and parameterized run modes for **staging smoke-test and validation** orchestration.
 
-## Why this stays non-executing
+## Execution posture
 
-- Execution blockers remain open (`docs/open_blockers_for_execution.md`).
-- Final parity prerequisites are not closed (`docs/execution_prerequisites.md`).
-- Step 17B scope is orchestration skeleton only.
+- **Staging smoke-test / seed-load runs** are permitted under `development_structural_test` when scoped to `main.regtech_ops_stg`.
+- **Final-parity and production-schedule deployment** remain blocked until blockers and MAG gates close (`docs/open_blockers_for_execution.md`, `docs/execution_prerequisites.md`).
+- Step 17B YAML and SQL wrappers are staging orchestration templates — not production-grade orchestration.
 
-The YAML and SQL wrappers are designed as readiness artifacts, not runnable production orchestration.
+NOC and old Databricks attempt materials remain reference-only.
 
 ## Task graph
 
@@ -75,11 +86,16 @@ No existing business SQL is modified by Step 17B.
 
 ## Explicit exclusions
 
-- CSV generation
+- Regulatory CSV export/delivery (TRAX paths)
 - 7z compression
 - SFTP delivery
 - Cappitech/TRAX upload
 - TRAX response handling
-- Production deployment
+- Writes to `main.regtech`
+- Production-grade schedules and production deployment claims
 
-NOC and old Databricks attempt materials remain reference-only and are not implementation authority.
+## Explicit inclusions (staging)
+
+- Staging job/workflow skeletons and smoke-test tasks
+- Approved CSV **seed** loads into `bi_output_regtechops_seed_*` tables (secure storage; not Git)
+- Initial feasible seed test: `MIFID2_NPD_TRAX` (staging validation only)
