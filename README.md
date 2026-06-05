@@ -53,6 +53,8 @@ Start here for consolidated handoff navigation:
 - [Post-blocker execution plan (Step 18B)](docs/post_blocker_execution_plan.md)
 - [Historical seed inventory (BI-21 MCP)](docs/historical_seed_inventory.md)
 - [SQL Server baseline extract plan](docs/sql_server_baseline_extract_plan.md)
+- [Baseline scenario request package](docs/baseline_scenario_request.md)
+- [Validation evidence plan](docs/validation_evidence_plan.md)
 - [Hedge RecordID registry design](docs/hedge_recordid_registry_design.md)
 - [Manual CSV seed testing plan](docs/manual_seed_testing_plan.md)
 

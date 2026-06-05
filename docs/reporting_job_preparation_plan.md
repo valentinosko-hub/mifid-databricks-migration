@@ -113,9 +113,22 @@ Workflow tasks currently invoke **gate wrappers** as placeholders; module SQL ac
 
 `mifid_phase1_table_generation.yml` covers the broader report/output chain (customer, reports, hedge, NPD). The staging smoke-test workflow is a **narrower, earlier** orchestration for ext/staging/audit validation only. Do not conflate smoke-test success with final reporting readiness.
 
+## SQL Server baseline extracts (prerequisite for final parity)
+
+Before final parity comparison (not required for initial structural smoke tests):
+
+1. RegTech / Validation nominate scenario dates — [baseline_scenario_request.md](baseline_scenario_request.md)
+2. DBA / DE land extracts in secure storage (not Git)
+3. Validation captures evidence — [validation_evidence_plan.md](validation_evidence_plan.md)
+
+Distinguish baseline-date extracts, full-history seeds, and staging-only manual seed tests.
+
+---
+
 ## Remaining blockers (summary)
 
 - `main.pii_data` access for final parity (MAG-06)
+- SQL Server baseline scenario dates and scoped extracts (D-23 / MAG-16)
 - Historical seed extraction ownership (MAG-07)
 - Hedge RecordID natural-key SME signoff and registry seed (MAG-12, D-12)
 - NPD_TRAX history/cutover (MAG-10)
@@ -123,3 +136,9 @@ Workflow tasks currently invoke **gate wrappers** as placeholders; module SQL ac
 - Production deployment and DE production adaptation — separate program
 
 See `docs/post_blocker_execution_plan.md` for post-blocker sequencing.
+
+## Related documents
+
+- [baseline_scenario_request.md](baseline_scenario_request.md)
+- [validation_evidence_plan.md](validation_evidence_plan.md)
+- [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md)

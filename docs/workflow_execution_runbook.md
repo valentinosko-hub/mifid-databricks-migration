@@ -4,7 +4,8 @@ This runbook defines how to use the **staging smoke-test** and Step 17B workflow
 
 **Primary staging artifact:** `databricks/workflows/mifid_phase1_staging_smoke_test.yml`  
 **Parameter defaults:** `databricks/config/workflow_parameters.yml`  
-**Preparation plan:** `docs/reporting_job_preparation_plan.md`
+**Preparation plan:** `docs/reporting_job_preparation_plan.md`  
+**Baseline extracts:** `docs/baseline_scenario_request.md`, `docs/validation_evidence_plan.md`
 
 Governance controls and manual approval workflow: `docs/workflow_governance_controls.md`, `docs/manual_approval_gates.md`.
 
@@ -141,6 +142,7 @@ Preconditions:
 - Module-level validation outputs in execution order.
 - Cross-module validation outputs from `databricks/sql/09_validation/`.
 - Gate wrapper outputs from `databricks/sql/10_workflow/gates/`.
+- SQL Server baseline evidence per [validation_evidence_plan.md](validation_evidence_plan.md) — extracts requested via [baseline_scenario_request.md](baseline_scenario_request.md); stored **outside repo**.
 - Documented unresolved deltas and owner decisions.
 
 ## Manual approval and stop/go references

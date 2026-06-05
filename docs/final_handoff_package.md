@@ -27,7 +27,7 @@ Databricks jobs and workflows in this repository are **staging-only RegTechOps j
 
 **Not allowed:** writes to `main.regtech`; production readiness claims; final regulatory parity without validation; production schedules; CSV/SFTP/TRAX/Cappitech delivery; response handling; seed CSVs or PII samples in Git.
 
-See also: [workflow_execution_runbook.md](workflow_execution_runbook.md), [execution_prerequisites.md](execution_prerequisites.md), [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md).
+See also: [workflow_execution_runbook.md](workflow_execution_runbook.md), [execution_prerequisites.md](execution_prerequisites.md), [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md), [baseline_scenario_request.md](baseline_scenario_request.md), [validation_evidence_plan.md](validation_evidence_plan.md).
 
 ---
 
@@ -44,6 +44,8 @@ See also: [workflow_execution_runbook.md](workflow_execution_runbook.md), [execu
 | [post_blocker_execution_plan.md](post_blocker_execution_plan.md) | Sequence after blockers close |
 | [historical_seed_inventory.md](historical_seed_inventory.md) | BI-21 MCP seed-critical inventory |
 | [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md) | Baseline dates and extract constraints |
+| [baseline_scenario_request.md](baseline_scenario_request.md) | SQL Server baseline scenario request package (copyable template) |
+| [validation_evidence_plan.md](validation_evidence_plan.md) | Baseline parity validation expectations |
 | [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md) | Hedge RecordID registry design |
 | [open_blockers_for_execution.md](open_blockers_for_execution.md) | Blocker register |
 | [manual_approval_gates.md](manual_approval_gates.md) | MAG-01–17 (authoritative) |
@@ -179,15 +181,17 @@ Legacy Step 17B checklist: [workflow_manual_approval_checkpoints.md](workflow_ma
 3. Sign migration/regulation in-out materialization.
 4. Approve hedge RecordID implementation detail (natural key + registry) and transaction-reference exact parity evidence.
 5. Sign CFI/classification exact parity evidence where gated.
-6. Agree baseline comparison dates and final go/no-go criteria.
+6. Nominate baseline scenario dates per [baseline_scenario_request.md](baseline_scenario_request.md) (19 scenario families).
+7. Agree baseline comparison dates and final go/no-go criteria (D-23 / MAG-16).
 
 ### Validation / QA
 
 1. Own MAG-02, MAG-16, MAG-17 evidence with DE and SQL Server team.
-2. Run SELECT-only validation packages per [final_validation_execution_plan.md](final_validation_execution_plan.md) after blockers close.
-3. Execute cross-module checks in `databricks/sql/09_validation/`.
-4. Capture baseline comparison results; document deltas in [known_differences.md](known_differences.md).
-5. Block go/no-go if hard gates fail or masked sources appear in final parity mode.
+2. Issue baseline extract requests using template in [baseline_scenario_request.md](baseline_scenario_request.md).
+3. Run SELECT-only validation packages per [final_validation_execution_plan.md](final_validation_execution_plan.md) after blockers close.
+4. Execute cross-module checks in `databricks/sql/09_validation/`.
+5. Capture baseline comparison results per [validation_evidence_plan.md](validation_evidence_plan.md); document deltas in [known_differences.md](known_differences.md).
+6. Block go/no-go if hard gates fail or masked sources appear in final parity mode.
 
 ### Manager / PM
 

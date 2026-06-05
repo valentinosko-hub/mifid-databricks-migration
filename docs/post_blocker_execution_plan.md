@@ -140,14 +140,28 @@ Use gated templates only; uncomment/enable DML only when prerequisites for that 
 
 ---
 
+## Phase 4.5 — Baseline scenario request and extract (before parity comparison)
+
+| Step | Action | Artifact |
+| --- | --- | --- |
+| 8a | RegTech / Validation nominate baseline scenario dates per [baseline_scenario_request.md](baseline_scenario_request.md) | Completed request forms (external) |
+| 8b | DBA / DE execute baseline-date extracts and full-history seeds per extract type | Manifests in secure storage (not Git) |
+| 8c | Validation reviews manifests (row count, min/max date, scenario tag, schema) | Evidence log outside repo |
+| 8d | Distinguish Type 1 (baseline-date), Type 2 (full-history seed), Type 3 (staging manual seed test) | Per-request tagging |
+
+Do not treat baseline-date slices as substitutes for full-history seeds on stateful tables (Hedge, NPD, ASIC2, SCD, migration/regulation).
+
+---
+
 ## Phase 5 — Baseline and parity
 
 | Step | Action |
 | --- | --- |
-| 9 | Compare against SQL Server baseline on **selected baseline dates** where MAG-16 requires it (do not default to full `MIFID2_Report` export) |
+| 9 | Compare against SQL Server baseline on **selected baseline dates** where MAG-16 requires it (do not default to full `MIFID2_Report` export) — follow [validation_evidence_plan.md](validation_evidence_plan.md) |
 | 10 | Resolve differences; document accepted deltas in `docs/known_differences.md` |
+| 11 | Capture exact-comparison evidence for Hedge `TransactionReferenceNumber`, CFI/`InstrumentClassification`, Hedge `RecordID`, NPD `AcceptedTRAX`/`Action`/`RowNum` |
 
-Baseline comparisons run **only after** seed validation and controlled dry run (Phases 2.5–2.6).
+Baseline comparisons run **only after** seed validation and controlled dry run (Phases 2.5–2.6) and baseline extracts are landed (Phase 4.5).
 
 ---
 
@@ -155,7 +169,7 @@ Baseline comparisons run **only after** seed validation and controlled dry run (
 
 | Step | Action |
 | --- | --- |
-| 11 | **Only then** consider workflow skeleton activation | `databricks/workflows/mifid_phase1_table_generation.yml` remains template until deployment change approval |
+| 12 | **Only then** consider workflow skeleton activation | `databricks/workflows/mifid_phase1_table_generation.yml` remains template until deployment change approval |
 
 Workflow activation requires:
 
@@ -169,7 +183,7 @@ Workflow activation requires:
 
 | Step | Action |
 | --- | --- |
-| 12 | Delivery/upload/response remains a **separate future program phase** | No CSV, SFTP, 7z, TRAX upload, or response import from this repository phase |
+| 13 | Delivery/upload/response remains a **separate future program phase** | No CSV, SFTP, 7z, TRAX upload, or response import from this repository phase |
 
 ---
 
@@ -199,8 +213,9 @@ Stop and update blocker docs if:
 5. Complete seed extraction ownership for remaining inventory tables
 6. Validate all seed row counts, keys, and date ranges
 7. Build Hedge RecordID registry per [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md)
-8. Run controlled structural dry run → baseline comparisons on approved dates
-9. **Only then** consider production-schedule workflow activation (Phase 6); DE adapts to production separately
+8. Submit baseline scenario requests per [baseline_scenario_request.md](baseline_scenario_request.md); land extracts in secure storage
+9. Run controlled structural dry run → baseline comparisons on approved dates per [validation_evidence_plan.md](validation_evidence_plan.md)
+10. **Only then** consider production-schedule workflow activation (Phase 6); DE adapts to production separately
 
 ---
 
@@ -209,6 +224,8 @@ Stop and update blocker docs if:
 - [handoff_index.md](handoff_index.md)
 - [historical_seed_inventory.md](historical_seed_inventory.md)
 - [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md)
+- [baseline_scenario_request.md](baseline_scenario_request.md)
+- [validation_evidence_plan.md](validation_evidence_plan.md)
 - [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md)
 - [manual_seed_testing_plan.md](manual_seed_testing_plan.md)
 - [final_validation_execution_plan.md](final_validation_execution_plan.md)
