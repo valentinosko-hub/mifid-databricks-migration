@@ -48,14 +48,28 @@ Do not un-gate business DML if hard gates fail.
 
 ---
 
-## Phase 2.5 — Historical seed implementation
+## Phase 2.5 — Historical seed extraction and load
+
+BI-21 MCP metadata confirms all nine seed-critical tables exist; manual SQL aggregates support chunk planning and Hedge/NPD key integrity. See [historical_seed_inventory.md](historical_seed_inventory.md) and [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md).
 
 | Step | Action |
 | --- | --- |
-| 4a | Implement approved historical seed strategy for parity/retry/SCD/baseline windows and confirm extract ownership (NPD, Failed TRAX, ASIC2, Hedge, liquidity SCD, migration/regulation in-out) |
-| 4b | If minimum safe historical windows cannot be proven, seed all available history for affected objects |
+| 4a | Assign historical seed **extraction ownership** and secure landing process (DE/Data Platform) |
+| 4b | Extract and load seed tables per inventory — chunk by month where documented (`MIFID2_Hedge_Report`, `MIFID2_NPD_TRAX`, `ASIC2_Transactions`, `ASIC2_Positions`, migration/regulation in-out) |
+| 4c | If minimum safe historical windows cannot be proven, seed all available history for affected objects |
+| 4d | **Validate** seed row counts, keys, and date ranges (reconcile known MCP vs manual count variances for Hedge and ASIC2_Transactions) |
+| 4e | **Build Hedge RecordID registry** per [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md) before Hedge module DML activation |
 
 Execution evidence from this phase must be captured before module activation.
+
+---
+
+## Phase 2.6 — Controlled structural dry run
+
+| Step | Action |
+| --- | --- |
+| 4f | Run controlled structural dry run (SELECT-only / gated templates) after seed validation and registry scaffold |
+| 4g | Confirm no un-gated DML into final outputs |
 
 ---
 
@@ -85,8 +99,10 @@ Use gated templates only; uncomment/enable DML only when prerequisites for that 
 
 | Step | Action |
 | --- | --- |
-| 9 | Compare against SQL Server baseline where MAG-16 and module plans require it |
+| 9 | Compare against SQL Server baseline on **selected baseline dates** where MAG-16 requires it (do not default to full `MIFID2_Report` export) |
 | 10 | Resolve differences; document accepted deltas in `docs/known_differences.md` |
+
+Baseline comparisons run **only after** seed validation and controlled dry run (Phases 2.5–2.6).
 
 ---
 
@@ -124,8 +140,24 @@ Stop and update blocker docs if:
 
 ---
 
+## Recommended next-phase sequence (summary)
+
+1. Complete PII access or formal exception (D-01 / MAG-06)
+2. Complete seed extraction ownership and landing process
+3. Extract/load seed tables per [historical_seed_inventory.md](historical_seed_inventory.md)
+4. Validate seed row counts, keys, and date ranges
+5. Build Hedge RecordID registry per [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md)
+6. Run controlled structural dry run
+7. Run baseline comparisons on approved dates
+8. **Only then** consider workflow activation (Phase 6)
+
+---
+
 ## Related documents
 
 - [handoff_index.md](handoff_index.md)
+- [historical_seed_inventory.md](historical_seed_inventory.md)
+- [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md)
+- [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md)
 - [final_validation_execution_plan.md](final_validation_execution_plan.md)
 - [workflow_execution_runbook.md](workflow_execution_runbook.md)

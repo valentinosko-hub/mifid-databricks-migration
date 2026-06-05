@@ -21,6 +21,9 @@ This package consolidates the **final role-based handoff** for phase-1 MiFID SQL
 | [de_data_platform_action_list.md](de_data_platform_action_list.md) | DE/Data Platform actions |
 | [regtech_sme_decision_list.md](regtech_sme_decision_list.md) | SME decisions |
 | [post_blocker_execution_plan.md](post_blocker_execution_plan.md) | Sequence after blockers close |
+| [historical_seed_inventory.md](historical_seed_inventory.md) | BI-21 MCP seed-critical inventory |
+| [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md) | Baseline dates and extract constraints |
+| [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md) | Hedge RecordID registry design |
 | [open_blockers_for_execution.md](open_blockers_for_execution.md) | Blocker register |
 | [manual_approval_gates.md](manual_approval_gates.md) | MAG-01–17 (authoritative) |
 | [workflow_governance_controls.md](workflow_governance_controls.md) | Run modes and stop/go |
@@ -78,13 +81,16 @@ Use [open_blockers_for_execution.md](open_blockers_for_execution.md) as the cano
 - [ ] `main.pii_data.bronze_etoro_customer_customer`
 - [ ] `main.pii_data.bronze_etoro_history_customer`
 
-### History / seed (approved direction; implementation/extract ownership pending)
+### History / seed (approved direction; MCP metadata confirmed 2026-06-05; extract ownership pending)
 
+- [ ] Assign seed extraction ownership and secure landing (see [historical_seed_inventory.md](historical_seed_inventory.md))
+- [ ] Extract/load nine seed-critical tables; validate row counts and keys
+- [ ] `MIFID2_Hedge_Report` seed + RecordID registry ([hedge_recordid_registry_design.md](hedge_recordid_registry_design.md))
 - [ ] `MIFID2_NPD_TRAX` seed implementation
 - [ ] `MIFID2_Failed_TRAX` / NPD shared history implementation
-- [ ] `ASIC2_Transactions` history implementation
+- [ ] `ASIC2_Transactions` / `ASIC2_Positions` history implementation (ASIC2_Positions chunked)
 - [ ] `Reg_LiquidtyAcount_SCD` historical validity implementation
-- [ ] `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData` historical replay implementation
+- [ ] `Reg_MigrationInOut_Population` / `Reg_RegulationInOutDailyData` / `Reg_Regulation_Movments_Positions` historical replay implementation
 
 ### SME / certification (open)
 

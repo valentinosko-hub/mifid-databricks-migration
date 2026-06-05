@@ -14,7 +14,25 @@ Source registers:
 - `docs/unresolved_dependencies.md`
 - `docs/open_questions_and_decisions.md`
 - `docs/history_seed_requirements.md`
+- `docs/historical_seed_inventory.md` (BI-21 MCP seed inventory)
+- `docs/sql_server_baseline_extract_plan.md`
+- `docs/hedge_recordid_registry_design.md`
 - `docs/manual_approval_gates.md` (Step 17C approval gate register)
+
+## Policy status (2026-06-05)
+
+**Broad policy decisions are mostly made.** Approved direction covers historical seed strategy, Hedge `RecordID` preservation, hard parity for `TransactionReferenceNumber` and CFI/`InstrumentClassification`, masked-customer dev-only fallback, and phase-1 scope boundaries (no delivery/production).
+
+**Remaining open items** are execution prerequisites and signoffs — not re-litigation of seed-all-history policy:
+
+| # | Remaining item | Owner | Doc reference |
+| --- | --- | --- | --- |
+| 1 | PII access (`main.pii_data`) or formal exception | DE + RegTech SME/Compliance | D-01 / MAG-06 |
+| 2 | Historical seed extraction ownership and landing process | DE / Data Platform | [historical_seed_inventory.md](historical_seed_inventory.md) |
+| 3 | Hedge `RecordID` natural business key final signoff | RegTech SME | D-12 / [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md) |
+| 4 | SQL Server baseline dates and scoped extracts | Validation + SME | D-23 / [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md) |
+| 5 | Execution warehouse / principal / write permissions | Data Platform | [de_data_platform_action_list.md](de_data_platform_action_list.md) |
+| 6 | Final validation evidence capture | Validation | MAG-17 / [final_validation_execution_plan.md](final_validation_execution_plan.md) |
 
 ## Decision-to-approval gate mapping (Step 17C)
 
@@ -54,13 +72,13 @@ Close decisions by updating this register, `docs/manual_approval_gates.md`, and 
 | D-03 | HedgeServerToLiquidityAccount source readiness | **Resolved (direction):** `main.bi_db.bronze_etoro_hedge_hedgeservertoliquidityaccount` is readable with required columns (`HedgeServerID`, `LiquidityAccountID`, `AltRatesLiquidityAccountID`) | DE/Data Platform + Validation | Duplicate/key and coverage validation during execution |
 | D-04 | `dwh_daily_process` access for split-price comparison | **Downgraded:** no longer active blocker for split-price selection; keep only as fallback/reference access if needed later | DE/Data Platform | None for primary split-price activation path |
 | D-05 | CurrencyPriceMaxDateWithSplit source selection | **Resolved (direction):** primary source is `main.dealing.bronze_pricelog_candles_currencypricemaxdatewithsplit`; old `dwh_daily_process` and `main.dwh` candidates are fallback/reference only | DE + SME + Validation | Date-window validation + SQL Server baseline comparison |
-| D-06 | `MIFID2_NPD_TRAX` seed/cutover | **Approved direction:** seed historical data required for parity/retry; if minimum safe window cannot be proven, seed all available history. Seed implementation and extract ownership remain pending. | DE + SME | NPD TRAX, Failed TRAX retry and baseline windows |
+| D-06 | `MIFID2_NPD_TRAX` seed/cutover | **Approved direction:** seed historical data required for parity/retry; if minimum safe window cannot be proven, seed all available history. MCP: 4,576,382 rows; PK dupes = 0; monthly **2019-02 – 2026-06**. Extract ownership pending. | DE + SME | NPD TRAX, Failed TRAX retry and baseline windows |
 | D-07 | `MIFID2_Failed_TRAX` shared seed policy | **Approved direction:** follow D-06 shared history strategy for identity continuity and retry correctness | DE + SME | Failed TRAX staging, Customer output |
-| D-08 | `ASIC2_Transactions` seed/history window | **Approved direction:** seed all history required for ETORO parity windows; default to full available history if minimum safe window is unproven | DE + SME | ASIC2 subset, ETORO report |
+| D-08 | `ASIC2_Transactions` seed/history window | **Approved direction:** seed all history required for ETORO parity windows; default to full available history if minimum safe window is unproven. Manual count 7,245,856 narrows MCP discrepancy; post-extract row-count reconciliation still required. Monthly **2024-09 – 2026-06**. | DE + SME | ASIC2 subset, ETORO report |
 | D-09 | Liquidity SCD seed/cutover | **Approved direction:** seed historical validity required for SCD/reporting; implementation plan still required | DE + SME | `Reg_LiquidtyAcount_SCD`, hedge report |
 | D-10 | Migration population materialization | **Approved direction:** support historical replay/parity windows; implementation mechanism (snapshot vs recreation) still needs runbook-level plan | DE + SME | Movements, reg-change customer/position, report reg-change branches |
 | D-11 | Regulation in/out daily data materialization | **Approved direction:** same historical replay/parity policy family as D-10; implementation details pending | DE + SME | Downstream reg-in/out consumers |
-| D-12 | Hedge `RecordID` strategy | **Approved direction:** preserve historical SQL Server RecordIDs, continue from `MAX(SQL Server RecordID)+1`, use persistent registry/control mechanism, reuse known IDs, allocate new IDs only for truly new/back-reported missed trades, define natural business key | SME + Engineering + Validation | `MIFID2_Hedge_Report` activation and missed-trade back-reporting |
+| D-12 | Hedge `RecordID` strategy | **Approved direction:** preserve historical SQL Server RecordIDs (seed 100000001, max 136314953, 0 dupes), continue from `MAX+1`, persistent registry required (no per-run row_number). Proposed natural key: `(ReportDate, RegulationReportID, TransactionReferenceNumber)` — **SME final signoff pending**. See [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md). | SME + Engineering + Validation | `MIFID2_Hedge_Report` activation and missed-trade back-reporting |
 | D-13 | Hedge transaction-reference parity | **Hard requirement:** must reproduce SQL Server/SSMS values exactly (uniqueness alone is insufficient); baseline comparison mandatory | SME + Validation | Hedge report reconciliation |
 | D-14 | Exact CFI / InstrumentClassification gates | **Hard requirement:** Databricks values must match SQL Server exactly; simplified fallback classification is not acceptable | SME + Validation | ETORO report, hedge report, report instrument enrichment |
 | D-15 | `Dictionary.Ext_TradeFund` mapping | Confirm Databricks object and columns (`FundAccountID`, `FundName`, `FundType`) | DE + SME | Customer, RegChange customer, report mirror enrichment |
@@ -71,7 +89,7 @@ Close decisions by updating this register, `docs/manual_approval_gates.md`, and 
 | D-20 | Report-scoped exclusion semantics | Row-level `table_name` scope for ETORO/Hedge exclusions | SME | ETORO, Hedge reports |
 | D-21 | Required-column certifications (batch) | Close per-source contracts listed in `docs/source_profiling_results.md` | DE + Validation | All staging modules with "confirmed accessible, certification pending" |
 | D-22 | `InstrumentMetaData_SpecialChar_Conversion` activation | After `Reg_Ext_Trade_InstrumentMetaData` staging is certified and populated | Engineering | Report, Hedge, ETORO instrument enrichment |
-| D-23 | Optional SQL Server baseline sources | Provide normalized baseline tables/views per output module | Validation + SQL Server team | Cross-module and per-module baseline comparisons |
+| D-23 | SQL Server baseline dates and scoped extracts | Selected baseline report dates for huge outputs; no full `MIFID2_Report` export unless explicitly approved. See [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md). | Validation + SQL Server team + SME | Cross-module and per-module baseline comparisons |
 | D-24 | Step 12 optional checkpoint materialization | CTE-only vs temporary checkpoint tables for reconciliation reproducibility | Engineering | Report validation evidence (non-blocking for minimal forward run) |
 | D-25 | `Reg_DWH_StaticPosition` conditional use | Keep conditional unless OpenPrice impact is proven for MiFID fields | SME | ASIC2 OpenPrice fallback only if proven |
 

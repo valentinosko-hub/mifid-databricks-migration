@@ -2,6 +2,12 @@
 
 This document tracks history-seed expectations for phase-1 table/report generation modules.
 
+**Companion docs (BI-21 MCP + manual SQL evidence, 2026-06-05):**
+
+- [historical_seed_inventory.md](historical_seed_inventory.md) — seed-critical table inventory and row counts
+- [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md) — baseline dates, chunking, validation
+- [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md) — Hedge `RecordID` registry design
+
 ## Approved historical seed direction (latest update)
 
 RegTech direction is now approved:
@@ -24,7 +30,9 @@ Applies especially to:
 Status:
 
 - Strategy approved.
-- Execution implementation, extract ownership, and sequencing remain pending and gated.
+- All nine seed-critical tables confirmed in `RegReportDB_Prod.dbo` via BI-21 MCP metadata (see [historical_seed_inventory.md](historical_seed_inventory.md)).
+- Execution implementation, extract ownership, and sequencing remain **pending** and gated.
+- Monthly distribution evidence for Hedge (**2022-07 – 2026-06**), NPD (**2019-02 – 2026-06**), and ASIC2 Transactions (**2024-09 – 2026-06**) exists outside repo for chunk planning.
 
 ## Step 6 - Regulation movement staging
 

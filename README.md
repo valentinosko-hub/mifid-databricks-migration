@@ -47,6 +47,9 @@ Start here for consolidated handoff navigation:
 - [Final manager handoff summary (Step 18B)](docs/final_manager_handoff_summary.md)
 - [Open blockers for execution](docs/open_blockers_for_execution.md)
 - [Post-blocker execution plan (Step 18B)](docs/post_blocker_execution_plan.md)
+- [Historical seed inventory (BI-21 MCP)](docs/historical_seed_inventory.md)
+- [SQL Server baseline extract plan](docs/sql_server_baseline_extract_plan.md)
+- [Hedge RecordID registry design](docs/hedge_recordid_registry_design.md)
 
 Role-based action lists:
 

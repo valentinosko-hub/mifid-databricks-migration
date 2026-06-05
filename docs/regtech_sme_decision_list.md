@@ -38,7 +38,7 @@ Related registers:
 
 | # | Decision | Notes | Decision ID | MAG |
 | --- | --- | --- | --- | --- |
-| 9 | Hedge `RecordID` strategy | **Approved direction:** preserve historical SQL Server RecordIDs, continue from `MAX + 1`, use persistent registry/control mechanism, reuse existing IDs, allocate new IDs only for new/back-reported missed trades, define natural business key | D-12 | MAG-12 |
+| 9 | Hedge `RecordID` strategy | **Approved direction:** preserve historical SQL Server RecordIDs (identity seed 100000001, max 136314953, 0 duplicate RecordIDs), continue from `MAX + 1`, persistent registry required (no per-run row_number). Proposed natural key: `(ReportDate, RegulationReportID, TransactionReferenceNumber)` — **SME final signoff pending**. Detail: [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md) | D-12 | MAG-12 |
 | 10 | Hedge `TransactionReferenceNumber` parity | **Hard parity requirement:** must match SQL Server/SSMS values exactly; uniqueness alone is not acceptable | D-13 | MAG-13 |
 | 11 | Exact CFI / `InstrumentClassification` parity | **Hard parity requirement:** values must match SQL Server exactly; simplified fallback not acceptable | D-14 | MAG-15 |
 
@@ -80,7 +80,7 @@ For future reporting and parity validation:
 
 - Seed all historical data required for retry logic, SCD validity, missed-trade back-reporting, identity continuity, and SQL Server baseline comparison.
 - If minimum safe history cannot be proven, seed all available history for that object.
-- Strategy is approved; implementation planning and extract ownership remain pending.
+- Strategy is approved; BI-21 MCP metadata confirms seed-critical tables (see [historical_seed_inventory.md](historical_seed_inventory.md)); implementation planning and extract ownership remain pending.
 
 ---
 
