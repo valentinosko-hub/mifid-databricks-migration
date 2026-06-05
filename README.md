@@ -20,7 +20,7 @@ DE migrates SQL Server / `RegReportDB_Prod` into `main.regtech` via the general 
 In scope for this phase:
 - Staging-only Databricks job/workflow skeletons and smoke-test jobs
 - Databricks staging/report table generation in `main.regtech_ops_stg`
-- Approved CSV seed loads into staging seed tables (secure storage; not Git)
+- Approved CSV seed loads into staging seed tables (secure storage; not Git); SQL templates in `databricks/sql/11_seed_testing/`
 - SSIS-created staging/ext table recreation
 - ASIC2-compatible MiFID subset
 - validation and reconciliation SQL
@@ -54,6 +54,7 @@ Start here for consolidated handoff navigation:
 - [Historical seed inventory (BI-21 MCP)](docs/historical_seed_inventory.md)
 - [SQL Server baseline extract plan](docs/sql_server_baseline_extract_plan.md)
 - [Hedge RecordID registry design](docs/hedge_recordid_registry_design.md)
+- [Manual CSV seed testing plan](docs/manual_seed_testing_plan.md)
 
 Role-based action lists:
 

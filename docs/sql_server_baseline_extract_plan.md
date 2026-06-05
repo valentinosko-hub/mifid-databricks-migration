@@ -40,8 +40,10 @@ Documents how SQL Server baseline extracts and historical seed loads should be p
 
 ### In scope for staging tests
 
-- Approved CSV **seed** extracts landed in secure storage and loaded into `main.regtech_ops_stg` with `bi_output_regtechops_seed_` prefix
+- Approved CSV **seed** extracts landed in secure storage and loaded into `main.regtech_ops_stg` with `bi_output_regtechops_seed_` or `bi_output_regtechops_seed_test_` prefix
 - Initial feasible seed test: `MIFID2_NPD_TRAX` (~4.6M rows) — staging validation only until PII and MAG gates close
+- Manual CSV seed testing SQL package: `databricks/sql/11_seed_testing/` — see [manual_seed_testing_plan.md](manual_seed_testing_plan.md)
+- Temporary manual seed test tables: `bi_output_regtechops_seed_test_mifid2_npd_trax`, `bi_output_regtechops_seed_test_mifid2_hedge_report`
 
 ---
 

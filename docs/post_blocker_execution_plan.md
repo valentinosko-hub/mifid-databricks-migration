@@ -52,8 +52,8 @@ Permitted when secure seed extracts and `main.regtech_ops_stg` write access exis
 
 | Step | Action |
 | --- | --- |
-| 0a | Load approved CSV seed for `MIFID2_NPD_TRAX` into `bi_output_regtechops_seed_mifid2_npd_trax` (initial feasibility test) |
-| 0b | Validate seed row counts and keys; document as **staging evidence only** |
+| 0a | Load approved CSV seed for `MIFID2_NPD_TRAX` using `databricks/sql/11_seed_testing/` templates into `bi_output_regtechops_seed_test_mifid2_npd_trax` (initial feasibility test) |
+| 0b | Run `04_manual_seed_validation.sql` (SELECT-only); document as **staging evidence only** — see [manual_seed_testing_plan.md](manual_seed_testing_plan.md) |
 | 0c | Run staging smoke-test jobs for ext/staging/audit modules not requiring final PII |
 | 0d | Confirm NPD remains later in reporting flow (history/state dependency); seed test does not close NPD parity gates |
 
@@ -203,5 +203,6 @@ Stop and update blocker docs if:
 - [historical_seed_inventory.md](historical_seed_inventory.md)
 - [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md)
 - [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md)
+- [manual_seed_testing_plan.md](manual_seed_testing_plan.md)
 - [final_validation_execution_plan.md](final_validation_execution_plan.md)
 - [workflow_execution_runbook.md](workflow_execution_runbook.md)

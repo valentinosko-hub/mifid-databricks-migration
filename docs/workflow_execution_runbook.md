@@ -53,7 +53,7 @@ Intended purpose: staging validation in `main.regtech_ops_stg` — not final par
 
 - `run_mode=development_structural_test`
 - Writes target `main.regtech_ops_stg` only (`bi_output_regtechops_` / `bi_output_regtechops_seed_`)
-- Approved CSV seed loads permitted (e.g. initial `MIFID2_NPD_TRAX` feasibility test)
+- Approved CSV seed loads permitted via `databricks/sql/11_seed_testing/` (e.g. initial `MIFID2_NPD_TRAX` into `bi_output_regtechops_seed_test_mifid2_npd_trax`) — see [manual_seed_testing_plan.md](manual_seed_testing_plan.md)
 - `dry_run=false` permitted for staging smoke tests when scoped to staging schema only
 - Masked customer permitted for structural tests only
 
