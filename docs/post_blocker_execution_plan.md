@@ -96,7 +96,7 @@ BI-21 MCP metadata confirms all nine seed-critical tables exist; manual SQL aggr
 | 4b | Extract and load seed tables per inventory — CSV/secure landing → `bi_output_regtechops_seed_*` in `main.regtech_ops_stg`; chunk by month where documented. **Start with `MIFID2_NPD_TRAX`** as feasible initial test; expand to Hedge, ASIC2, migration/regulation in-out |
 | 4c | If minimum safe historical windows cannot be proven, seed all available history for affected objects |
 | 4d | **Validate** seed row counts, keys, and date ranges (reconcile known MCP vs manual count variances for Hedge and ASIC2_Transactions) |
-| 4e | **Build Hedge RecordID registry** per [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md) before Hedge module DML activation |
+| 4e | **Build Hedge RecordID registry** using gated package templates under `databricks/sql/08_outputs/10_hedge_recordid_registry/` and [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md) before Hedge module DML activation |
 
 Execution evidence from this phase must be captured before module activation.
 
@@ -108,6 +108,12 @@ Execution evidence from this phase must be captured before module activation.
 | --- | --- |
 | 4f | Run controlled structural dry run (SELECT-only / gated templates) after seed validation and registry scaffold |
 | 4g | Confirm no un-gated DML into final outputs |
+
+Registry-specific gate before Step 14 activation:
+
+- Historical source availability confirmed (DE-migrated or approved seed-test source).
+- Registry seed validation passes (`04_hedge_recordid_validation.sql` + Step 14 validation).
+- Natural-key signoff completed.
 
 ---
 

@@ -76,6 +76,7 @@ Attestation date: _TBD_ (record when program accepts handoff).
 ## What has been authored
 
 - **SQL:** Gated templates under `databricks/sql/` (config, static, UDFs, Pre_Regulation, movements, hedge liquidity, ASIC2, MIFID2_ext, outputs, cross-module validation, workflow gates).
+- **Hedge RecordID registry package:** Gated design templates under `databricks/sql/08_outputs/10_hedge_recordid_registry/` (scaffold, seed, allocation, SELECT-only validation).
 - **Workflow:** Non-executing skeleton `databricks/workflows/mifid_phase1_table_generation.yml` and `databricks/sql/10_workflow/`.
 - **Docs:** Analysis, profiling, gates, reconciliation, readiness, workflow, governance, Step 18A audit, Step 18B handoff (this package).
 - **Target convention:** `main.regtech_ops_stg` only; `bi_output_regtechops_` for generated objects; `bi_output_regtechops_seed_` for seed tables.
@@ -111,6 +112,7 @@ Use [open_blockers_for_execution.md](open_blockers_for_execution.md) as the cano
 - [ ] Assign seed extraction ownership and secure landing (see [historical_seed_inventory.md](historical_seed_inventory.md))
 - [ ] Extract/load nine seed-critical tables; validate row counts and keys
 - [ ] `MIFID2_Hedge_Report` seed + RecordID registry ([hedge_recordid_registry_design.md](hedge_recordid_registry_design.md))
+- [ ] Hedge RecordID registry package gates closed (`databricks/sql/08_outputs/10_hedge_recordid_registry/`) before Step 14 activation
 - [ ] `MIFID2_NPD_TRAX` seed implementation (initial feasible staging seed/load test — `bi_output_regtechops_seed_*`; not final parity until PII/validation gates close)
 - [ ] `MIFID2_Failed_TRAX` / NPD shared history implementation
 - [ ] `ASIC2_Transactions` / `ASIC2_Positions` history implementation (ASIC2_Positions chunked)

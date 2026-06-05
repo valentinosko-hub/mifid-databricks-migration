@@ -108,6 +108,16 @@ Run under `development_structural_test` mode per [workflow_execution_runbook.md]
 - `RecordID` min/max vs observed SQL Server range (min `100253434`, max `136314953`)
 - Final Step 14 Hedge activation **remains gated** (RecordID registry, TRN parity, MAG gates)
 
+### Hedge RecordID registry seed design input (staging tests)
+
+When DE-migrated historical source is not yet available, approved staging seed table
+`main.regtech_ops_stg.bi_output_regtechops_seed_test_mifid2_hedge_report` may be used as
+the **design-time source** placeholder for the gated registry seed template:
+
+- `databricks/sql/08_outputs/10_hedge_recordid_registry/02_hedge_recordid_seed_from_sql_server.sql`
+
+This supports registry/control testing design only and does not close final Step 14 gates.
+
 ---
 
 ## Safety rules
@@ -128,3 +138,4 @@ Run under `development_structural_test` mode per [workflow_execution_runbook.md]
 - [post_blocker_execution_plan.md](post_blocker_execution_plan.md) (Phase 0.5)
 - [workflow_execution_runbook.md](workflow_execution_runbook.md)
 - [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md)
+- `databricks/sql/08_outputs/10_hedge_recordid_registry/README.md`

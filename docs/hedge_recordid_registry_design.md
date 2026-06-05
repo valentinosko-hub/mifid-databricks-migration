@@ -65,20 +65,54 @@ A **persistent registry / control table** is required in `main.regtech_ops_stg` 
 
 **Simple per-run `row_number()` allocation is not acceptable** — it would break SQL Server parity and missed-trade identity continuity.
 
-### Proposed registry columns (illustrative)
+### Proposed registry columns (design package contract)
 
 | Column | Purpose |
 | --- | --- |
-| `record_id` | Allocated / preserved `RecordID` |
-| `report_date` | Natural key component |
-| `regulation_report_id` | Natural key component |
-| `transaction_reference_number` | Natural key component |
-| `source_system` | e.g. `SQL_SERVER_SEED`, `DATABRICKS_NEW` |
-| `first_seen_run_id` | Provenance |
-| `last_seen_run_id` | Rerun tracking |
-| `created_at` / `updated_at` | Audit |
+| `RecordID` | Preserved/allocated hedge identifier |
+| `RecordBusinessKey` | Natural-key composite string for deterministic lookup/reuse |
+| `ReportDate` | Natural key component |
+| `RegulationReportID` | Natural key component |
+| `rowSource` | Branch/source lineage |
+| `TransactionReferenceNumber` | Natural key component; exact parity-sensitive field |
+| `ExecutionID` | Supplemental trade identity context |
+| `OrderID` | Supplemental trade identity context |
+| `EMSOrderID` | Supplemental trade identity context |
+| `LiquidityAccountID` | Supplemental identity/reconciliation context |
+| `InstrumentID` | Supplemental identity/reconciliation context |
+| `SourceRecordOrigin` | `SQL_SERVER_HISTORICAL_SEED` / `REGISTRY_REUSED` / `DATABRICKS_NEW_ALLOCATION` |
+| `FirstAllocatedRunID` | First allocation provenance |
+| `FirstAllocatedTimestamp` | First allocation timestamp |
+| `LastSeenRunID` | Last seen provenance |
+| `LastSeenTimestamp` | Last seen timestamp |
+| `MigratedFromSQLServerFlag` | Marks rows seeded from SQL Server history |
+| `IsActive` | Active registry row flag |
 
-Exact schema is an implementation task gated by MAG-12 closure.
+`RecordBusinessKey` starts from:
+
+- `ReportDate + RegulationReportID + TransactionReferenceNumber`
+
+SME final validation/signoff of this natural-key definition remains pending.
+
+### Authored gated SQL package (not executed)
+
+Package path: `databricks/sql/08_outputs/10_hedge_recordid_registry/`
+
+| File | Purpose |
+| --- | --- |
+| `README.md` | Scope/rules/gating conditions |
+| `01_hedge_recordid_registry_scaffold.sql` | Commented registry DDL with fixed `LOCATION` placeholder |
+| `02_hedge_recordid_seed_from_sql_server.sql` | Commented historical seed template (DE-migrated source or approved seed-test source) |
+| `03_hedge_recordid_allocation_template.sql` | Commented deterministic reuse/allocate template (`MAX+1` for unseen keys only) |
+| `04_hedge_recordid_validation.sql` | SELECT-only validation checks |
+
+All registry templates remain commented/gated until:
+
+1. Historical source is available (`{{de_migrated_mifid2_hedge_report_source}}`) or approved staging seed source is ready.
+2. Seed validation passes (row counts, duplicates, range checks).
+3. Registry creation and fixed location are approved.
+4. Natural-key signoff is completed.
+5. Registry validation checks pass.
 
 ---
 
@@ -93,7 +127,7 @@ Exact schema is an implementation task gated by MAG-12 closure.
 | Missing registry rows | Every output row with new allocation has registry entry |
 | Registry / output reconciliation | Output `RecordID` set matches registry for seeded + new rows |
 
-Run validation via Step 14B4 packages after registry exists; capture evidence externally.
+Run validation via `databricks/sql/08_outputs/10_hedge_recordid_registry/04_hedge_recordid_validation.sql` and Step 14B4 checks after registry exists; capture evidence externally.
 
 ---
 
@@ -113,6 +147,16 @@ Until signoff:
 
 - Use `(ReportDate, RegulationReportID, TransactionReferenceNumber)` as the **working** natural key
 - Document any SME-approved extensions in this file and close D-12 / MAG-12
+
+## Activation gate (unchanged)
+
+`MIFID2_Hedge_Report` activation remains gated until all of the following are true:
+
+1. DE-migrated historical source or approved manual staging seed source is available.
+2. Historical seed validation passes.
+3. Registry scaffold/seed/allocation templates are approved for execution.
+4. Final natural-key signoff is complete.
+5. Registry validation passes with no unresolved hard failures.
 
 ---
 

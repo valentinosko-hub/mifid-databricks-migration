@@ -519,6 +519,7 @@ Additional Step 14B3 seed dependencies:
 - RecordID registry/control boundary:
   - approved allocation path implemented (seed historical SQL Server RecordIDs, continue from `MAX(RecordID)+1`, persistent registry/control mechanism).
   - natural business key is defined and used to reuse existing RecordIDs for already-known trades across reruns.
+  - authored registry package available at `databricks/sql/08_outputs/10_hedge_recordid_registry/` (scaffold/seed/allocation templates remain gated/commented).
 - Exclusion parity boundary:
   - report-scoped instrument and position/reference exclusion sources must contain expected historical entries for requested dates.
 
@@ -541,6 +542,9 @@ Step 14B4 SCD/cutover caution:
 
 - Liquidity SCD seed/cutover decisions can change hedge parity outcomes even for validation windows.
 - If SCD history is incomplete for requested windows, validation results must be marked as coverage-limited rather than parity-failed.
+- Registry validation should run via:
+  - `databricks/sql/08_outputs/10_hedge_recordid_registry/04_hedge_recordid_validation.sql` (SELECT-only)
+  - and Step 14B4 hedge validation package checks.
 
 ## Step 15 - MIFID2_NPD_TRAX
 
