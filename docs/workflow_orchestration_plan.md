@@ -43,12 +43,19 @@ flowchart TD
   regulationMovementStaging --> hedgeLiquidityExtStaging
   hedgeLiquidityExtStaging --> asic2StructuralStaging
   asic2StructuralStaging --> mifid2ExtNonPiiStaging
-  mifid2ExtNonPiiStaging --> maskedCustomerStructuralTests
-  maskedCustomerStructuralTests --> manualSeedTestingChecks
-  manualSeedTestingChecks --> validationSummary
+  mifid2ExtNonPiiStaging --> validationSummary
 ```
 
-Optional groups: `maskedCustomerStructuralTests` (MAG-05), `manualSeedTestingChecks` (seed load evidence).
+Optional groups (commented manual blocks; not in default path):
+
+```mermaid
+flowchart LR
+  mifid2ExtNonPiiStaging -.-> maskedCustomerStructuralTests
+  mifid2ExtNonPiiStaging -.-> manualSeedTestingChecks
+```
+
+- `maskedCustomerStructuralTests` — `enable_masked_customer_structural_tests=false`; MAG-05; not required for first pass
+- `manualSeedTestingChecks` — `enable_manual_seed_testing_checks=false`; seed manifest; not required for first pass
 
 ## Task graph — full Phase 1 generation (gated; separate workflow)
 
@@ -78,9 +85,26 @@ flowchart TD
 - Regulation movements gate hedge/liquidity ext staging.
 - Hedge/liquidity ext gates ASIC2 structural subset.
 - ASIC2 structural gates MIFID2_ext non-PII staging.
-- MIFID2_ext non-PII gates optional masked customer tests (parameter + MAG-05).
-- Masked customer gates optional manual seed checks.
-- Manual seed gates validation summary.
+- MIFID2_ext non-PII gates validation summary (default critical path).
+- Optional masked customer and manual seed groups are **outside** the default path; uncomment in YAML when enable flags and approvals are set.
+
+## Source/target policy gates
+
+`gate_global_scope.sql` (SELECT-only) enforces:
+
+- GATE-06: read `main.regtech` by default
+- GATE-02 / GATE-07: write `main.regtech_ops_stg` only; never write `main.regtech`
+- GATE-08: `bi_output_regtechops_` object prefix
+- GATE-03: `dry_run=true` default; `dry_run=false` requires `staging_execution_approved=true` and `development_structural_test`
+
+## Audit / evidence mapping
+
+| Artifact | Purpose |
+| --- | --- |
+| `gate_global_scope.sql` | Policy gate output |
+| `02_audit_logging.sql` | Optional SELECT-only audit manifest |
+| `docs/staging_execution_evidence_log.md` | TODO — external evidence log |
+| Secure storage | Baseline/seed manifests outside repo |
 
 ## Dependency chain — full Phase 1 generation (gated)
 

@@ -54,7 +54,7 @@ Status values:
 | MAG-15 | CFI/classification parity evidence (maps to D-14) |
 | MAG-16 | SQL Server baseline comparison tables/reports (maps to D-23) |
 | MAG-17 | Full validation chain per `docs/final_validation_execution_plan.md` + `09_validation/*` |
-| MAG-18 | Signed enablement for staging smoke-test deployment; `docs/reporting_job_preparation_plan.md` checklist; parameter review against `databricks/config/workflow_parameters.yml` |
+| MAG-18 | Signed enablement for staging smoke-test deployment; `docs/reporting_job_preparation_plan.md` checklist; parameter review against `databricks/config/workflow_parameters.yml`; required before `dry_run=false` with `staging_execution_approved=true` |
 
 ## Approval record placeholders
 
@@ -235,6 +235,8 @@ Status after approval: CLOSED
 | Status | OPEN |
 
 Applies to `databricks/workflows/mifid_phase1_staging_smoke_test.yml` only. Does not authorize final NPD_TRAX, Hedge report, PII parity, delivery, or production deployment.
+
+Required for `dry_run=false` staging execution (`staging_execution_approved=true`). First smoke-test pass should use `dry_run=true`; optional task groups (`enable_masked_customer_structural_tests`, `enable_manual_seed_testing_checks`) remain disabled by default.
 
 ## Policy reminders
 

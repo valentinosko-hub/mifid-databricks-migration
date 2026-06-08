@@ -83,8 +83,8 @@ Additional handoff support:
 - [Workflow skeleton design (Step 17B)](docs/workflow_skeleton_design.md)
 - [Workflow orchestration plan (Step 17B)](docs/workflow_orchestration_plan.md)
 - [Workflow execution runbook (Step 17B)](docs/workflow_execution_runbook.md)
-- Staging smoke-test workflow: `databricks/workflows/mifid_phase1_staging_smoke_test.yml`
-- Shared workflow parameters: `databricks/config/workflow_parameters.yml`
+- Staging smoke-test workflow: `databricks/workflows/mifid_phase1_staging_smoke_test.yml` (default critical path; optional groups skippable)
+- Shared workflow parameters: `databricks/config/workflow_parameters.yml` (`dry_run=true` default; `staging_execution_approved=false`)
 - [Workflow manual approval checkpoints (Step 17B)](docs/workflow_manual_approval_checkpoints.md)
 - [Workflow governance controls (Step 17C)](docs/workflow_governance_controls.md)
 - [Manual approval gates (Step 17C)](docs/manual_approval_gates.md)

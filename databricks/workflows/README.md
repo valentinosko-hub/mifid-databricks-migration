@@ -17,8 +17,15 @@ Non-production orchestration for validating ext/staging/audit tables before fina
 
 - **Read:** `main.regtech` (primary); dev fallback to confirmed alternate schemas documented only in run evidence
 - **Write:** `main.regtech_ops_stg` with `bi_output_regtechops_` prefix
-- **Defaults:** `run_mode=development_structural_test`, `dry_run=true`, no schedule
-- **11 task groups:** source readiness → static refs → price/currency/split → non-price Reg_Ext → regulation movements → hedge/liquidity ext → ASIC2 structural → MIFID2_ext non-PII → optional masked customer → optional manual seed → validation summary
+- **Defaults:** `run_mode=development_structural_test`, `dry_run=true`, `staging_execution_approved=false`, no schedule
+- **Default critical path (9 tasks):** source readiness → static refs → price/currency/split → non-price Reg_Ext → regulation movements → hedge/liquidity ext → ASIC2 structural → MIFID2_ext non-PII → validation summary
+- **Optional groups (commented manual blocks; not required for first pass):**
+  - `masked_customer_structural_tests` — `enable_masked_customer_structural_tests=false`; also `allow_masked_customer_sources=true` + MAG-05
+  - `manual_seed_testing_checks` — `enable_manual_seed_testing_checks=false`; seed tables + manifest evidence
+
+**dry_run:** `true` = readiness/check-only (default). `false` allowed only with `staging_execution_approved=true`, `development_structural_test`, and MAG-18 — still `main.regtech_ops_stg` only.
+
+**Audit/evidence (SELECT-only; no active audit writes):** `gate_global_scope.sql`; optional `02_audit_logging.sql`; external log TODO `docs/staging_execution_evidence_log.md`.
 
 **Not included (gated):** final NPD_TRAX, final Hedge report, final PII customer parity, delivery/upload/response/production.
 

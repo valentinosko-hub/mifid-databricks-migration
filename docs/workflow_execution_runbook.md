@@ -64,17 +64,30 @@ Workflow: `mifid_phase1_staging_smoke_test.yml` (template-only until deployment 
 | `target_catalog` / `target_schema` | `main` / `regtech_ops_stg` |
 | `object_prefix` | `bi_output_regtechops_` |
 | `run_mode` | `development_structural_test` |
-| `dry_run` | `true` |
+| `dry_run` | `true` (default safe mode) |
+| `staging_execution_approved` | `false` (must be `true` for `dry_run=false`) |
+| `enable_masked_customer_structural_tests` | `false` |
+| `enable_manual_seed_testing_checks` | `false` |
 | `skip_delivery_steps` | `true` |
 
-Task groups (in order): source readiness → static refs → price/currency/split → non-price Reg_Ext → regulation movements → hedge/liquidity ext → ASIC2 structural → MIFID2_ext non-PII → optional masked customer → optional manual seed → validation summary.
+**Default critical path:** source readiness → static refs → price/currency/split → non-price Reg_Ext → regulation movements → hedge/liquidity ext → ASIC2 structural → MIFID2_ext non-PII → validation summary.
+
+**Optional groups (not in default path):** masked customer (`enable_masked_customer_structural_tests`); manual seed (`enable_manual_seed_testing_checks`). Neither is required for the first smoke-test pass.
+
+### dry_run modes
+
+| `dry_run` | Mode | GATE-03 |
+| --- | --- | --- |
+| `true` (default) | Readiness/check-only; template-safe | PASS |
+| `false` | Staging execution in `development_structural_test` only | PASS_WITH_LIMITS when `staging_execution_approved=true` and MAG-18 closed |
+
+`dry_run=false` is **not** production execution. Writes remain `main.regtech_ops_stg` only. First runs should keep `dry_run=true` until MAG-18 and explicit staging approval.
 
 - `run_mode=development_structural_test`
 - Writes target `main.regtech_ops_stg` only (`bi_output_regtechops_` / `bi_output_regtechops_seed_`)
-- Read `main.regtech` when DE-migrated; dev fallback to confirmed alternate schemas only with documented evidence
-- Approved CSV seed loads permitted via `databricks/sql/11_seed_testing/` (e.g. initial `MIFID2_NPD_TRAX` into `bi_output_regtechops_seed_test_mifid2_npd_trax`) — see [manual_seed_testing_plan.md](manual_seed_testing_plan.md)
-- `dry_run=false` permitted for staging smoke tests when scoped to staging schema only and MAG/blocker checks pass
-- Masked customer permitted for structural tests only when `allow_masked_customer_sources=true` and MAG-05 is CLOSED
+- Read `main.regtech` when DE-migrated; enforced by GATE-06 in `gate_global_scope.sql`
+- Approved CSV seed loads via `databricks/sql/11_seed_testing/` when optional manual seed group is enabled — see [manual_seed_testing_plan.md](manual_seed_testing_plan.md)
+- Masked customer optional group: `enable_masked_customer_structural_tests=true`, `allow_masked_customer_sources=true`, MAG-05 CLOSED
 
 Allowed outcomes:
 
@@ -94,7 +107,8 @@ Not allowed:
 Intended purpose: structural validation only (subset of staging smoke-test path).
 
 - `run_mode=development_structural_test`
-- `dry_run=true` unless explicitly running scoped staging seed/smoke tasks above
+- `dry_run=true` (default) for first-pass readiness checks
+- `dry_run=false` only with `staging_execution_approved=true` and MAG-18 — not production
 - `dev_customer_source_mode=masked_fallback` only when explicitly approved
 - `allow_masked_customer_sources=true` only for structural checks
 - `enable_validation_only=true`

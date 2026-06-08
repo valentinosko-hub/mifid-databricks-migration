@@ -13,6 +13,30 @@ staging_smoke_test:
   job_key: mifid_phase1_staging_smoke_test_skeleton
   schedule: null
   deploy: false
+  default_critical_path:
+    - source_readiness_checks
+    - static_reference_checks
+    - price_currency_split_ext_staging
+    - non_price_reg_ext_staging
+    - regulation_movement_staging
+    - hedge_liquidity_ext_staging
+    - asic2_structural_staging
+    - mifid2_ext_non_pii_staging
+    - validation_summary
+  optional_task_groups:
+    masked_customer_structural_tests:
+      enable_flag: enable_masked_customer_structural_tests
+      default: "false"
+      also_requires:
+        - allow_masked_customer_sources=true
+        - MAG-05 CLOSED
+      not_required_for_first_pass: true
+    manual_seed_testing_checks:
+      enable_flag: enable_manual_seed_testing_checks
+      default: "false"
+      also_requires:
+        - seed tables loaded with manifest evidence
+      not_required_for_first_pass: true
   parameters:
     source_catalog: main
     source_schema: regtech
@@ -25,12 +49,36 @@ staging_smoke_test:
     report_date: "YYYY-MM-DD"
     run_mode: development_structural_test
     dry_run: "true"
+    staging_execution_approved: "false"
     allow_masked_customer_sources: "false"
+    enable_masked_customer_structural_tests: "false"
+    enable_manual_seed_testing_checks: "false"
     require_unmasked_pii_for_parity: "true"
     skip_delivery_steps: "true"
     enable_validation_only: "true"
     dev_customer_source_mode: masked_fallback
     customer_source_policy: temporary_masked_dev_only_v1
+
+dry_run_policy:
+  dry_run_true:
+    mode: readiness_check_only
+    gate_03: PASS
+    default: true
+    description: Safe default for template and first smoke-test pass
+  dry_run_false:
+    allowed_when:
+      - staging_execution_approved=true
+      - run_mode=development_structural_test
+      - MAG-18 CLOSED
+    gate_03: PASS_WITH_LIMITS
+    writes: main.regtech_ops_stg only
+    not_production: true
+
+audit_evidence_mapping:
+  gate_sql: databricks/sql/10_workflow/gates/gate_global_scope.sql
+  audit_manifest_sql: databricks/sql/10_workflow/02_audit_logging.sql
+  external_evidence_log: "TODO docs/staging_execution_evidence_log.md (not yet authored)"
+  baseline_manifests: secure storage outside repo
 
 phase1_table_generation:
   description: Step 17B full table-generation ordering skeleton (separate workflow)
@@ -45,6 +93,7 @@ phase1_table_generation:
     report_date: "YYYY-MM-DD"
     run_mode: development_structural_test
     dry_run: "true"
+    staging_execution_approved: "false"
     allow_masked_customer_sources: "false"
     require_unmasked_pii_for_parity: "true"
     skip_delivery_steps: "true"

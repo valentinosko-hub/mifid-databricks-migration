@@ -27,15 +27,18 @@ Job name (template): `mifid_phase1_staging_smoke_test_skeleton_do_not_deploy`
 | Object prefix | `bi_output_regtechops_` |
 | Seed prefix | `bi_output_regtechops_seed_` |
 | Default run mode | `development_structural_test` |
-| Default dry run | `true` |
+| Default dry run | `true` (readiness/check-only) |
+| Staging execution approval | `staging_execution_approved=false` (required for `dry_run=false`) |
 | Schedule | None |
 | Deployment | Blocked (template-only) |
 
 **Forbidden:** writes to `main.regtech`; delivery/upload/response; production schedules; final parity claims without MAG closure.
 
-## Workflow groups (active)
+## Workflow groups
 
-1. **source_readiness_checks** — source existence, columns, counts/date ranges, target schema, optional seed tables
+### Default critical path (required for first smoke-test pass)
+
+1. **source_readiness_checks** — source/target policy gates (GATE-06–08 in `gate_global_scope.sql`)
 2. **static_reference_checks** — static refs and required columns
 3. **price_currency_split_ext_staging** — price/currency/split ext tables
 4. **non_price_reg_ext_staging** — non-price Reg_Ext staging
@@ -43,9 +46,36 @@ Job name (template): `mifid_phase1_staging_smoke_test_skeleton_do_not_deploy`
 6. **hedge_liquidity_ext_staging** — liquidity ext; SCD structural only
 7. **asic2_structural_staging** — ASIC2 subset structural checks only
 8. **mifid2_ext_non_pii_staging** — MIFID2_ext non-PII tables
-9. **masked_customer_structural_tests** — optional; `allow_masked_customer_sources=true` + MAG-05
-10. **manual_seed_testing_checks** — optional; seed tables per `docs/manual_seed_testing_plan.md`
-11. **validation_summary** — safe module validations + cross-module readiness
+9. **validation_summary** — safe module validations + cross-module readiness
+
+### Optional groups (commented manual task blocks — skippable)
+
+| Group | Enable flag | Additional requirements | First pass required? |
+| --- | --- | --- | --- |
+| **masked_customer_structural_tests** | `enable_masked_customer_structural_tests=false` | `allow_masked_customer_sources=true`; MAG-05 CLOSED | **No** |
+| **manual_seed_testing_checks** | `enable_manual_seed_testing_checks=false` | Seed tables loaded; manifest evidence per [manual_seed_testing_plan.md](manual_seed_testing_plan.md) | **No** |
+
+Uncomment optional tasks in workflow YAML only when flags and approvals are set. `validation_summary` depends on `mifid2_ext_non_pii_staging` by default.
+
+## dry_run and staging execution
+
+| Setting | Meaning |
+| --- | --- |
+| `dry_run=true` (default) | Readiness/check-only safe mode; GATE-03 PASS |
+| `dry_run=false` | Allowed only with `staging_execution_approved=true`, `run_mode=development_structural_test`, and MAG-18; writes still `main.regtech_ops_stg` only — not production |
+
+First executions should keep `dry_run=true` until MAG-18 closes and staging execution is explicitly approved.
+
+## Audit / evidence mapping
+
+| Artifact | Role |
+| --- | --- |
+| `databricks/sql/10_workflow/gates/gate_global_scope.sql` | Source/target policy gate (SELECT-only) |
+| `databricks/sql/10_workflow/02_audit_logging.sql` | Optional SELECT-only audit manifest (no persistent writes) |
+| `docs/staging_execution_evidence_log.md` | **TODO** — external run evidence log (not yet authored) |
+| Secure storage manifests | Baseline/seed evidence outside repo |
+
+Workflow does not activate persistent audit table writes.
 
 ## Explicitly disabled / gated (not in smoke-test workflow)
 
