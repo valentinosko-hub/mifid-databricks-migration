@@ -5,6 +5,8 @@ This runbook defines how to use the **staging smoke-test** and Step 17B workflow
 **Primary staging artifact:** `databricks/workflows/mifid_phase1_staging_smoke_test.yml`  
 **Parameter defaults:** `databricks/config/workflow_parameters.yml`  
 **Preparation plan:** `docs/reporting_job_preparation_plan.md`  
+**First-run plan:** `docs/staging_first_run_plan.md`  
+**Evidence log:** `docs/staging_execution_evidence_log.md`  
 **Baseline extracts:** `docs/baseline_scenario_request.md`, `docs/validation_evidence_plan.md`
 
 Governance controls and manual approval workflow: `docs/workflow_governance_controls.md`, `docs/manual_approval_gates.md`.
@@ -51,6 +53,19 @@ Before any execution enablement, confirm:
 - Stop/go criteria in `docs/workflow_governance_controls.md` are satisfied for the intended run type.
 - `run_mode`, `dry_run`, and customer-source policy parameters are set correctly.
 - `skip_delivery_steps=true` and no delivery/upload/response tasks are included.
+
+## Staging first-run (manual sequence)
+
+For the step-by-step first execution, follow [staging_first_run_plan.md](staging_first_run_plan.md):
+
+- Phase 0 — pre-run checks (git, parameters, no `main.regtech` writes, evidence outside Git)
+- Phases 1–8 — default critical path (source → static → ext/staging modules → MIFID2_ext non-PII)
+- Phases 9–10 — **optional** (skip on first pass unless explicitly needed)
+- Phase 11 — validation summary + evidence log update
+
+Record each phase in an external working copy of [staging_execution_evidence_log.md](staging_execution_evidence_log.md). Staging success is **not** final parity signoff.
+
+---
 
 ## Staging smoke-test / seed-load run path
 
@@ -156,7 +171,8 @@ Preconditions:
 - Module-level validation outputs in execution order.
 - Cross-module validation outputs from `databricks/sql/09_validation/`.
 - Gate wrapper outputs from `databricks/sql/10_workflow/gates/`.
-- SQL Server baseline evidence per [validation_evidence_plan.md](validation_evidence_plan.md) — extracts requested via [baseline_scenario_request.md](baseline_scenario_request.md); stored **outside repo**.
+- Per-phase staging evidence per [staging_execution_evidence_log.md](staging_execution_evidence_log.md) — stored **outside repo**.
+- SQL Server baseline evidence per [validation_evidence_plan.md](validation_evidence_plan.md) — extracts requested via [baseline_scenario_request.md](baseline_scenario_request.md); required for **final parity**, not first staging pass.
 - Documented unresolved deltas and owner decisions.
 
 ## Manual approval and stop/go references

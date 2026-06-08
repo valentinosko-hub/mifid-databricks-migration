@@ -54,7 +54,7 @@ Permitted when secure seed extracts and `main.regtech_ops_stg` write access exis
 | --- | --- |
 | 0a | Load approved CSV seed for `MIFID2_NPD_TRAX` using `databricks/sql/11_seed_testing/` templates into `bi_output_regtechops_seed_test_mifid2_npd_trax` (initial feasibility test) |
 | 0b | Run `04_manual_seed_validation.sql` (SELECT-only); document as **staging evidence only** — see [manual_seed_testing_plan.md](manual_seed_testing_plan.md) |
-| 0c | Run staging smoke-test workflow (`databricks/workflows/mifid_phase1_staging_smoke_test.yml`) for ext/staging/audit modules not requiring final PII — default `dry_run=true`; optional groups disabled — see [reporting_job_preparation_plan.md](reporting_job_preparation_plan.md) |
+| 0c | Execute manual staging first-run per [staging_first_run_plan.md](staging_first_run_plan.md); record evidence in external copy of [staging_execution_evidence_log.md](staging_execution_evidence_log.md); workflow reference `mifid_phase1_staging_smoke_test.yml` — default `dry_run=true`; optional groups disabled |
 | 0d | Confirm NPD remains later in reporting flow (history/state dependency); seed test does not close NPD parity gates |
 | 0e | Keep final NPD_TRAX, Hedge report, PII customer parity, and delivery paths disabled in smoke-test workflow |
 | 0f | First pass: default critical path only; keep `enable_masked_customer_structural_tests=false` and `enable_manual_seed_testing_checks=false` unless explicitly needed |
@@ -227,6 +227,8 @@ Stop and update blocker docs if:
 - [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md)
 - [baseline_scenario_request.md](baseline_scenario_request.md)
 - [validation_evidence_plan.md](validation_evidence_plan.md)
+- [staging_first_run_plan.md](staging_first_run_plan.md)
+- [staging_execution_evidence_log.md](staging_execution_evidence_log.md)
 - [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md)
 - [manual_seed_testing_plan.md](manual_seed_testing_plan.md)
 - [final_validation_execution_plan.md](final_validation_execution_plan.md)

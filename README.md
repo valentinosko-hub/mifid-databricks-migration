@@ -80,6 +80,8 @@ Additional handoff support:
 - [Manager status summary](docs/manager_status_summary.md)
 - [Customer source policy (masked temporary fallback)](docs/source_to_databricks_mapping_review.md#customer-source-path-policy-temporary-masked-fallback--final-pii-gates)
 - [Reporting job preparation plan (staging smoke test)](docs/reporting_job_preparation_plan.md)
+- [Staging first-run plan](docs/staging_first_run_plan.md)
+- [Staging execution evidence log (template)](docs/staging_execution_evidence_log.md)
 - [Workflow skeleton design (Step 17B)](docs/workflow_skeleton_design.md)
 - [Workflow orchestration plan (Step 17B)](docs/workflow_orchestration_plan.md)
 - [Workflow execution runbook (Step 17B)](docs/workflow_execution_runbook.md)

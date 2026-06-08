@@ -14,6 +14,8 @@ Validate structural readiness of ext/staging/audit table generation in `main.reg
 | Shared parameter defaults | `databricks/config/workflow_parameters.yml` |
 | Execution runbook | `docs/workflow_execution_runbook.md` |
 | Orchestration plan | `docs/workflow_orchestration_plan.md` |
+| **First-run plan** | `docs/staging_first_run_plan.md` |
+| **Evidence log template** | `docs/staging_execution_evidence_log.md` |
 
 Job name (template): `mifid_phase1_staging_smoke_test_skeleton_do_not_deploy`
 
@@ -72,7 +74,7 @@ First executions should keep `dry_run=true` until MAG-18 closes and staging exec
 | --- | --- |
 | `databricks/sql/10_workflow/gates/gate_global_scope.sql` | Source/target policy gate (SELECT-only) |
 | `databricks/sql/10_workflow/02_audit_logging.sql` | Optional SELECT-only audit manifest (no persistent writes) |
-| `docs/staging_execution_evidence_log.md` | **TODO** — external run evidence log (not yet authored) |
+| `docs/staging_execution_evidence_log.md` | Evidence log template — populate external working copy per [staging_first_run_plan.md](staging_first_run_plan.md) |
 | Secure storage manifests | Baseline/seed evidence outside repo |
 
 Workflow does not activate persistent audit table writes.
@@ -116,10 +118,12 @@ Workflow does not activate persistent audit table writes.
 
 ### E — Evidence capture
 
+- [ ] Follow [staging_first_run_plan.md](staging_first_run_plan.md) phases 0–11
+- [ ] Record each phase in external copy of [staging_execution_evidence_log.md](staging_execution_evidence_log.md)
 - [ ] Gate wrapper outputs (`databricks/sql/10_workflow/gates/`)
 - [ ] Module validation outputs where structural-only
 - [ ] Cross-module summary (`databricks/sql/09_validation/07_phase1_readiness_summary.sql`)
-- [ ] Label all results **staging structural evidence only**
+- [ ] Label all results **staging structural evidence only** — not final parity signoff
 
 ## SQL reference map by group
 
@@ -169,6 +173,8 @@ See `docs/post_blocker_execution_plan.md` for post-blocker sequencing.
 
 ## Related documents
 
+- [staging_first_run_plan.md](staging_first_run_plan.md)
+- [staging_execution_evidence_log.md](staging_execution_evidence_log.md)
 - [baseline_scenario_request.md](baseline_scenario_request.md)
 - [validation_evidence_plan.md](validation_evidence_plan.md)
 - [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md)
