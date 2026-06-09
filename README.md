@@ -83,10 +83,13 @@ Additional handoff support:
 - [Staging first-run plan](docs/staging_first_run_plan.md)
 - [Staging execution evidence log (template)](docs/staging_execution_evidence_log.md)
 - Staging readiness SQL (SELECT-only): `databricks/sql/12_staging_readiness/`
+- [Staging workflow job creation plan](docs/staging_workflow_job_creation_plan.md)
+- Staging workflow jobs (template-only): `databricks/workflows/mifid_phase1_staging_jobs.yml`
 - [Workflow skeleton design (Step 17B)](docs/workflow_skeleton_design.md)
 - [Workflow orchestration plan (Step 17B)](docs/workflow_orchestration_plan.md)
 - [Workflow execution runbook (Step 17B)](docs/workflow_execution_runbook.md)
-- Staging smoke-test workflow: `databricks/workflows/mifid_phase1_staging_smoke_test.yml` (default critical path; optional groups skippable)
+- Staging workflow jobs: `databricks/workflows/mifid_phase1_staging_jobs.yml` (Job 1 readiness → Job 2 ext; optional Jobs 3–4)
+- Staging smoke-test (combined): `databricks/workflows/mifid_phase1_staging_smoke_test.yml`
 - Shared workflow parameters: `databricks/config/workflow_parameters.yml` (`dry_run=true` default; `staging_execution_approved=false`)
 - [Workflow manual approval checkpoints (Step 17B)](docs/workflow_manual_approval_checkpoints.md)
 - [Workflow governance controls (Step 17C)](docs/workflow_governance_controls.md)

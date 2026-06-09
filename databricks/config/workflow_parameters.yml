@@ -7,10 +7,38 @@
 # - Write: main.regtech_ops_stg only; prefix bi_output_regtechops_
 # - Never write main.regtech from RegTech staging jobs
 
+staging_jobs:
+  description: Canonical split staging workflow jobs (template-only; do not deploy)
+  workflow_file: databricks/workflows/mifid_phase1_staging_jobs.yml
+  deploy: false
+  schedule: null
+  cross_job_dependency: manual_only  # no automatic Databricks trigger between jobs in skeleton
+  execution_order:
+    - job_key: mifid_staging_readiness_job
+      job_name: mifid_staging_readiness_job_do_not_deploy
+      required_first: true
+    - job_key: mifid_staging_ext_tables_job
+      job_name: mifid_staging_ext_tables_job_do_not_deploy
+      prerequisite: mifid_staging_readiness_job_do_not_deploy
+      note: run only after Job 1 PASS or accepted TODO/SKIP/RUN_MANUAL evidence
+    - job_key: mifid_staging_optional_seed_job
+      job_name: mifid_staging_optional_seed_job_do_not_deploy
+      optional: true
+      enable_flag: enable_manual_seed_testing_checks
+    - job_key: mifid_staging_hedge_recordid_registry_job
+      job_name: mifid_staging_hedge_recordid_registry_job_do_not_deploy
+      optional: true
+  metadata_policy:
+    use_catalog_scoped_information_schema: true
+    forbidden: system.information_schema
+    fallback: manual_inline_checks_with_external_evidence
+  creation_plan: docs/staging_workflow_job_creation_plan.md
+
 staging_smoke_test:
-  description: Non-production ext/staging/audit structural smoke-test defaults
+  description: Combined smoke-test workflow (backward reference; prefer staging_jobs)
   workflow_file: databricks/workflows/mifid_phase1_staging_smoke_test.yml
   job_key: mifid_phase1_staging_smoke_test_skeleton
+  superseded_by: databricks/workflows/mifid_phase1_staging_jobs.yml
   schedule: null
   deploy: false
   default_critical_path:
@@ -77,7 +105,7 @@ dry_run_policy:
 audit_evidence_mapping:
   gate_sql: databricks/sql/10_workflow/gates/gate_global_scope.sql
   audit_manifest_sql: databricks/sql/10_workflow/02_audit_logging.sql
-  external_evidence_log: docs/staging_execution_evidence_log.md
+  external_evidence_log: docs/staging_execution_evidence_log.md  # template; populate working copy outside Git
   readiness_sql_package: databricks/sql/12_staging_readiness/
   first_run_plan: docs/staging_first_run_plan.md
   baseline_manifests: secure storage outside repo

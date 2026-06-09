@@ -61,11 +61,11 @@ See also: [workflow_execution_runbook.md](workflow_execution_runbook.md), [execu
 | All in-scope module SQL templates authored (gated) | **Yes** |
 | Module validation packages authored | **Yes** |
 | Cross-module readiness package (16B1) | **Yes** |
-| Workflow skeleton (17B) non-executing | **Yes** |
+| Workflow definitions template-only / `do_not_deploy` (17B + staging jobs) | **Yes** — template-only definitions; not deployed to production schedules; approved staging smoke-test execution permitted under controls — not final parity or production |
 | Governance / manual approvals documented (17C) | **Yes** |
 | Step 18B handoff package | **Yes** (this document set) |
 | Staging-only RegTechOps jobs/workflows authored | **Yes** (skeleton; not production-grade) |
-| Staging smoke-test / seed-load execution | **Permitted** under staging-only policy when prerequisites met |
+| Staging smoke-test / seed-load execution | **Permitted** under approved staging controls (`development_structural_test`, prerequisites, MAG gates) — not production or final parity |
 | Databricks execution performed (full parity) | **No** |
 | Workflow deployed to production schedules | **No** |
 | Production deployment to `main.regtech` | **No** |
@@ -79,7 +79,7 @@ Attestation date: _TBD_ (record when program accepts handoff).
 
 - **SQL:** Gated templates under `databricks/sql/` (config, static, UDFs, Pre_Regulation, movements, hedge liquidity, ASIC2, MIFID2_ext, outputs, cross-module validation, workflow gates).
 - **Hedge RecordID registry package:** Gated design templates under `databricks/sql/08_outputs/10_hedge_recordid_registry/` (scaffold, seed, allocation, SELECT-only validation).
-- **Workflow:** Non-executing skeleton `databricks/workflows/mifid_phase1_table_generation.yml` and `databricks/sql/10_workflow/`.
+- **Workflow:** Template-only / `do_not_deploy` definitions — `mifid_phase1_staging_jobs.yml`, `mifid_phase1_staging_smoke_test.yml`, `mifid_phase1_table_generation.yml`, and `databricks/sql/10_workflow/`.
 - **Docs:** Analysis, profiling, gates, reconciliation, readiness, workflow, governance, Step 18A audit, Step 18B handoff (this package).
 - **Target convention:** `main.regtech_ops_stg` only; `bi_output_regtechops_` for generated objects; `bi_output_regtechops_seed_` for seed tables.
 - **Staging jobs:** Non-production RegTechOps job/workflow skeletons intended as DE implementation input.

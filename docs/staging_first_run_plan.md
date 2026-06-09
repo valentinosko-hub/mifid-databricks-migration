@@ -6,7 +6,9 @@ Step-by-step **manual** staging first-run plan for MiFID RegTechOps smoke-test j
 
 **Status:** Planning and evidence template only. Repository is **not production-ready**.
 
-**Workflow reference:** `databricks/workflows/mifid_phase1_staging_smoke_test.yml`  
+**Workflow reference (canonical):** `databricks/workflows/mifid_phase1_staging_jobs.yml`  
+**Combined view:** `databricks/workflows/mifid_phase1_staging_smoke_test.yml`  
+**Job creation plan:** [staging_workflow_job_creation_plan.md](staging_workflow_job_creation_plan.md)  
 **Parameters:** `databricks/config/workflow_parameters.yml`  
 **Evidence log:** [staging_execution_evidence_log.md](staging_execution_evidence_log.md)  
 **Readiness SQL:** `databricks/sql/12_staging_readiness/` (SELECT-only)
@@ -88,7 +90,9 @@ git status --short
 
 ## Phase 1 — source_readiness_checks
 
-**Workflow task:** `source_readiness_checks`
+**Workflow job:** `mifid_staging_readiness_job_do_not_deploy` (Job 1 in `mifid_phase1_staging_jobs.yml`)
+
+**Cross-job note:** Job 2 has no automatic trigger from Job 1 — complete Phase 1 and record external evidence before starting Job 2 / Phase 2.
 
 Run **SELECT-only** readiness package in order (substitute parameters; store output externally):
 
@@ -119,6 +123,7 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 
 ## Phase 2 — static_reference_checks
 
+**Workflow job:** `mifid_staging_ext_tables_job_do_not_deploy` (Job 2 — run only after Phase 1)  
 **Workflow task:** `static_reference_checks`
 
 | # | Action | SQL / reference |
@@ -281,8 +286,8 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 | # | Action | SQL / reference |
 | --- | --- | --- |
 | 11.1 | Module validations (structural-only) | Module `*_validation.sql` where safe |
-| 11.2 | Cross-module readiness | `databricks/sql/09_validation/07_phase1_readiness_summary.sql`, `08_*`, `09_*` |
-| 11.3 | Cross-module gate | `databricks/sql/10_workflow/gates/gate_cross_module_readiness.sql` |
+| 11.2 | Cross-module gate (workflow primary) | `databricks/sql/10_workflow/gates/gate_cross_module_readiness.sql` |
+| 11.3 | Supporting cross-module validation | `databricks/sql/09_validation/07_phase1_readiness_summary.sql`, `08_*`, `09_*` |
 | 11.4 | Update evidence log | [staging_execution_evidence_log.md](staging_execution_evidence_log.md) — external working copy |
 
 **Label all results:** **staging structural evidence only** — not final parity signoff.
@@ -343,6 +348,7 @@ Stop the run and document in the evidence log if **any** of the following occur:
 
 ## Related documents
 
+- [staging_workflow_job_creation_plan.md](staging_workflow_job_creation_plan.md)
 - [databricks/sql/12_staging_readiness/00_readme.md](../databricks/sql/12_staging_readiness/00_readme.md)
 - [staging_execution_evidence_log.md](staging_execution_evidence_log.md)
 - [reporting_job_preparation_plan.md](reporting_job_preparation_plan.md)

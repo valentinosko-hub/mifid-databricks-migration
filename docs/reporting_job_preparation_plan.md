@@ -10,7 +10,9 @@ Validate structural readiness of ext/staging/audit table generation in `main.reg
 
 | Item | Location |
 | --- | --- |
-| Staging smoke-test skeleton | `databricks/workflows/mifid_phase1_staging_smoke_test.yml` |
+| **Staging jobs (canonical)** | `databricks/workflows/mifid_phase1_staging_jobs.yml` |
+| Staging smoke-test (combined) | `databricks/workflows/mifid_phase1_staging_smoke_test.yml` |
+| **Job creation plan** | `docs/staging_workflow_job_creation_plan.md` |
 | Shared parameter defaults | `databricks/config/workflow_parameters.yml` |
 | Execution runbook | `docs/workflow_execution_runbook.md` |
 | Orchestration plan | `docs/workflow_orchestration_plan.md` |
@@ -18,7 +20,13 @@ Validate structural readiness of ext/staging/audit table generation in `main.reg
 | **Evidence log template** | `docs/staging_execution_evidence_log.md` |
 | **Readiness SQL package** | `databricks/sql/12_staging_readiness/` |
 
-Job name (template): `mifid_phase1_staging_smoke_test_skeleton_do_not_deploy`
+Job names (template, do not deploy):
+
+- `mifid_staging_readiness_job_do_not_deploy` (run first)
+- `mifid_staging_ext_tables_job_do_not_deploy`
+- `mifid_staging_optional_seed_job_do_not_deploy` (optional)
+- `mifid_staging_hedge_recordid_registry_job_do_not_deploy` (optional)
+- `mifid_phase1_staging_smoke_test_skeleton_do_not_deploy` (combined backward reference)
 
 ## Environment policy
 
@@ -49,7 +57,7 @@ Job name (template): `mifid_phase1_staging_smoke_test_skeleton_do_not_deploy`
 6. **hedge_liquidity_ext_staging** — liquidity ext; SCD structural only
 7. **asic2_structural_staging** — ASIC2 subset structural checks only
 8. **mifid2_ext_non_pii_staging** — MIFID2_ext non-PII tables
-9. **validation_summary** — safe module validations + cross-module readiness
+9. **validation_summary** — cross-module readiness gate (**primary executed SQL:** `gate_cross_module_readiness.sql`; `07_phase1_readiness_summary.sql` is optional/supporting only)
 
 ### Optional groups (commented manual task blocks — skippable)
 
@@ -85,7 +93,8 @@ Workflow does not activate persistent audit table writes.
 
 | Exclusion | Gate / blocker |
 | --- | --- |
-| Final `MIFID2_NPD_TRAX` flow | MAG-10; NPD history |
+| Final `MIFID2_NPD_TRAX` flow | MAG-10; NPD history — **final-flow last** |
+| Final `MIFID2_Failed_TRAX` flow | Gated on NPD history — must not be activated in the default staging smoke-test flow |
 | Final Hedge report activation | MAG-12, MAG-13; RecordID registry |
 | Final PII customer parity | MAG-06; `main.pii_data` |
 | Delivery / upload / response / production | Out of repo scope |
@@ -126,7 +135,7 @@ Workflow does not activate persistent audit table writes.
 - [ ] Record each phase in external copy of [staging_execution_evidence_log.md](staging_execution_evidence_log.md)
 - [ ] Gate wrapper outputs (`databricks/sql/10_workflow/gates/`)
 - [ ] Module validation outputs where structural-only
-- [ ] Cross-module summary (`databricks/sql/09_validation/07_phase1_readiness_summary.sql`)
+- [ ] Cross-module gate (`databricks/sql/10_workflow/gates/gate_cross_module_readiness.sql`); supporting summary (`09_validation/07_phase1_readiness_summary.sql`)
 - [ ] Label all results **staging structural evidence only** — not final parity signoff
 
 ## SQL reference map by group

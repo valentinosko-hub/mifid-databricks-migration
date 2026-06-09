@@ -6,6 +6,8 @@ Documents the **manual CSV seed testing package** for RegTech staging validation
 
 **SQL package:** `databricks/sql/11_seed_testing/`
 
+**NPD scope:** `MIFID2_NPD_TRAX` manual CSV testing is only for staging seed-load mechanics. The final NPD_TRAX flow remains later/last in the reporting sequence because it depends on historical state, PII/fallback policy, and final validation gates.
+
 ---
 
 ## Scope boundaries

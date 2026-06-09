@@ -1,8 +1,10 @@
 # Workflow Execution Runbook (Step 17B Skeleton; Step 17C Governance)
 
-This runbook defines how to use the **staging smoke-test** and Step 17B workflow skeletons for **staging-only RegTechOps** execution and governance. Jobs/workflows in this repository are **not production-grade**; they write to `main.regtech_ops_stg` only. Data Engineering will later adapt them for production.
+This runbook defines how to use the **staging smoke-test** and Step 17B workflow skeletons for **staging-only RegTechOps** execution and governance. Jobs/workflows in this repository are **not production-grade**; they write to `main.regtech_ops_stg` only. Workflow YAML files are **template-only / `do_not_deploy`** — unscheduled and not deployed to production schedules. **Approved staging smoke-test execution** is permitted in `development_structural_test` mode when prerequisites and MAG gates allow. Production scheduling, delivery/upload/response, and final parity remain blocked. Data Engineering may later adapt definitions for production criteria.
 
-**Primary staging artifact:** `databricks/workflows/mifid_phase1_staging_smoke_test.yml`  
+**Primary staging artifacts:** `databricks/workflows/mifid_phase1_staging_jobs.yml` (canonical split jobs)  
+**Combined view:** `databricks/workflows/mifid_phase1_staging_smoke_test.yml`  
+**Job creation plan:** `docs/staging_workflow_job_creation_plan.md`  
 **Parameter defaults:** `databricks/config/workflow_parameters.yml`  
 **Preparation plan:** `docs/reporting_job_preparation_plan.md`  
 **First-run plan:** `docs/staging_first_run_plan.md`  
@@ -42,6 +44,8 @@ If any item above fails for the **intended run mode**, remain in documentation-o
 ## Pre-run policy notes
 
 NOC and old Databricks attempt materials remain reference-only and are not implementation authority.
+
+**Repository authority:** Cursor-authored workflow YAML and docs in this repository are the source of truth. If Databricks UI, Genie, or manual workspace editing is used to adapt a workflow, copy the accepted change back into the repository and commit it. Do not allow untracked workflow drift in the workspace.
 
 ## Pre-run checklist
 
@@ -84,11 +88,30 @@ See [databricks/sql/12_staging_readiness/00_readme.md](../databricks/sql/12_stag
 
 ---
 
+## Staging workflow jobs (template-only)
+
+| Order | Job | Purpose |
+| --- | --- | --- |
+| 1 | `mifid_staging_readiness_job_do_not_deploy` | Readiness SQL — **run first** |
+| 2 | `mifid_staging_ext_tables_job_do_not_deploy` | Ext/staging validation — after Job 1 |
+| 3 | `mifid_staging_optional_seed_job_do_not_deploy` | Optional seed mechanics |
+| 4 | `mifid_staging_hedge_recordid_registry_job_do_not_deploy` | Optional RecordID registry |
+
+YAML: `databricks/workflows/mifid_phase1_staging_jobs.yml`. Combined single-workflow: `mifid_phase1_staging_smoke_test.yml`.
+
+If `system.information_schema` permissions block Job 1, use catalog-scoped checks (`main.information_schema.*`) or manual inline evidence per `12_staging_readiness/00_readme.md`.
+
+**Cross-job dependencies (manual):** this skeleton does not configure automatic Databricks triggers between jobs. Job 1 must run first; Job 2 only after Job 1 `PASS` or accepted `TODO`/`SKIP`/`RUN_MANUAL` evidence; Jobs 3–4 are optional and not on the default path.
+
+**SQL placeholders vs job parameters:** readiness/module SQL may use `{{source_catalog}}`, `{{target_schema}}`, etc.; workflow YAML uses job parameters. Ensure consistent substitution when running SQL manually or in Databricks tasks. `gate_global_scope.sql` uses `{{job.parameters.*}}`. Defaults below.
+
+---
+
 ## Staging smoke-test / seed-load run path
 
 Intended purpose: staging validation in `main.regtech_ops_stg` — not final parity.
 
-Workflow: `mifid_phase1_staging_smoke_test.yml` (template-only until deployment authorized).
+**First execution:** Job 1 only, then Job 2 after readiness evidence is accepted.
 
 | Parameter | Default |
 | --- | --- |
@@ -214,8 +237,10 @@ Stop immediately if:
 
 Rollback action in this step:
 
-- Keep workflow skeleton non-executing.
-- Revert to validation-only mode and update blocker/decision docs.
+- Halt further staging runs; do not promote to production schedules or final parity paths.
+- Keep workflow definitions **template-only / `do_not_deploy`** (no production deployment).
+- Revert to validation-only / `dry_run=true` mode where applicable and update blocker/decision docs.
+- Approved `development_structural_test` runs may resume only after stop criteria are cleared — this is **not** production readiness.
 
 ## What not to run
 
