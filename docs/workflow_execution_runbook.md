@@ -64,9 +64,9 @@ Before any execution enablement, confirm:
 For the step-by-step first execution, follow [staging_first_run_plan.md](staging_first_run_plan.md):
 
 - Phase 0 — pre-run checks (git, parameters, no `main.regtech` writes, evidence outside Git)
-- Phases 1–8 — default critical path (source → static → ext/staging modules → MIFID2_ext non-PII)
-- Phases 9–10 — **optional** (skip on first pass unless explicitly needed)
+- Phases 1–8 — default critical path (readiness → static → ext/staging modules → MIFID2_ext non-PII)
 - Phase 11 — validation summary + evidence log update
+- Phases 9–10 — **optional** (manual seed and RecordID; skip on first pass unless explicitly needed)
 
 Record each phase in an external working copy of [staging_execution_evidence_log.md](staging_execution_evidence_log.md). Staging success is **not** final parity signoff.
 
@@ -93,15 +93,22 @@ See [databricks/sql/12_staging_readiness/00_readme.md](../databricks/sql/12_stag
 | Order | Job | Purpose |
 | --- | --- | --- |
 | 1 | `mifid_staging_readiness_job_do_not_deploy` | Readiness SQL — **run first** |
-| 2 | `mifid_staging_ext_tables_job_do_not_deploy` | Ext/staging validation — after Job 1 |
-| 3 | `mifid_staging_optional_seed_job_do_not_deploy` | Optional seed mechanics |
-| 4 | `mifid_staging_hedge_recordid_registry_job_do_not_deploy` | Optional RecordID registry |
+| 2 | `mifid_staging_static_reference_job_do_not_deploy` | Static references and UDF readiness |
+| 3 | `mifid_staging_price_currency_split_job_do_not_deploy` | Price/currency/split structural checks |
+| 4 | `mifid_staging_non_price_reg_ext_job_do_not_deploy` | Non-price Reg_Ext structural checks |
+| 5 | `mifid_staging_regulation_movement_job_do_not_deploy` | Regulation movement snapshots |
+| 6 | `mifid_staging_hedge_liquidity_job_do_not_deploy` | Hedge/liquidity structural checks |
+| 7 | `mifid_staging_asic2_structural_job_do_not_deploy` | ASIC2 structural subset checks |
+| 8 | `mifid_staging_mifid2_ext_non_pii_job_do_not_deploy` | MIFID2_ext non-PII groups |
+| 9 | `mifid_staging_manual_seed_testing_job_do_not_deploy` | Optional seed mechanics |
+| 10 | `mifid_staging_hedge_recordid_registry_job_do_not_deploy` | Optional RecordID registry |
+| 11 | `mifid_staging_validation_summary_job_do_not_deploy` | Cross-module summary and evidence guidance |
 
 YAML: `databricks/workflows/mifid_phase1_staging_jobs.yml`. Combined single-workflow: `mifid_phase1_staging_smoke_test.yml`.
 
 If `system.information_schema` permissions block Job 1, use catalog-scoped checks (`main.information_schema.*`) or manual inline evidence per `12_staging_readiness/00_readme.md`.
 
-**Cross-job dependencies (manual):** this skeleton does not configure automatic Databricks triggers between jobs. Job 1 must run first; Job 2 only after Job 1 `PASS` or accepted `TODO`/`SKIP`/`RUN_MANUAL` evidence; Jobs 3–4 are optional and not on the default path.
+**Cross-job dependencies (manual):** this skeleton does not configure automatic Databricks triggers between jobs. Run jobs one-by-one in repository order: Job 1 first, then Jobs 2–8, then Job 11. Jobs 9–10 are optional and not on the default first-run path. Do not assume automatic cross-job dependency unless operators configure it manually in Databricks.
 
 **SQL placeholders vs job parameters:** readiness/module SQL may use `{{source_catalog}}`, `{{target_schema}}`, etc.; workflow YAML uses job parameters. Ensure consistent substitution when running SQL manually or in Databricks tasks. `gate_global_scope.sql` uses `{{job.parameters.*}}`. Defaults below.
 
@@ -111,7 +118,7 @@ If `system.information_schema` permissions block Job 1, use catalog-scoped check
 
 Intended purpose: staging validation in `main.regtech_ops_stg` — not final parity.
 
-**First execution:** Job 1 only, then Job 2 after readiness evidence is accepted.
+**First execution:** Job 1 only, then Jobs 2–8 one-by-one after readiness evidence is accepted, then Job 11. Jobs 9–10 remain optional.
 
 | Parameter | Default |
 | --- | --- |
@@ -248,7 +255,7 @@ Rollback action in this step:
 - Do not deploy staging jobs to **production schedules** or adapt them as production-grade without DE's separate program.
 - Do not write to `main.regtech` from RegTech staging jobs.
 - Do not run regulatory delivery/upload/response logic.
-- Do not activate final NPD_TRAX, Hedge report, or PII customer parity from the smoke-test workflow.
+- Do not activate final NPD_TRAX, final Failed_TRAX, Hedge report, or PII customer parity from the smoke-test workflow.
 - Do not claim final regulatory parity without MAG closure.
 
 **Permitted (when approved):** execute staging-only smoke-test and seed-load jobs scoped to `main.regtech_ops_stg` per this runbook.

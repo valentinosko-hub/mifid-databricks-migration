@@ -88,7 +88,7 @@ Additional handoff support:
 - [Workflow skeleton design (Step 17B)](docs/workflow_skeleton_design.md)
 - [Workflow orchestration plan (Step 17B)](docs/workflow_orchestration_plan.md)
 - [Workflow execution runbook (Step 17B)](docs/workflow_execution_runbook.md)
-- Staging workflow jobs: `databricks/workflows/mifid_phase1_staging_jobs.yml` (Job 1 readiness → Job 2 ext; optional Jobs 3–4)
+- Staging workflow jobs: `databricks/workflows/mifid_phase1_staging_jobs.yml` (Job 1 readiness → Jobs 2–8 structural path → Job 11 summary; optional Jobs 9–10)
 - Staging smoke-test (combined): `databricks/workflows/mifid_phase1_staging_smoke_test.yml`
 - Shared workflow parameters: `databricks/config/workflow_parameters.yml` (`dry_run=true` default; `staging_execution_approved=false`)
 - [Workflow manual approval checkpoints (Step 17B)](docs/workflow_manual_approval_checkpoints.md)
@@ -96,3 +96,5 @@ Additional handoff support:
 - [Manual approval gates (Step 17C)](docs/manual_approval_gates.md)
 
 **Status:** Phase-1 preparation and Step 18B handoff documentation are complete per the [final repository audit (Step 18A)](docs/final_repository_audit.md) and [final handoff package (Step 18B)](docs/final_handoff_package.md). SQL templates, validation packages, staging-only RegTechOps job/workflow skeletons, and Step 17C governance documentation are authored. The repository supports **staging-only** smoke-test and seed-load execution in `main.regtech_ops_stg` but is **not** ready for final-parity execution or production deployment while blockers/gates remain open. Active source-access blockers are limited to `main.pii_data` customer/history access for final parity. Masked customer tables are development/structural-test only. Initial feasible seed test: `MIFID2_NPD_TRAX` into `bi_output_regtechops_seed_*` (staging evidence only). NOC and old Databricks attempt docs remain reference-only.
+
+Repository/Cursor-authored workflow YAML and docs are the source of truth; if Databricks UI/Genie/manual workspace edits are accepted, copy them back to this repo and commit to prevent drift.

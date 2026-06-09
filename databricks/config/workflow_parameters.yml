@@ -8,7 +8,7 @@
 # - Never write main.regtech from RegTech staging jobs
 
 staging_jobs:
-  description: Canonical split staging workflow jobs (template-only; do not deploy)
+  description: Canonical split staging workflow jobs (Jobs 1–11; template-only; do not deploy)
   workflow_file: databricks/workflows/mifid_phase1_staging_jobs.yml
   deploy: false
   schedule: null
@@ -17,17 +17,41 @@ staging_jobs:
     - job_key: mifid_staging_readiness_job
       job_name: mifid_staging_readiness_job_do_not_deploy
       required_first: true
-    - job_key: mifid_staging_ext_tables_job
-      job_name: mifid_staging_ext_tables_job_do_not_deploy
+    - job_key: mifid_staging_static_reference_job
+      job_name: mifid_staging_static_reference_job_do_not_deploy
       prerequisite: mifid_staging_readiness_job_do_not_deploy
       note: run only after Job 1 PASS or accepted TODO/SKIP/RUN_MANUAL evidence
-    - job_key: mifid_staging_optional_seed_job
-      job_name: mifid_staging_optional_seed_job_do_not_deploy
+    - job_key: mifid_staging_price_currency_split_job
+      job_name: mifid_staging_price_currency_split_job_do_not_deploy
+      prerequisite: mifid_staging_static_reference_job_do_not_deploy
+    - job_key: mifid_staging_non_price_reg_ext_job
+      job_name: mifid_staging_non_price_reg_ext_job_do_not_deploy
+      prerequisite: mifid_staging_price_currency_split_job_do_not_deploy
+    - job_key: mifid_staging_regulation_movement_job
+      job_name: mifid_staging_regulation_movement_job_do_not_deploy
+      prerequisite: mifid_staging_non_price_reg_ext_job_do_not_deploy
+    - job_key: mifid_staging_hedge_liquidity_job
+      job_name: mifid_staging_hedge_liquidity_job_do_not_deploy
+      prerequisite: mifid_staging_regulation_movement_job_do_not_deploy
+    - job_key: mifid_staging_asic2_structural_job
+      job_name: mifid_staging_asic2_structural_job_do_not_deploy
+      prerequisite: mifid_staging_hedge_liquidity_job_do_not_deploy
+    - job_key: mifid_staging_mifid2_ext_non_pii_job
+      job_name: mifid_staging_mifid2_ext_non_pii_job_do_not_deploy
+      prerequisite: mifid_staging_asic2_structural_job_do_not_deploy
+    - job_key: mifid_staging_validation_summary_job
+      job_name: mifid_staging_validation_summary_job_do_not_deploy
+      prerequisite: mifid_staging_mifid2_ext_non_pii_job_do_not_deploy
+    - job_key: mifid_staging_manual_seed_testing_job
+      job_name: mifid_staging_manual_seed_testing_job_do_not_deploy
       optional: true
       enable_flag: enable_manual_seed_testing_checks
     - job_key: mifid_staging_hedge_recordid_registry_job
       job_name: mifid_staging_hedge_recordid_registry_job_do_not_deploy
       optional: true
+  source_of_truth:
+    repository: cursor_authored_yaml_and_docs
+    drift_policy: copy_accepted_databricks_ui_or_genie_edits_back_to_repo_and_commit
   metadata_policy:
     use_catalog_scoped_information_schema: true
     forbidden: system.information_schema
@@ -151,6 +175,7 @@ write_policy:
 
 gated_exclusions:
   - final MIFID2_NPD_TRAX flow
+  - final MIFID2_Failed_TRAX flow (gated on NPD history)
   - final MIFID2_Hedge_Report activation
   - final PII customer parity (main.pii_data)
   - delivery upload response production deployment

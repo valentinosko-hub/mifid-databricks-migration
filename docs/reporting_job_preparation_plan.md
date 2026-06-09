@@ -23,10 +23,19 @@ Validate structural readiness of ext/staging/audit table generation in `main.reg
 Job names (template, do not deploy):
 
 - `mifid_staging_readiness_job_do_not_deploy` (run first)
-- `mifid_staging_ext_tables_job_do_not_deploy`
-- `mifid_staging_optional_seed_job_do_not_deploy` (optional)
+- `mifid_staging_static_reference_job_do_not_deploy`
+- `mifid_staging_price_currency_split_job_do_not_deploy`
+- `mifid_staging_non_price_reg_ext_job_do_not_deploy`
+- `mifid_staging_regulation_movement_job_do_not_deploy`
+- `mifid_staging_hedge_liquidity_job_do_not_deploy`
+- `mifid_staging_asic2_structural_job_do_not_deploy`
+- `mifid_staging_mifid2_ext_non_pii_job_do_not_deploy`
+- `mifid_staging_manual_seed_testing_job_do_not_deploy` (optional)
 - `mifid_staging_hedge_recordid_registry_job_do_not_deploy` (optional)
+- `mifid_staging_validation_summary_job_do_not_deploy`
 - `mifid_phase1_staging_smoke_test_skeleton_do_not_deploy` (combined backward reference)
+
+Run split jobs manually one-by-one in repository order. No automatic cross-job dependency should be assumed unless Databricks operators explicitly configure one.
 
 ## Environment policy
 
@@ -154,7 +163,7 @@ Workflow does not activate persistent audit table writes.
 | 10 | `databricks/sql/11_seed_testing/` |
 | 11 | `databricks/sql/09_validation/`, module `*_validation.sql` |
 
-Workflow tasks currently invoke **gate wrappers** as placeholders; module SQL activation remains a separate enablement step.
+Workflow tasks use a mix of module SQL and gate wrappers; some one-to-one table mappings remain explicitly tagged as TODO in YAML comments until SSIS parity wiring is finalized.
 
 ## Relationship to full Phase 1 generation workflow
 

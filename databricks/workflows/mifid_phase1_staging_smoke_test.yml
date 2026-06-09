@@ -4,10 +4,10 @@
 # controls and documented MAG/staging approval (see docs/workflow_execution_runbook.md).
 # This is not production readiness or final parity.
 #
-# NOTE: Canonical split job package is mifid_phase1_staging_jobs.yml (Jobs 1–4).
-# This file retains a single-workflow view for backward reference. Prefer:
-#   Job 1: mifid_staging_readiness_job_do_not_deploy
-#   Job 2: mifid_staging_ext_tables_job_do_not_deploy
+# NOTE: Canonical split job package is mifid_phase1_staging_jobs.yml (Jobs 1–11).
+# This file retains a single-workflow backward reference for readiness + critical-path checks.
+# Prefer split jobs run manually one-by-one:
+#   Job 1 first, then Jobs 2–8, then Job 11; Jobs 9–10 are optional.
 # See docs/staging_workflow_job_creation_plan.md.
 #
 # Scope:
@@ -22,8 +22,8 @@
 #   → regulation_movement → hedge_liquidity_ext → asic2_structural
 #   → mifid2_ext_non_pii → validation_summary
 #
-# Optional groups (NOT in default path — use mifid_phase1_staging_jobs.yml Jobs 3–4):
-# - manual seed: mifid_staging_optional_seed_job_do_not_deploy
+# Optional groups (NOT in default path — use mifid_phase1_staging_jobs.yml Jobs 9–10):
+# - manual seed: mifid_staging_manual_seed_testing_job_do_not_deploy
 # - hedge recordid: mifid_staging_hedge_recordid_registry_job_do_not_deploy
 # - masked customer: enable_masked_customer_structural_tests (commented block below)
 #
@@ -246,5 +246,5 @@ resources:
         #     file:
         #       path: ../sql/10_workflow/gates/gate_module_validation_chain.sql
         #
-        # Optional seed and RecordID jobs: use mifid_phase1_staging_jobs.yml Jobs 3–4.
+        # Optional seed and RecordID jobs: use mifid_phase1_staging_jobs.yml Jobs 9–10.
         # -------------------------------------------------------------------------

@@ -48,6 +48,7 @@ Phases 0–8 and 11 — ext/staging/audit structural checks without final PII or
 
 - Phase 9 — masked customer structural tests
 - Phase 10 — manual CSV seed load mechanics test
+- Phase 10B — Hedge RecordID registry structural test
 
 ### Explicitly out of scope
 
@@ -92,7 +93,7 @@ git status --short
 
 **Workflow job:** `mifid_staging_readiness_job_do_not_deploy` (Job 1 in `mifid_phase1_staging_jobs.yml`)
 
-**Cross-job note:** Job 2 has no automatic trigger from Job 1 — complete Phase 1 and record external evidence before starting Job 2 / Phase 2.
+**Cross-job note:** no automatic Databricks trigger is configured between these split jobs. Complete Phase 1 and record external evidence before starting Job 2 / Phase 2, then continue jobs one-by-one in order.
 
 Run **SELECT-only** readiness package in order (substitute parameters; store output externally):
 
@@ -123,7 +124,7 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 
 ## Phase 2 — static_reference_checks
 
-**Workflow job:** `mifid_staging_ext_tables_job_do_not_deploy` (Job 2 — run only after Phase 1)  
+**Workflow job:** `mifid_staging_static_reference_job_do_not_deploy` (Job 2 — run only after Phase 1)  
 **Workflow task:** `static_reference_checks`
 
 | # | Action | SQL / reference |
@@ -138,6 +139,7 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 
 ## Phase 3 — price_currency_split_ext_staging
 
+**Workflow job:** `mifid_staging_price_currency_split_job_do_not_deploy` (Job 3)  
 **Workflow task:** `price_currency_split_ext_staging`
 
 | Target (staging prefix) | Reference SQL |
@@ -154,6 +156,7 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 
 ## Phase 4 — non_price_reg_ext_staging
 
+**Workflow job:** `mifid_staging_non_price_reg_ext_job_do_not_deploy` (Job 4)  
 **Workflow task:** `non_price_reg_ext_staging`
 
 | Target | Reference SQL |
@@ -170,6 +173,7 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 
 ## Phase 5 — regulation_movement_staging
 
+**Workflow job:** `mifid_staging_regulation_movement_job_do_not_deploy` (Job 5)  
 **Workflow task:** `regulation_movement_staging`
 
 | Target | Notes |
@@ -186,6 +190,7 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 
 ## Phase 6 — hedge_liquidity_ext_staging
 
+**Workflow job:** `mifid_staging_hedge_liquidity_job_do_not_deploy` (Job 6)  
 **Workflow task:** `hedge_liquidity_ext_staging`
 
 | Target | Notes |
@@ -206,6 +211,7 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 
 ## Phase 7 — ASIC2 structural staging
 
+**Workflow job:** `mifid_staging_asic2_structural_job_do_not_deploy` (Job 7)  
 **Workflow task:** `asic2_structural_staging`
 
 | Action | Notes |
@@ -221,6 +227,7 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 
 ## Phase 8 — MIFID2_ext non-PII staging
 
+**Workflow job:** `mifid_staging_mifid2_ext_non_pii_job_do_not_deploy` (Job 8)  
 **Workflow task:** `mifid2_ext_non_pii_staging`
 
 | Target | Notes |
@@ -262,6 +269,8 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 
 **Skip on default first pass.**
 
+**Workflow job:** `mifid_staging_manual_seed_testing_job_do_not_deploy` (Job 9, optional)
+
 | Prerequisite | Value |
 | --- | --- |
 | `enable_manual_seed_testing_checks` | `true` |
@@ -279,8 +288,29 @@ Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`
 
 ---
 
+## Phase 10B — optional hedge RecordID registry
+
+**Skip on default first pass.**
+
+**Workflow job:** `mifid_staging_hedge_recordid_registry_job_do_not_deploy` (Job 10, optional)
+
+| Prerequisite | Value |
+| --- | --- |
+| Hedge seed/history availability | Confirmed |
+| MAG-12 / MAG-13 | CLOSED (or explicitly approved for structural-only test) |
+
+Rules:
+
+- Structural registry evidence only; no final Hedge report activation.
+- Seed/history evidence and key-signoff must remain outside Git.
+
+Reference: `databricks/sql/08_outputs/10_hedge_recordid_registry/`, [hedge_recordid_registry_design.md](hedge_recordid_registry_design.md)
+
+---
+
 ## Phase 11 — validation_summary
 
+**Workflow job:** `mifid_staging_validation_summary_job_do_not_deploy` (Job 11)  
 **Workflow task:** `validation_summary`
 
 | # | Action | SQL / reference |
@@ -342,6 +372,7 @@ Stop the run and document in the evidence log if **any** of the following occur:
 | 8 — MIFID2_ext non-PII | Yes |
 | 9 — Masked customer | **No** (optional) |
 | 10 — Manual seed | **No** (optional) |
+| 10B — Hedge RecordID registry | **No** (optional) |
 | 11 — Validation summary | Yes |
 
 ---

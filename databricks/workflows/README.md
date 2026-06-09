@@ -8,7 +8,7 @@ This folder contains **template-only** workflow artifacts for Phase 1 MiFID work
 
 | File | Purpose | Status |
 | --- | --- | --- |
-| `mifid_phase1_staging_jobs.yml` | **Canonical** split staging jobs (readiness, ext, optional seed, RecordID) | Template-only; **do not deploy** |
+| `mifid_phase1_staging_jobs.yml` | **Canonical** split staging jobs (Jobs 1–11, manual one-by-one sequence) | Template-only; **do not deploy** |
 | `mifid_phase1_staging_smoke_test.yml` | Combined readiness + ext validation (backward reference) | Template-only; **do not deploy** |
 | `mifid_phase1_table_generation.yml` | Full table/report generation ordering skeleton | Template-only; **do not deploy** |
 
@@ -19,14 +19,21 @@ Job creation plan: `docs/staging_workflow_job_creation_plan.md`
 
 ## Staging jobs package (`mifid_phase1_staging_jobs.yml`)
 
-Four template jobs — names include `do_not_deploy`. No schedule. `dry_run=true` default. **No automatic cross-job triggers** — run Job 1 before Job 2 manually; Jobs 3–4 optional.
+Eleven template jobs — names include `do_not_deploy`. No schedule. `dry_run=true` default. **No automatic cross-job triggers** — operators run jobs manually one-by-one in order.
 
 | Job | Name | When to run |
 | --- | --- | --- |
 | **1** | `mifid_staging_readiness_job_do_not_deploy` | **Always first** — readiness SQL 04→gate→01→02→03 |
-| **2** | `mifid_staging_ext_tables_job_do_not_deploy` | After Job 1 PASS or accepted TODO/SKIP/RUN_MANUAL |
-| **3** | `mifid_staging_optional_seed_job_do_not_deploy` | Optional — manual seed mechanics only |
-| **4** | `mifid_staging_hedge_recordid_registry_job_do_not_deploy` | Optional — Hedge RecordID registry test |
+| **2** | `mifid_staging_static_reference_job_do_not_deploy` | After Job 1 evidence accepted |
+| **3** | `mifid_staging_price_currency_split_job_do_not_deploy` | After Job 2 |
+| **4** | `mifid_staging_non_price_reg_ext_job_do_not_deploy` | After Job 3 |
+| **5** | `mifid_staging_regulation_movement_job_do_not_deploy` | After Job 4 |
+| **6** | `mifid_staging_hedge_liquidity_job_do_not_deploy` | After Job 5 |
+| **7** | `mifid_staging_asic2_structural_job_do_not_deploy` | After Job 6 |
+| **8** | `mifid_staging_mifid2_ext_non_pii_job_do_not_deploy` | After Job 7 |
+| **9** | `mifid_staging_manual_seed_testing_job_do_not_deploy` | Optional — manual seed mechanics only |
+| **10** | `mifid_staging_hedge_recordid_registry_job_do_not_deploy` | Optional — Hedge RecordID registry |
+| **11** | `mifid_staging_validation_summary_job_do_not_deploy` | Run after Job 8 for cross-module readiness/evidence |
 
 ### Environment policy
 
@@ -45,16 +52,16 @@ Four template jobs — names include `do_not_deploy`. No schedule. `dry_run=true
 
 Stop on `FAIL`/`BLOCK`. Manual inline checks allowed if metadata permissions block automation.
 
-### Job 2 task groups (ext/staging validation)
+### Job groups 2–8 and 11 (critical path)
 
-`static_reference_checks` → `price_currency_split_ext_staging` → `non_price_reg_ext_staging` → `regulation_movement_staging` → `hedge_liquidity_ext_staging` → `asic2_structural_staging` → `mifid2_ext_non_pii_staging` → `validation_summary`
+`static_reference` → `price_currency_split` → `non_price_reg_ext` → `regulation_movement` → `hedge_liquidity` → `asic2_structural` → `mifid2_ext_non_pii` → `validation_summary`
 
-Primary SQL: module `*_validation.sql` files. Staging materialization (`*_staging.sql`) gated for `dry_run=false` + MAG-18.
+Primary SQL paths use existing structural/validation files. Where exact one-task-per-table mapping is still being finalized, YAML includes explicit TODO notes (no new business logic added).
 
-### Optional jobs 3–4
+### Optional jobs 9–10
 
-- **Seed:** `11_seed_testing/*` — CSV in secure storage only; no final NPD_TRAX
-- **RecordID:** `08_outputs/10_hedge_recordid_registry/*` — no final Hedge report
+- **Manual seed:** `11_seed_testing/*` — CSV in secure storage only; no final NPD_TRAX activation
+- **RecordID registry:** `08_outputs/10_hedge_recordid_registry/*` — no final Hedge report activation
 
 ### Excluded from all staging jobs
 
@@ -64,7 +71,7 @@ Final NPD_TRAX, Failed_TRAX, Hedge report, customer/NPD parity, delivery/upload/
 
 ## Combined smoke-test workflow (`mifid_phase1_staging_smoke_test.yml`)
 
-Single-workflow view of Job 1 + Job 2 chains. Prefer split jobs for first execution. Optional seed/RecordID: use Jobs 3–4 in `mifid_phase1_staging_jobs.yml`.
+Single-workflow backward view of readiness + critical-path checks. Prefer split jobs for execution. Optional seed/RecordID: use Jobs 9–10 in `mifid_phase1_staging_jobs.yml`.
 
 ---
 
@@ -82,6 +89,7 @@ Broader Phase 1 ordering skeleton including customer outputs, reports, hedge, an
 - No production deployment to `main.regtech`
 - Repository is **not production-ready**
 - DE may adapt job definitions later for production criteria
+- Repository/Cursor-authored YAML+docs remain source of truth; copy accepted Databricks UI/Genie edits back into Git to avoid drift
 
 ## Policy reminders
 
