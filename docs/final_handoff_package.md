@@ -50,6 +50,7 @@ See also: [workflow_execution_runbook.md](workflow_execution_runbook.md), [execu
 | [open_blockers_for_execution.md](open_blockers_for_execution.md) | Blocker register |
 | [manual_approval_gates.md](manual_approval_gates.md) | MAG-01–17 (authoritative) |
 | [workflow_governance_controls.md](workflow_governance_controls.md) | Run modes and stop/go |
+| [remaining_migration_work_checklist.md](remaining_migration_work_checklist.md) | Post-notebook-package remaining work (staging vs gated vs DE production) |
 
 ---
 
@@ -66,6 +67,7 @@ See also: [workflow_execution_runbook.md](workflow_execution_runbook.md), [execu
 | Step 18B handoff package | **Yes** (this document set) |
 | Staging-only RegTechOps jobs/workflows authored | **Yes** (skeleton; not production-grade) |
 | Staging smoke-test / seed-load execution | **Permitted** under approved staging controls (`development_structural_test`, prerequisites, MAG gates) — not production or final parity |
+| Notebook-based staging wrapper package | **Yes** — companion wrappers under `databricks/notebooks/mifid_staging/`; template-only; not production-grade |
 | Databricks execution performed (full parity) | **No** |
 | Workflow deployed to production schedules | **No** |
 | Production deployment to `main.regtech` | **No** |

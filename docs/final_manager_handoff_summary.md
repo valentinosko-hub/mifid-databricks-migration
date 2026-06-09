@@ -93,15 +93,18 @@ See [regtech_sme_decision_list.md](regtech_sme_decision_list.md):
 
 | Milestone | Outcome |
 | --- | --- |
+| Staging notebook/SQL-task first pass | Readiness → Jobs 2–8 → validation summary in `main.regtech_ops_stg` (see [remaining_migration_work_checklist.md](remaining_migration_work_checklist.md) §1) |
 | Blocker closure | `main.pii_data` access + source certification/historical-seed readiness evidenced in profiling |
 | Required-column validation | MAG-02 closed; module column contracts certified |
-| Staging smoke-test / NPD seed load | Approved CSV seed into `bi_output_regtechops_seed_*`; structural validation only |
+| Staging smoke-test / NPD seed load | Approved CSV seed into `bi_output_regtechops_seed_*`; structural validation only (optional mechanics) |
 | Controlled execution dry run | SELECT-only and gated staging validations under `development_structural_test` |
 | SQL Server baseline comparison | MAG-16 where required per module |
 | Parity sign-off | MAG-17; known differences accepted |
+| DE production adaptation | Separate program using repo YAML/notebooks as input — not production-ready from this repo |
 | Workflow activation consideration | Only after above; separate deployment approval |
 
-Sequence after blockers: [post_blocker_execution_plan.md](post_blocker_execution_plan.md).
+Sequence after blockers: [post_blocker_execution_plan.md](post_blocker_execution_plan.md).  
+Remaining work map: [remaining_migration_work_checklist.md](remaining_migration_work_checklist.md).
 
 ---
 

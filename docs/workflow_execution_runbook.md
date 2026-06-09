@@ -10,6 +10,7 @@ This runbook defines how to use the **staging smoke-test** and Step 17B workflow
 **Preparation plan:** `docs/reporting_job_preparation_plan.md`  
 **First-run plan:** `docs/staging_first_run_plan.md`  
 **Evidence log:** `docs/staging_execution_evidence_log.md`  
+**Remaining work checklist:** `docs/remaining_migration_work_checklist.md`  
 **Readiness SQL:** `databricks/sql/12_staging_readiness/`  
 **Baseline extracts:** `docs/baseline_scenario_request.md`, `docs/validation_evidence_plan.md`
 
@@ -113,6 +114,8 @@ If `system.information_schema` permissions block Job 1, use catalog-scoped check
 **Cross-job dependencies (manual):** this skeleton does not configure automatic Databricks triggers between jobs. Run jobs one-by-one in repository order: Job 1 first, then Jobs 2–8, then Job 11. Jobs 9–10 are optional and not on the default first-run path. Do not assume automatic cross-job dependency unless operators configure it manually in Databricks.
 
 Notebook companion jobs follow the same order and gating. For notebook path first pass: start with readiness notebook only, then run one module group at a time.
+
+See [remaining_migration_work_checklist.md](remaining_migration_work_checklist.md) for the consolidated map of ready-to-test staging modules, optional mechanics, gated final flows, final-parity prerequisites, and DE production adaptation inputs.
 
 **SQL placeholders vs job parameters:** readiness/module SQL may use `{{source_catalog}}`, `{{target_schema}}`, etc.; workflow YAML uses job parameters. Ensure consistent substitution when running SQL manually or in Databricks tasks. `gate_global_scope.sql` uses `{{job.parameters.*}}`. Defaults below.
 

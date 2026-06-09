@@ -2,6 +2,8 @@
 
 This plan describes the **controlled sequence** for RegTech staging execution and final-parity enablement. Jobs/workflows in this repository are **staging-only RegTechOps jobs** — they write to `main.regtech_ops_stg` only and are not production-grade. Data Engineering will later adapt them for production.
 
+**Remaining work map (post-notebook package):** [remaining_migration_work_checklist.md](remaining_migration_work_checklist.md) — separates ready-to-test staging modules, optional mechanics, gated final flows, final-parity prerequisites, and DE production hardening.
+
 ## Staging-only execution (permitted before final-parity gates close)
 
 The following may proceed **without** claiming final regulatory parity:
@@ -54,7 +56,7 @@ Permitted when secure seed extracts and `main.regtech_ops_stg` write access exis
 | --- | --- |
 | 0a | Load approved CSV seed for `MIFID2_NPD_TRAX` using `databricks/sql/11_seed_testing/` templates into `bi_output_regtechops_seed_test_mifid2_npd_trax` (initial feasibility test) |
 | 0b | Run `04_manual_seed_validation.sql` (SELECT-only); document as **staging evidence only** — see [manual_seed_testing_plan.md](manual_seed_testing_plan.md) |
-| 0c | Execute manual staging first-run per [staging_first_run_plan.md](staging_first_run_plan.md); run SELECT-only readiness SQL `databricks/sql/12_staging_readiness/`; record evidence in external copy of [staging_execution_evidence_log.md](staging_execution_evidence_log.md); workflow reference `mifid_phase1_staging_smoke_test.yml` — default `dry_run=true`; optional groups disabled |
+| 0c | Execute manual staging first-run per [staging_first_run_plan.md](staging_first_run_plan.md) and [remaining_migration_work_checklist.md](remaining_migration_work_checklist.md) §1; run readiness via SQL-task Job 1 or notebook `01_readiness_checks.py`; record evidence in external copy of [staging_execution_evidence_log.md](staging_execution_evidence_log.md); default `dry_run=true`; optional groups disabled |
 | 0d | Confirm NPD remains later in reporting flow (history/state dependency); seed test does not close NPD parity gates |
 | 0e | Keep final NPD_TRAX, Hedge report, PII customer parity, and delivery paths disabled in smoke-test workflow |
 | 0f | First pass: default critical path only; keep `enable_masked_customer_structural_tests=false` and `enable_manual_seed_testing_checks=false` unless explicitly needed |
@@ -222,6 +224,7 @@ Stop and update blocker docs if:
 
 ## Related documents
 
+- [remaining_migration_work_checklist.md](remaining_migration_work_checklist.md)
 - [handoff_index.md](handoff_index.md)
 - [historical_seed_inventory.md](historical_seed_inventory.md)
 - [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md)

@@ -57,6 +57,7 @@ Start here for consolidated handoff navigation:
 - [Validation evidence plan](docs/validation_evidence_plan.md)
 - [Hedge RecordID registry design](docs/hedge_recordid_registry_design.md)
 - [Manual CSV seed testing plan](docs/manual_seed_testing_plan.md)
+- [Remaining migration work checklist](docs/remaining_migration_work_checklist.md)
 
 Role-based action lists:
 
