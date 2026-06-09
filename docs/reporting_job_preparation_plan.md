@@ -16,6 +16,7 @@ Validate structural readiness of ext/staging/audit table generation in `main.reg
 | Orchestration plan | `docs/workflow_orchestration_plan.md` |
 | **First-run plan** | `docs/staging_first_run_plan.md` |
 | **Evidence log template** | `docs/staging_execution_evidence_log.md` |
+| **Readiness SQL package** | `databricks/sql/12_staging_readiness/` |
 
 Job name (template): `mifid_phase1_staging_smoke_test_skeleton_do_not_deploy`
 
@@ -73,6 +74,7 @@ First executions should keep `dry_run=true` until MAG-18 closes and staging exec
 | Artifact | Role |
 | --- | --- |
 | `databricks/sql/10_workflow/gates/gate_global_scope.sql` | Source/target policy gate (SELECT-only) |
+| `databricks/sql/12_staging_readiness/` | First-run source/target readiness checks (SELECT-only); run order: 04 → gate → 01 → 02 → 03 |
 | `databricks/sql/10_workflow/02_audit_logging.sql` | Optional SELECT-only audit manifest (no persistent writes) |
 | `docs/staging_execution_evidence_log.md` | Evidence log template — populate external working copy per [staging_first_run_plan.md](staging_first_run_plan.md) |
 | Secure storage manifests | Baseline/seed evidence outside repo |
@@ -101,7 +103,9 @@ Workflow does not activate persistent audit table writes.
 
 ### B — Source readiness
 
-- [ ] DE-migrated tables present in `main.regtech` or fallback documented
+- [ ] Run `12_staging_readiness/04` → `gate_global_scope` → `01` → `02` → `03` (stop on `FAIL` in 04/gate/01/02)
+- [ ] Resolve `03` `RUN_MANUAL` / `TODO` rows with external COUNT evidence before full readiness signoff
+- [ ] DE-migrated tables present in `main.regtech` or fallback documented (CurrencyPrice fallback is not preferred)
 - [ ] Source profiling templates identified per module (`*_source_profiling.sql`)
 - [ ] Required-column validation paths mapped (`docs/reporting_job_preparation_plan.md` group table above)
 
@@ -129,7 +133,7 @@ Workflow does not activate persistent audit table writes.
 
 | Group | Primary SQL folders |
 | --- | --- |
-| 1 | `databricks/sql/validation/`, `03_pre_regulation_ext/*_source_profiling.sql`, `11_seed_testing/04_manual_seed_validation.sql` |
+| 1 | `databricks/sql/12_staging_readiness/01_*` through `04_*`, `gate_global_scope.sql`, `*_source_profiling.sql` |
 | 2 | `databricks/sql/01_static_references/`, `databricks/sql/validation/01_*`–`07_*` |
 | 3 | `databricks/sql/03_pre_regulation_ext/02_*`, `03_*` |
 | 4 | `databricks/sql/03_pre_regulation_ext/05_*`, `06_*` |
@@ -175,6 +179,7 @@ See `docs/post_blocker_execution_plan.md` for post-blocker sequencing.
 
 - [staging_first_run_plan.md](staging_first_run_plan.md)
 - [staging_execution_evidence_log.md](staging_execution_evidence_log.md)
+- [databricks/sql/12_staging_readiness/00_readme.md](../databricks/sql/12_staging_readiness/00_readme.md)
 - [baseline_scenario_request.md](baseline_scenario_request.md)
 - [validation_evidence_plan.md](validation_evidence_plan.md)
 - [sql_server_baseline_extract_plan.md](sql_server_baseline_extract_plan.md)

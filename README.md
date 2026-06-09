@@ -82,6 +82,7 @@ Additional handoff support:
 - [Reporting job preparation plan (staging smoke test)](docs/reporting_job_preparation_plan.md)
 - [Staging first-run plan](docs/staging_first_run_plan.md)
 - [Staging execution evidence log (template)](docs/staging_execution_evidence_log.md)
+- Staging readiness SQL (SELECT-only): `databricks/sql/12_staging_readiness/`
 - [Workflow skeleton design (Step 17B)](docs/workflow_skeleton_design.md)
 - [Workflow orchestration plan (Step 17B)](docs/workflow_orchestration_plan.md)
 - [Workflow execution runbook (Step 17B)](docs/workflow_execution_runbook.md)

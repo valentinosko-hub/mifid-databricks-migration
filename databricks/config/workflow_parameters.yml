@@ -77,7 +77,9 @@ dry_run_policy:
 audit_evidence_mapping:
   gate_sql: databricks/sql/10_workflow/gates/gate_global_scope.sql
   audit_manifest_sql: databricks/sql/10_workflow/02_audit_logging.sql
-  external_evidence_log: "TODO docs/staging_execution_evidence_log.md (not yet authored)"
+  external_evidence_log: docs/staging_execution_evidence_log.md
+  readiness_sql_package: databricks/sql/12_staging_readiness/
+  first_run_plan: docs/staging_first_run_plan.md
   baseline_manifests: secure storage outside repo
 
 phase1_table_generation:

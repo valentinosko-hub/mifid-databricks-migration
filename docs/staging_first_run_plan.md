@@ -8,7 +8,8 @@ Step-by-step **manual** staging first-run plan for MiFID RegTechOps smoke-test j
 
 **Workflow reference:** `databricks/workflows/mifid_phase1_staging_smoke_test.yml`  
 **Parameters:** `databricks/config/workflow_parameters.yml`  
-**Evidence log:** [staging_execution_evidence_log.md](staging_execution_evidence_log.md)
+**Evidence log:** [staging_execution_evidence_log.md](staging_execution_evidence_log.md)  
+**Readiness SQL:** `databricks/sql/12_staging_readiness/` (SELECT-only)
 
 ---
 
@@ -89,15 +90,26 @@ git status --short
 
 **Workflow task:** `source_readiness_checks`
 
+Run **SELECT-only** readiness package in order (substitute parameters; store output externally):
+
 | # | Action | SQL / reference |
 | --- | --- | --- |
-| 1.1 | Run global scope gate | `databricks/sql/10_workflow/gates/gate_global_scope.sql` |
-| 1.2 | Verify `main.regtech` source tables exist where expected | Module `*_source_profiling.sql`; `docs/source_profiling_results.md` |
-| 1.3 | Verify required columns | `databricks/sql/validation/02_static_reference_required_columns.sql`; module validations |
-| 1.4 | Verify row counts / date ranges where safe | Profiling SQL; no full-table scans on huge objects unless approved |
-| 1.5 | Verify `main.regtech_ops_stg` target schema exists | Catalog browse / `DESCRIBE SCHEMA` (external evidence) |
+| 1.0 | Target safety first | `databricks/sql/12_staging_readiness/04_target_schema_safety_checks.sql` |
+| 1.1 | Global scope gate | `databricks/sql/10_workflow/gates/gate_global_scope.sql` |
+| 1.2 | Source table existence | `databricks/sql/12_staging_readiness/01_source_table_existence_checks.sql` |
+| 1.3 | Required columns | `databricks/sql/12_staging_readiness/02_required_column_checks.sql` |
+| 1.4 | Row counts / date ranges | `databricks/sql/12_staging_readiness/03_row_count_date_range_checks.sql` (after 1.2 PASS for objects) |
+| 1.5 | Supplemental profiling | Module `*_source_profiling.sql`; `docs/source_profiling_results.md` |
 
-**Stop if:** any expected source missing; required column missing; target schema missing; gate reports BLOCK on write policy.
+Parameter defaults: `source_catalog=main`, `source_schema=regtech`, `target_catalog=main`, `target_schema=regtech_ops_stg`, `object_prefix=bi_output_regtechops_`, `report_date=YYYY-MM-DD`, `skip_delivery_steps=true`.
+
+Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`, `actual`, `status`, `notes`. Record in [staging_execution_evidence_log.md](staging_execution_evidence_log.md).
+
+**Stop if:** any required `status=FAIL` in steps 1.0–1.3 (04, gate, 01, 02); target schema missing; gate reports BLOCK; `target_schema=regtech` (write to `main.regtech`).
+
+**Step 1.4 (`03_row_count_date_range_checks.sql`):** may return `TODO`, `RUN_MANUAL`, `NOT_RUN`, or `SKIP` rows. Resolve manual COUNT evidence (per `notes`) before claiming **full** readiness. Staging readiness pass is **not** final parity signoff.
+
+**Reg_CurrencyPrice_Ext:** preferred source is `main.dealing.bronze_pricelog_history_currencyprice`; fallback `main.trading.bronze_etoro_trade_currencyprice` is visible/SKIP only and does not satisfy readiness.
 
 ---
 
@@ -327,6 +339,7 @@ Stop the run and document in the evidence log if **any** of the following occur:
 
 ## Related documents
 
+- [databricks/sql/12_staging_readiness/00_readme.md](../databricks/sql/12_staging_readiness/00_readme.md)
 - [staging_execution_evidence_log.md](staging_execution_evidence_log.md)
 - [reporting_job_preparation_plan.md](reporting_job_preparation_plan.md)
 - [workflow_execution_runbook.md](workflow_execution_runbook.md)

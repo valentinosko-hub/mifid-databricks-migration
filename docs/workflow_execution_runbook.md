@@ -7,6 +7,7 @@ This runbook defines how to use the **staging smoke-test** and Step 17B workflow
 **Preparation plan:** `docs/reporting_job_preparation_plan.md`  
 **First-run plan:** `docs/staging_first_run_plan.md`  
 **Evidence log:** `docs/staging_execution_evidence_log.md`  
+**Readiness SQL:** `databricks/sql/12_staging_readiness/`  
 **Baseline extracts:** `docs/baseline_scenario_request.md`, `docs/validation_evidence_plan.md`
 
 Governance controls and manual approval workflow: `docs/workflow_governance_controls.md`, `docs/manual_approval_gates.md`.
@@ -64,6 +65,18 @@ For the step-by-step first execution, follow [staging_first_run_plan.md](staging
 - Phase 11 — validation summary + evidence log update
 
 Record each phase in an external working copy of [staging_execution_evidence_log.md](staging_execution_evidence_log.md). Staging success is **not** final parity signoff.
+
+### Readiness SQL before Phase 1 execution
+
+Run SELECT-only checks from `databricks/sql/12_staging_readiness/` in order:
+
+1. `04_target_schema_safety_checks.sql`
+2. `gate_global_scope.sql`
+3. `01_source_table_existence_checks.sql`
+4. `02_required_column_checks.sql`
+5. `03_row_count_date_range_checks.sql` (after existence PASS)
+
+**Stop on `FAIL`** in steps 1–4 (04, gate, 01, 02). Step 5 (`03`) may emit `TODO`, `RUN_MANUAL`, `NOT_RUN`, or `SKIP` — resolve manual COUNT evidence before claiming full readiness. Store all outputs outside Git. Staging readiness pass is **not** final parity signoff. See [databricks/sql/12_staging_readiness/00_readme.md](../databricks/sql/12_staging_readiness/00_readme.md).
 
 ---
 
