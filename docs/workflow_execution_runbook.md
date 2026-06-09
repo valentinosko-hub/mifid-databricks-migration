@@ -76,7 +76,11 @@ Run SELECT-only checks from `databricks/sql/12_staging_readiness/` in order:
 4. `02_required_column_checks.sql`
 5. `03_row_count_date_range_checks.sql` (after existence PASS)
 
-**Stop on `FAIL`** in steps 1–4 (04, gate, 01, 02). Step 5 (`03`) may emit `TODO`, `RUN_MANUAL`, `NOT_RUN`, or `SKIP` — resolve manual COUNT evidence before claiming full readiness. Store all outputs outside Git. Staging readiness pass is **not** final parity signoff. See [databricks/sql/12_staging_readiness/00_readme.md](../databricks/sql/12_staging_readiness/00_readme.md).
+**Stop on `FAIL`** in steps 1–4 (04, gate, 01, 02). Step 5 (`03`) may emit `TODO`, `RUN_MANUAL`, `NOT_RUN`, or `SKIP` — resolve manual COUNT evidence before claiming full readiness. Store all outputs outside Git. Staging readiness pass is **not** final parity signoff.
+
+**Databricks metadata:** use catalog-scoped `information_schema` (`{{source_catalog}}` / `{{target_catalog}}`, default `main`); avoid `system.information_schema`. For `main.dealing.bronze_pricelog_history_currencyprice`, use report-date or one-hour window COUNT only — not full-table scan.
+
+See [databricks/sql/12_staging_readiness/00_readme.md](../databricks/sql/12_staging_readiness/00_readme.md).
 
 ---
 

@@ -103,6 +103,10 @@ Run **SELECT-only** readiness package in order (substitute parameters; store out
 
 Parameter defaults: `source_catalog=main`, `source_schema=regtech`, `target_catalog=main`, `target_schema=regtech_ops_stg`, `object_prefix=bi_output_regtechops_`, `report_date=YYYY-MM-DD`, `skip_delivery_steps=true`.
 
+**Databricks metadata:** readiness SQL uses catalog-scoped `information_schema` (`main.information_schema.*` when catalogs default to `main`). Do not use `system.information_schema` — it may fail with insufficient `USE SCHEMA` permissions.
+
+**Large-table COUNT:** for `main.dealing.bronze_pricelog_history_currencyprice`, use report-date or one-hour lookback window only; full-table `COUNT(*)` is not required for first-run readiness.
+
 Readiness result columns: `check_group`, `object_name`, `check_name`, `expected`, `actual`, `status`, `notes`. Record in [staging_execution_evidence_log.md](staging_execution_evidence_log.md).
 
 **Stop if:** any required `status=FAIL` in steps 1.0–1.3 (04, gate, 01, 02); target schema missing; gate reports BLOCK; `target_schema=regtech` (write to `main.regtech`).

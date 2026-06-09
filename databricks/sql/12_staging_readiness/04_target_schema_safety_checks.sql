@@ -2,6 +2,7 @@
 -- No CREATE, INSERT, UPDATE, DELETE, MERGE, DROP.
 -- Parameters: {{source_catalog}}, {{source_schema}}, {{target_catalog}}, {{target_schema}},
 --               {{object_prefix}}, {{skip_delivery_steps}}
+-- Metadata: {{target_catalog}}.information_schema.schemata (not system.information_schema).
 
 WITH param_eval AS (
   SELECT
@@ -96,7 +97,7 @@ policy_checks AS (
     CASE WHEN s.schema_name IS NOT NULL THEN 'PASS' ELSE 'FAIL' END,
     'Target schema must exist before staging writes'
   FROM param_eval p
-  LEFT JOIN system.information_schema.schemata s
+  LEFT JOIN {{target_catalog}}.information_schema.schemata s
     ON lower(s.catalog_name) = p.target_catalog
    AND lower(s.schema_name) = p.target_schema
 )

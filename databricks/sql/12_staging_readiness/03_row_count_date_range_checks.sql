@@ -4,8 +4,11 @@
 -- Parameters: {{report_date}}, {{source_catalog}}, {{source_schema}}, {{target_catalog}},
 --             {{target_schema}}, {{object_prefix}}
 --
--- This file uses information_schema visibility only — no unconditional FROM main.* scans.
+-- This file uses catalog-scoped information_schema visibility only — no unconditional FROM main.* scans.
+-- Metadata: {{source_catalog}} and {{target_catalog}}.information_schema.tables (not system.information_schema).
 -- Visible objects return RUN_MANUAL with manual COUNT guidance; resolve before full readiness.
+-- main.dealing.bronze_pricelog_history_currencyprice is extremely large — use report-date / one-hour
+-- window COUNT only; full-table COUNT(*) is not required for first-run readiness.
 -- Preferred Reg_CurrencyPrice_Ext source: main.dealing.bronze_pricelog_history_currencyprice.
 -- Fallback main.trading.bronze_etoro_trade_currencyprice is SKIP (not preferred).
 
@@ -210,12 +213,25 @@ count_manifest AS (
          'gated_dependency',
          'GATED — NPD seed/history required; skip on first pass'
 ),
+catalog_tables AS (
+  SELECT
+    lower(table_catalog) AS table_catalog,
+    lower(table_schema) AS table_schema,
+    lower(table_name) AS table_name
+  FROM {{source_catalog}}.information_schema.tables
+  UNION
+  SELECT
+    lower(table_catalog),
+    lower(table_schema),
+    lower(table_name)
+  FROM {{target_catalog}}.information_schema.tables
+),
 table_visibility AS (
   SELECT
     m.*,
     CASE WHEN t.table_name IS NOT NULL THEN true ELSE false END AS is_visible
   FROM count_manifest m
-  LEFT JOIN system.information_schema.tables t
+  LEFT JOIN catalog_tables t
     ON lower(t.table_catalog) = lower(m.cat)
    AND lower(t.table_schema) = lower(m.sch)
    AND lower(t.table_name) = lower(m.tbl)
@@ -251,7 +267,8 @@ manifest_output AS (
       WHEN NOT tv.is_visible THEN
         concat('NOT_RUN: table not visible in information_schema — confirm 01_source_table_existence_checks.sql PASS before manual COUNT; filter: ', tv.filter_hint)
       WHEN tv.object_name = 'main.dealing.bronze_pricelog_history_currencyprice' THEN
-        concat('RUN_MANUAL: SELECT COUNT(*) FROM ', tv.object_name,
+        concat('RUN_MANUAL: table is extremely large — do NOT run full-table COUNT(*); use report-date or one-hour lookback only: ',
+               'SELECT COUNT(*) FROM ', tv.object_name,
                ' WHERE CAST(Occurred AS DATE) BETWEEN prior_date AND report_date; FAIL if 0; report_date=',
                CAST((SELECT report_date FROM run_params) AS STRING))
       WHEN tv.object_name = 'main.bi_db.bronze_etoro_trade_positionforexternaluse' THEN

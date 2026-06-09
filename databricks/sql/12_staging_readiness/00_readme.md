@@ -8,6 +8,21 @@ SELECT-only source and target readiness checks for the **first runnable staging 
 
 ---
 
+## Databricks metadata compatibility
+
+Use **catalog-scoped** `information_schema` in Unity Catalog:
+
+| Purpose | Views |
+| --- | --- |
+| Source metadata | `{{source_catalog}}.information_schema.tables`, `.columns`, `.schemata` |
+| Target metadata | `{{target_catalog}}.information_schema.tables`, `.columns`, `.schemata` |
+
+**Do not use** `system.information_schema.*` — it may fail with `[INSUFFICIENT_PERMISSIONS] User does not have USE SCHEMA on Schema 'system.information_schema'`.
+
+When `source_catalog` and `target_catalog` both default to `main`, `main.information_schema.*` is equivalent.
+
+---
+
 ## Environment parameters
 
 Substitute before execution (workflow jobs may map from `job.parameters.*`):
@@ -73,7 +88,8 @@ Each file returns:
 - No PII samples in evidence attachments
 - Staging readiness pass is **not** final parity signoff
 - Failures must halt staging smoke-test progression per first-run stop criteria (S1–S10)
-- `03_row_count_date_range_checks.sql` uses `information_schema` visibility only — execute documented manual COUNTs for `RUN_MANUAL` rows and record evidence externally
+- `03_row_count_date_range_checks.sql` uses catalog-scoped `information_schema` visibility only — execute documented manual COUNTs for `RUN_MANUAL` rows and record evidence externally
+- `main.dealing.bronze_pricelog_history_currencyprice` is extremely large — **do not** run full-table `COUNT(*)` for first-run readiness; use report-date or one-hour lookback window only
 
 ---
 

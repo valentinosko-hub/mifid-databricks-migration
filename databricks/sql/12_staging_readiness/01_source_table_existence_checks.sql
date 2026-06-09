@@ -1,6 +1,8 @@
 -- Staging readiness: source table existence checks (SELECT-only).
 -- No CREATE, INSERT, UPDATE, DELETE, MERGE, DROP.
 -- Parameters: {{source_catalog}}, {{source_schema}}, {{target_catalog}}, {{target_schema}}, {{object_prefix}}, {{report_date}}
+-- Metadata: catalog-scoped information_schema only ({{source_catalog}}, {{target_catalog}}).
+-- Do not use system.information_schema — may fail with INSUFFICIENT_PERMISSIONS (USE SCHEMA).
 
 WITH run_params AS (
   SELECT
@@ -93,7 +95,14 @@ existing_tables AS (
     lower(table_catalog) AS table_catalog,
     lower(table_schema) AS table_schema,
     lower(table_name) AS table_name
-  FROM system.information_schema.tables
+  FROM {{source_catalog}}.information_schema.tables
+  WHERE lower(table_type) IN ('managed', 'external', 'view')
+  UNION
+  SELECT
+    lower(table_catalog),
+    lower(table_schema),
+    lower(table_name)
+  FROM {{target_catalog}}.information_schema.tables
   WHERE lower(table_type) IN ('managed', 'external', 'view')
 )
 SELECT

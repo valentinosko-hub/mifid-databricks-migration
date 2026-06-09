@@ -1,7 +1,9 @@
 -- Staging readiness: required-column checks (SELECT-only).
 -- No CREATE, INSERT, UPDATE, DELETE, MERGE, DROP.
 -- Run after 01_source_table_existence_checks.sql for objects with status PASS (non-TODO).
--- Parameters: {{source_catalog}}, {{source_schema}}
+-- Parameters: {{source_catalog}}, {{source_schema}}, {{target_catalog}}, {{target_schema}}, {{object_prefix}}
+-- Metadata: catalog-scoped information_schema only ({{source_catalog}}, {{target_catalog}}).
+-- Do not use system.information_schema — may fail with INSUFFICIENT_PERMISSIONS (USE SCHEMA).
 
 WITH source_targets AS (
   -- price / currency / split (preferred primary)
@@ -147,15 +149,43 @@ WITH source_targets AS (
          '{{target_catalog}}', '{{target_schema}}', '{{object_prefix}}mifid2_npd_trax',
          true, true, false, 'GATED — seed/history required; do not require on first pass'
 ),
+catalog_tables AS (
+  SELECT
+    lower(table_catalog) AS table_catalog,
+    lower(table_schema) AS table_schema,
+    lower(table_name) AS table_name
+  FROM {{source_catalog}}.information_schema.tables
+  UNION
+  SELECT
+    lower(table_catalog),
+    lower(table_schema),
+    lower(table_name)
+  FROM {{target_catalog}}.information_schema.tables
+),
 table_visibility AS (
   SELECT
     st.*,
     CASE WHEN t.table_name IS NOT NULL THEN true ELSE false END AS is_visible
   FROM source_targets st
-  LEFT JOIN system.information_schema.tables t
+  LEFT JOIN catalog_tables t
     ON lower(t.table_catalog) = lower(st.table_catalog)
    AND lower(t.table_schema) = lower(st.table_schema)
    AND lower(t.table_name) = lower(st.table_name)
+),
+catalog_columns AS (
+  SELECT
+    lower(table_catalog) AS table_catalog,
+    lower(table_schema) AS table_schema,
+    lower(table_name) AS table_name,
+    column_name
+  FROM {{source_catalog}}.information_schema.columns
+  UNION
+  SELECT
+    lower(table_catalog),
+    lower(table_schema),
+    lower(table_name),
+    column_name
+  FROM {{target_catalog}}.information_schema.columns
 ),
 required_columns AS (
   SELECT 'reg_currencyprice_ext' AS source_key, col AS column_name FROM VALUES
@@ -271,7 +301,7 @@ available_columns AS (
     tv.is_visible,
     c.column_name
   FROM table_visibility tv
-  JOIN system.information_schema.columns c
+  JOIN catalog_columns c
     ON lower(c.table_catalog) = lower(tv.table_catalog)
    AND lower(c.table_schema) = lower(tv.table_schema)
    AND lower(c.table_name) = lower(tv.table_name)

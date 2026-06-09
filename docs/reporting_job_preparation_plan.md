@@ -74,7 +74,7 @@ First executions should keep `dry_run=true` until MAG-18 closes and staging exec
 | Artifact | Role |
 | --- | --- |
 | `databricks/sql/10_workflow/gates/gate_global_scope.sql` | Source/target policy gate (SELECT-only) |
-| `databricks/sql/12_staging_readiness/` | First-run source/target readiness checks (SELECT-only); run order: 04 → gate → 01 → 02 → 03 |
+| `databricks/sql/12_staging_readiness/` | First-run source/target readiness checks (SELECT-only); run order: 04 → gate → 01 → 02 → 03; uses catalog-scoped `information_schema` (not `system.information_schema`) |
 | `databricks/sql/10_workflow/02_audit_logging.sql` | Optional SELECT-only audit manifest (no persistent writes) |
 | `docs/staging_execution_evidence_log.md` | Evidence log template — populate external working copy per [staging_first_run_plan.md](staging_first_run_plan.md) |
 | Secure storage manifests | Baseline/seed evidence outside repo |
@@ -103,7 +103,7 @@ Workflow does not activate persistent audit table writes.
 
 ### B — Source readiness
 
-- [ ] Run `12_staging_readiness/04` → `gate_global_scope` → `01` → `02` → `03` (stop on `FAIL` in 04/gate/01/02)
+- [ ] Run `12_staging_readiness/04` → `gate_global_scope` → `01` → `02` → `03` (stop on `FAIL` in 04/gate/01/02); metadata via `main.information_schema.*` (or substituted catalogs), not `system.information_schema`
 - [ ] Resolve `03` `RUN_MANUAL` / `TODO` rows with external COUNT evidence before full readiness signoff
 - [ ] DE-migrated tables present in `main.regtech` or fallback documented (CurrencyPrice fallback is not preferred)
 - [ ] Source profiling templates identified per module (`*_source_profiling.sql`)
