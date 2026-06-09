@@ -11,6 +11,8 @@ Validate structural readiness of ext/staging/audit table generation in `main.reg
 | Item | Location |
 | --- | --- |
 | **Staging jobs (canonical)** | `databricks/workflows/mifid_phase1_staging_jobs.yml` |
+| **Notebook companion jobs** | `databricks/workflows/mifid_phase1_staging_notebook_jobs.yml` |
+| **Notebook wrapper folder** | `databricks/notebooks/mifid_staging/` |
 | Staging smoke-test (combined) | `databricks/workflows/mifid_phase1_staging_smoke_test.yml` |
 | **Job creation plan** | `docs/staging_workflow_job_creation_plan.md` |
 | Shared parameter defaults | `databricks/config/workflow_parameters.yml` |
@@ -35,7 +37,7 @@ Job names (template, do not deploy):
 - `mifid_staging_validation_summary_job_do_not_deploy`
 - `mifid_phase1_staging_smoke_test_skeleton_do_not_deploy` (combined backward reference)
 
-Run split jobs manually one-by-one in repository order. No automatic cross-job dependency should be assumed unless Databricks operators explicitly configure one.
+Run split jobs manually one-by-one in repository order. No automatic cross-job dependency should be assumed unless Databricks operators explicitly configure one. Notebook companion jobs follow the same sequence and gating.
 
 ## Environment policy
 

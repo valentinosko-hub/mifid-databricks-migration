@@ -9,11 +9,13 @@ This folder contains **template-only** workflow artifacts for Phase 1 MiFID work
 | File | Purpose | Status |
 | --- | --- | --- |
 | `mifid_phase1_staging_jobs.yml` | **Canonical** split staging jobs (Jobs 1–11, manual one-by-one sequence) | Template-only; **do not deploy** |
+| `mifid_phase1_staging_notebook_jobs.yml` | Companion notebook-wrapper split jobs (Jobs 1–11) | Template-only; **do not deploy** |
 | `mifid_phase1_staging_smoke_test.yml` | Combined readiness + ext validation (backward reference) | Template-only; **do not deploy** |
 | `mifid_phase1_table_generation.yml` | Full table/report generation ordering skeleton | Template-only; **do not deploy** |
 
 Shared parameter defaults: `databricks/config/workflow_parameters.yml`  
 Job creation plan: `docs/staging_workflow_job_creation_plan.md`
+Notebook wrappers: `databricks/notebooks/mifid_staging/`
 
 ---
 
@@ -72,6 +74,14 @@ Final NPD_TRAX, Failed_TRAX, Hedge report, customer/NPD parity, delivery/upload/
 ## Combined smoke-test workflow (`mifid_phase1_staging_smoke_test.yml`)
 
 Single-workflow backward view of readiness + critical-path checks. Prefer split jobs for execution. Optional seed/RecordID: use Jobs 9–10 in `mifid_phase1_staging_jobs.yml`.
+
+---
+
+## Notebook companion workflow (`mifid_phase1_staging_notebook_jobs.yml`)
+
+Notebook-wrapper companion path for the same staging groups. These notebooks are wrappers around existing SQL templates, do not rewrite business logic, and keep SQL execution disabled by default unless explicit guarded enablement is approved.
+
+Default notebook execution order: Job 1 readiness, Jobs 2–8 module groups, Job 11 validation summary; Jobs 9–10 optional.
 
 ---
 

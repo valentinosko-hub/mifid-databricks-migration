@@ -7,6 +7,7 @@ Step-by-step **manual** staging first-run plan for MiFID RegTechOps smoke-test j
 **Status:** Planning and evidence template only. Repository is **not production-ready**.
 
 **Workflow reference (canonical):** `databricks/workflows/mifid_phase1_staging_jobs.yml`  
+**Notebook companion:** `databricks/workflows/mifid_phase1_staging_notebook_jobs.yml` + `databricks/notebooks/mifid_staging/`  
 **Combined view:** `databricks/workflows/mifid_phase1_staging_smoke_test.yml`  
 **Job creation plan:** [staging_workflow_job_creation_plan.md](staging_workflow_job_creation_plan.md)  
 **Parameters:** `databricks/config/workflow_parameters.yml`  
@@ -94,6 +95,8 @@ git status --short
 **Workflow job:** `mifid_staging_readiness_job_do_not_deploy` (Job 1 in `mifid_phase1_staging_jobs.yml`)
 
 **Cross-job note:** no automatic Databricks trigger is configured between these split jobs. Complete Phase 1 and record external evidence before starting Job 2 / Phase 2, then continue jobs one-by-one in order.
+
+**Notebook companion note:** first notebook pass also starts with readiness notebook only, then one module-group notebook at a time in the same order.
 
 Run **SELECT-only** readiness package in order (substitute parameters; store output externally):
 

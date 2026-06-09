@@ -33,6 +33,8 @@ git_branch:       _______________
 git_commit:       _______________
 workflow_jobs_critical: mifid_staging_readiness_job_do_not_deploy -> mifid_staging_static_reference_job_do_not_deploy -> mifid_staging_price_currency_split_job_do_not_deploy -> mifid_staging_non_price_reg_ext_job_do_not_deploy -> mifid_staging_regulation_movement_job_do_not_deploy -> mifid_staging_hedge_liquidity_job_do_not_deploy -> mifid_staging_asic2_structural_job_do_not_deploy -> mifid_staging_mifid2_ext_non_pii_job_do_not_deploy -> mifid_staging_validation_summary_job_do_not_deploy
 workflow_jobs_optional: mifid_staging_manual_seed_testing_job_do_not_deploy, mifid_staging_hedge_recordid_registry_job_do_not_deploy
+notebook_jobs_critical: mifid_notebook_staging_readiness_job_do_not_deploy -> ... -> mifid_notebook_staging_validation_summary_job_do_not_deploy
+notebook_jobs_optional: mifid_notebook_staging_optional_seed_testing_job_do_not_deploy, mifid_notebook_staging_hedge_recordid_registry_job_do_not_deploy
 workflow_combined_backreference: mifid_phase1_staging_smoke_test_skeleton_do_not_deploy
 source_catalog:   main
 source_schema:    regtech
@@ -58,7 +60,7 @@ Copy this table into your external working copy for each run. One row per phase/
 | run_id | report_date | phase / task group | source catalog | source schema | target catalog | target schema | run_mode | dry_run | status | row_count_before | row_count_after | validation_file | validation_result | error_summary | evidence_link | owner | timestamp_utc |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | RUN-YYYYMMDD-001 | YYYY-MM-DD | Phase 0 — pre-run | main | regtech | main | regtech_ops_stg | development_structural_test | true | PASS / FAIL / STOP | — | — | gate_global_scope.sql | GATE-01–08 summary | | [secure link] | | |
-| RUN-YYYYMMDD-001 | YYYY-MM-DD | Job 1 / Phase 1 — readiness | main | regtech | main | regtech_ops_stg | development_structural_test | true | | | | mifid_staging_readiness_job; 12_staging_readiness/04→gate→01→02→03; catalog-scoped information_schema or manual fallback | | | [secure link] | | |
+| RUN-YYYYMMDD-001 | YYYY-MM-DD | Job 1 / Phase 1 — readiness | main | regtech | main | regtech_ops_stg | development_structural_test | true | | | | mifid_staging_readiness_job OR notebook wrapper `01_readiness_checks.py`; 12_staging_readiness/04→gate→01→02→03; catalog-scoped information_schema or manual fallback | | | [secure link] | | |
 | RUN-YYYYMMDD-001 | YYYY-MM-DD | Phase 2 / Job 2 — static_reference_checks | main | regtech | main | regtech_ops_stg | development_structural_test | true | | | | validation/01_*–07_*, 01_static_references/01_*, 02_udfs/01_*, 02_udfs/02_* | | | [secure link] | | |
 | RUN-YYYYMMDD-001 | YYYY-MM-DD | Phase 3 — price_currency_split_ext_staging | main | regtech | main | regtech_ops_stg | development_structural_test | true | | | | 03_pre_regulation_ext/03_* | | | [secure link] | | |
 | RUN-YYYYMMDD-001 | YYYY-MM-DD | Phase 4 — non_price_reg_ext_staging | main | regtech | main | regtech_ops_stg | development_structural_test | true | | | | 03_pre_regulation_ext/06_* | | | [secure link] | | |

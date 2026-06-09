@@ -8,6 +8,7 @@
 # This file retains a single-workflow backward reference for readiness + critical-path checks.
 # Prefer split jobs run manually one-by-one:
 #   Job 1 first, then Jobs 2–8, then Job 11; Jobs 9–10 are optional.
+# Notebook companion path: mifid_phase1_staging_notebook_jobs.yml (wrapper notebooks).
 # See docs/staging_workflow_job_creation_plan.md.
 #
 # Scope:

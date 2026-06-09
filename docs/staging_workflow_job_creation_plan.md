@@ -13,9 +13,12 @@ Defines **template-only** Databricks workflow job wiring for MiFID RegTechOps st
 | File | Jobs |
 | --- | --- |
 | `databricks/workflows/mifid_phase1_staging_jobs.yml` | **Canonical** split jobs 1–11 |
+| `databricks/workflows/mifid_phase1_staging_notebook_jobs.yml` | Companion notebook-wrapper split jobs 1–11 |
 | `databricks/workflows/mifid_phase1_staging_smoke_test.yml` | Combined readiness + ext view (backward reference) |
 
 **Parameters:** `databricks/config/workflow_parameters.yml`
+  
+Notebook wrapper plan: [notebook_job_execution_plan.md](notebook_job_execution_plan.md)
 
 ---
 
@@ -166,6 +169,15 @@ Run after Job 8 for validation summaries and external evidence instructions.
 5. Run optional **Jobs 9–10** only when enable flags/approvals allow
 
 **Cross-job dependencies:** there is **no automatic Databricks trigger** between these jobs in this skeleton unless operators configure one manually in Databricks. Treat repository order as authoritative: Job 1 first, then Jobs 2–8, then Job 11; optional Jobs 9–10 are outside the default first-run path.
+
+## Notebook companion workflow package
+
+Notebook-wrapper companion jobs are defined in:
+
+- `databricks/workflows/mifid_phase1_staging_notebook_jobs.yml`
+- notebooks under `databricks/notebooks/mifid_staging/`
+
+Companion notebook wrappers do not replace SQL-task workflows; they provide controlled wrapper surfaces around existing SQL templates and preserve the same staging-only boundaries.
 
 ### SQL placeholders vs job parameters
 

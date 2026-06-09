@@ -1,0 +1,261 @@
+# TEMPLATE ONLY — STAGING NOTEBOOK WORKFLOW JOBS (NON-PRODUCTION)
+# Companion notebook wrappers for controlled staging execution support.
+# Do not deploy to production or schedule. Not production-grade.
+#
+# Source-of-truth policy:
+# - Repository/Cursor-authored YAML + notebooks + docs are authoritative.
+# - Copy accepted Databricks UI/Genie edits back to repo and commit (avoid drift).
+#
+# Scope boundaries:
+# - Read defaults: main.regtech (DE-migrated sources)
+# - Write target: main.regtech_ops_stg only
+# - Generated prefix: bi_output_regtechops_
+# - No writes to main.regtech
+# - No delivery/upload/response/production logic
+
+bundle:
+  name: mifid_phase1_staging_notebook_jobs
+
+variables:
+  sql_warehouse_id:
+    description: Placeholder SQL warehouse ID for future execution enablement
+    default: "REPLACE_WITH_SQL_WAREHOUSE_ID"
+
+resources:
+  jobs:
+    # -------------------------------------------------------------------------
+    # Job 1 — Notebook readiness first
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_readiness_job:
+      name: mifid_notebook_staging_readiness_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_readiness
+        state: template_only_execution_gated
+        environment: regtech_ops_stg
+        job_order: "1"
+        production_scope: excluded
+      parameters: &staging_notebook_parameters
+        - name: source_catalog
+          default: "main"
+        - name: source_schema
+          default: "regtech"
+        - name: target_catalog
+          default: "main"
+        - name: target_schema
+          default: "regtech_ops_stg"
+        - name: object_prefix
+          default: "bi_output_regtechops_"
+        - name: report_date
+          default: "YYYY-MM-DD"
+        - name: run_mode
+          default: "development_structural_test"
+        - name: dry_run
+          default: "true"
+        - name: skip_delivery_steps
+          default: "true"
+        - name: allow_masked_customer_sources
+          default: "false"
+        - name: require_unmasked_pii_for_parity
+          default: "true"
+        - name: enable_manual_seed_testing_checks
+          default: "false"
+        - name: enable_masked_customer_structural_tests
+          default: "false"
+        - name: staging_execution_approved
+          default: "false"
+      tasks:
+        - task_key: notebook_readiness_checks
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/01_readiness_checks.py
+            source: WORKSPACE
+
+    # -------------------------------------------------------------------------
+    # Job 2 — Notebook static/reference checks
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_static_reference_job:
+      name: mifid_notebook_staging_static_reference_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_static_reference
+        state: template_only_execution_gated
+        environment: regtech_ops_stg
+        job_order: "2"
+        prerequisite_job: mifid_notebook_staging_readiness_job_do_not_deploy
+      parameters: *staging_notebook_parameters
+      tasks:
+        - task_key: notebook_static_reference_checks
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/02_static_reference_checks.py
+            source: WORKSPACE
+
+    # -------------------------------------------------------------------------
+    # Job 3 — Notebook price/currency/split
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_price_currency_split_job:
+      name: mifid_notebook_staging_price_currency_split_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_price_currency_split
+        state: template_only_execution_gated
+        environment: regtech_ops_stg
+        job_order: "3"
+        prerequisite_job: mifid_notebook_staging_static_reference_job_do_not_deploy
+      parameters: *staging_notebook_parameters
+      tasks:
+        - task_key: notebook_price_currency_split_staging
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/03_price_currency_split_staging.py
+            source: WORKSPACE
+
+    # -------------------------------------------------------------------------
+    # Job 4 — Notebook non-price Reg_Ext
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_non_price_reg_ext_job:
+      name: mifid_notebook_staging_non_price_reg_ext_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_non_price_reg_ext
+        state: template_only_execution_gated
+        environment: regtech_ops_stg
+        job_order: "4"
+        prerequisite_job: mifid_notebook_staging_price_currency_split_job_do_not_deploy
+      parameters: *staging_notebook_parameters
+      tasks:
+        - task_key: notebook_non_price_reg_ext_staging
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/04_non_price_reg_ext_staging.py
+            source: WORKSPACE
+
+    # -------------------------------------------------------------------------
+    # Job 5 — Notebook regulation movement
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_regulation_movement_job:
+      name: mifid_notebook_staging_regulation_movement_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_regulation_movement
+        state: template_only_execution_gated
+        environment: regtech_ops_stg
+        job_order: "5"
+        prerequisite_job: mifid_notebook_staging_non_price_reg_ext_job_do_not_deploy
+      parameters: *staging_notebook_parameters
+      tasks:
+        - task_key: notebook_regulation_movement_staging
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/05_regulation_movement_staging.py
+            source: WORKSPACE
+
+    # -------------------------------------------------------------------------
+    # Job 6 — Notebook hedge/liquidity
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_hedge_liquidity_job:
+      name: mifid_notebook_staging_hedge_liquidity_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_hedge_liquidity
+        state: template_only_execution_gated
+        environment: regtech_ops_stg
+        job_order: "6"
+        prerequisite_job: mifid_notebook_staging_regulation_movement_job_do_not_deploy
+      parameters: *staging_notebook_parameters
+      tasks:
+        - task_key: notebook_hedge_liquidity_staging
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/06_hedge_liquidity_staging.py
+            source: WORKSPACE
+
+    # -------------------------------------------------------------------------
+    # Job 7 — Notebook ASIC2 structural
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_asic2_structural_job:
+      name: mifid_notebook_staging_asic2_structural_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_asic2_structural
+        state: template_only_execution_gated
+        environment: regtech_ops_stg
+        job_order: "7"
+        prerequisite_job: mifid_notebook_staging_hedge_liquidity_job_do_not_deploy
+      parameters: *staging_notebook_parameters
+      tasks:
+        - task_key: notebook_asic2_structural_staging
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/07_asic2_structural_staging.py
+            source: WORKSPACE
+
+    # -------------------------------------------------------------------------
+    # Job 8 — Notebook MIFID2 ext non-PII
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_mifid2_ext_non_pii_job:
+      name: mifid_notebook_staging_mifid2_ext_non_pii_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_mifid2_ext_non_pii
+        state: template_only_execution_gated
+        environment: regtech_ops_stg
+        job_order: "8"
+        prerequisite_job: mifid_notebook_staging_asic2_structural_job_do_not_deploy
+      parameters: *staging_notebook_parameters
+      tasks:
+        - task_key: notebook_mifid2_ext_non_pii_staging
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/08_mifid2_ext_non_pii_staging.py
+            source: WORKSPACE
+
+    # -------------------------------------------------------------------------
+    # Job 9 — Optional notebook seed testing
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_optional_seed_testing_job:
+      name: mifid_notebook_staging_optional_seed_testing_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_optional_seed
+        state: template_only_optional_disabled
+        environment: regtech_ops_stg
+        job_order: "9"
+        optional: "true"
+      parameters: *staging_notebook_parameters
+      tasks:
+        - task_key: notebook_optional_manual_seed_testing
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/10_optional_manual_seed_testing.py
+            source: WORKSPACE
+
+    # -------------------------------------------------------------------------
+    # Job 10 — Optional notebook hedge RecordID registry
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_hedge_recordid_registry_job:
+      name: mifid_notebook_staging_hedge_recordid_registry_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_hedge_recordid_registry
+        state: template_only_optional_disabled
+        environment: regtech_ops_stg
+        job_order: "10"
+        optional: "true"
+      parameters: *staging_notebook_parameters
+      tasks:
+        - task_key: notebook_optional_hedge_recordid_registry
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/11_optional_hedge_recordid_registry.py
+            source: WORKSPACE
+
+    # -------------------------------------------------------------------------
+    # Job 11 — Notebook validation summary
+    # -------------------------------------------------------------------------
+    mifid_notebook_staging_validation_summary_job:
+      name: mifid_notebook_staging_validation_summary_job_do_not_deploy
+      max_concurrent_runs: 1
+      tags:
+        phase: notebook_staging_validation_summary
+        state: template_only_execution_gated
+        environment: regtech_ops_stg
+        job_order: "11"
+        prerequisite_job: mifid_notebook_staging_mifid2_ext_non_pii_job_do_not_deploy
+      parameters: *staging_notebook_parameters
+      tasks:
+        - task_key: notebook_validation_summary
+          notebook_task:
+            notebook_path: ../notebooks/mifid_staging/12_validation_summary.py
+            source: WORKSPACE

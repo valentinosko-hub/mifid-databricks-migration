@@ -85,6 +85,9 @@ Additional handoff support:
 - Staging readiness SQL (SELECT-only): `databricks/sql/12_staging_readiness/`
 - [Staging workflow job creation plan](docs/staging_workflow_job_creation_plan.md)
 - Staging workflow jobs (template-only): `databricks/workflows/mifid_phase1_staging_jobs.yml`
+- Notebook companion workflow jobs (template-only): `databricks/workflows/mifid_phase1_staging_notebook_jobs.yml`
+- Notebook wrappers: `databricks/notebooks/mifid_staging/`
+- [Notebook job execution plan](docs/notebook_job_execution_plan.md)
 - [Workflow skeleton design (Step 17B)](docs/workflow_skeleton_design.md)
 - [Workflow orchestration plan (Step 17B)](docs/workflow_orchestration_plan.md)
 - [Workflow execution runbook (Step 17B)](docs/workflow_execution_runbook.md)
@@ -97,4 +100,4 @@ Additional handoff support:
 
 **Status:** Phase-1 preparation and Step 18B handoff documentation are complete per the [final repository audit (Step 18A)](docs/final_repository_audit.md) and [final handoff package (Step 18B)](docs/final_handoff_package.md). SQL templates, validation packages, staging-only RegTechOps job/workflow skeletons, and Step 17C governance documentation are authored. The repository supports **staging-only** smoke-test and seed-load execution in `main.regtech_ops_stg` but is **not** ready for final-parity execution or production deployment while blockers/gates remain open. Active source-access blockers are limited to `main.pii_data` customer/history access for final parity. Masked customer tables are development/structural-test only. Initial feasible seed test: `MIFID2_NPD_TRAX` into `bi_output_regtechops_seed_*` (staging evidence only). NOC and old Databricks attempt docs remain reference-only.
 
-Repository/Cursor-authored workflow YAML and docs are the source of truth; if Databricks UI/Genie/manual workspace edits are accepted, copy them back to this repo and commit to prevent drift.
+Repository/Cursor-authored workflow YAML/notebooks/docs are the source of truth; if Databricks UI/Genie/manual workspace edits are accepted, copy them back to this repo and commit to prevent drift.

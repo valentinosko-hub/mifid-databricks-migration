@@ -111,6 +111,43 @@ staging_smoke_test:
     dev_customer_source_mode: masked_fallback
     customer_source_policy: temporary_masked_dev_only_v1
 
+notebook_staging_jobs:
+  description: Companion notebook-wrapper staging jobs (Jobs 1–11; template-only; do not deploy)
+  workflow_file: databricks/workflows/mifid_phase1_staging_notebook_jobs.yml
+  notebook_folder: databricks/notebooks/mifid_staging/
+  deploy: false
+  schedule: null
+  execution_order:
+    - job_key: mifid_notebook_staging_readiness_job
+      job_name: mifid_notebook_staging_readiness_job_do_not_deploy
+      required_first: true
+    - job_key: mifid_notebook_staging_static_reference_job
+      job_name: mifid_notebook_staging_static_reference_job_do_not_deploy
+    - job_key: mifid_notebook_staging_price_currency_split_job
+      job_name: mifid_notebook_staging_price_currency_split_job_do_not_deploy
+    - job_key: mifid_notebook_staging_non_price_reg_ext_job
+      job_name: mifid_notebook_staging_non_price_reg_ext_job_do_not_deploy
+    - job_key: mifid_notebook_staging_regulation_movement_job
+      job_name: mifid_notebook_staging_regulation_movement_job_do_not_deploy
+    - job_key: mifid_notebook_staging_hedge_liquidity_job
+      job_name: mifid_notebook_staging_hedge_liquidity_job_do_not_deploy
+    - job_key: mifid_notebook_staging_asic2_structural_job
+      job_name: mifid_notebook_staging_asic2_structural_job_do_not_deploy
+    - job_key: mifid_notebook_staging_mifid2_ext_non_pii_job
+      job_name: mifid_notebook_staging_mifid2_ext_non_pii_job_do_not_deploy
+    - job_key: mifid_notebook_staging_validation_summary_job
+      job_name: mifid_notebook_staging_validation_summary_job_do_not_deploy
+    - job_key: mifid_notebook_staging_optional_seed_testing_job
+      job_name: mifid_notebook_staging_optional_seed_testing_job_do_not_deploy
+      optional: true
+      enable_flag: enable_manual_seed_testing_checks
+    - job_key: mifid_notebook_staging_hedge_recordid_registry_job
+      job_name: mifid_notebook_staging_hedge_recordid_registry_job_do_not_deploy
+      optional: true
+  source_of_truth:
+    repository: cursor_authored_yaml_notebooks_and_docs
+    drift_policy: copy_accepted_databricks_ui_or_genie_edits_back_to_repo_and_commit
+
 dry_run_policy:
   dry_run_true:
     mode: readiness_check_only

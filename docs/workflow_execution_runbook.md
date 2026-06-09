@@ -3,6 +3,7 @@
 This runbook defines how to use the **staging smoke-test** and Step 17B workflow skeletons for **staging-only RegTechOps** execution and governance. Jobs/workflows in this repository are **not production-grade**; they write to `main.regtech_ops_stg` only. Workflow YAML files are **template-only / `do_not_deploy`** — unscheduled and not deployed to production schedules. **Approved staging smoke-test execution** is permitted in `development_structural_test` mode when prerequisites and MAG gates allow. Production scheduling, delivery/upload/response, and final parity remain blocked. Data Engineering may later adapt definitions for production criteria.
 
 **Primary staging artifacts:** `databricks/workflows/mifid_phase1_staging_jobs.yml` (canonical split jobs)  
+**Notebook companion artifacts:** `databricks/workflows/mifid_phase1_staging_notebook_jobs.yml`, `databricks/notebooks/mifid_staging/`  
 **Combined view:** `databricks/workflows/mifid_phase1_staging_smoke_test.yml`  
 **Job creation plan:** `docs/staging_workflow_job_creation_plan.md`  
 **Parameter defaults:** `databricks/config/workflow_parameters.yml`  
@@ -105,10 +106,13 @@ See [databricks/sql/12_staging_readiness/00_readme.md](../databricks/sql/12_stag
 | 11 | `mifid_staging_validation_summary_job_do_not_deploy` | Cross-module summary and evidence guidance |
 
 YAML: `databricks/workflows/mifid_phase1_staging_jobs.yml`. Combined single-workflow: `mifid_phase1_staging_smoke_test.yml`.
+Notebook companion YAML: `databricks/workflows/mifid_phase1_staging_notebook_jobs.yml`.
 
 If `system.information_schema` permissions block Job 1, use catalog-scoped checks (`main.information_schema.*`) or manual inline evidence per `12_staging_readiness/00_readme.md`.
 
 **Cross-job dependencies (manual):** this skeleton does not configure automatic Databricks triggers between jobs. Run jobs one-by-one in repository order: Job 1 first, then Jobs 2–8, then Job 11. Jobs 9–10 are optional and not on the default first-run path. Do not assume automatic cross-job dependency unless operators configure it manually in Databricks.
+
+Notebook companion jobs follow the same order and gating. For notebook path first pass: start with readiness notebook only, then run one module group at a time.
 
 **SQL placeholders vs job parameters:** readiness/module SQL may use `{{source_catalog}}`, `{{target_schema}}`, etc.; workflow YAML uses job parameters. Ensure consistent substitution when running SQL manually or in Databricks tasks. `gate_global_scope.sql` uses `{{job.parameters.*}}`. Defaults below.
 

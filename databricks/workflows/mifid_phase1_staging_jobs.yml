@@ -4,7 +4,8 @@
 # controls and documented MAG/staging approval (see docs/workflow_execution_runbook.md).
 # This is not production readiness or final parity.
 #
-# Canonical split staging job package. See docs/staging_workflow_job_creation_plan.md.
+# Canonical split SQL-task staging job package. See docs/staging_workflow_job_creation_plan.md.
+# Notebook companion package: databricks/workflows/mifid_phase1_staging_notebook_jobs.yml
 #
 # Execution order (manual one-by-one — no automatic Databricks cross-job triggers in this skeleton):
 #   1. mifid_staging_readiness_job_do_not_deploy (always first)

@@ -80,11 +80,13 @@ Attestation date: _TBD_ (record when program accepts handoff).
 - **SQL:** Gated templates under `databricks/sql/` (config, static, UDFs, Pre_Regulation, movements, hedge liquidity, ASIC2, MIFID2_ext, outputs, cross-module validation, workflow gates).
 - **Hedge RecordID registry package:** Gated design templates under `databricks/sql/08_outputs/10_hedge_recordid_registry/` (scaffold, seed, allocation, SELECT-only validation).
 - **Workflow:** Template-only / `do_not_deploy` definitions — `mifid_phase1_staging_jobs.yml`, `mifid_phase1_staging_smoke_test.yml`, `mifid_phase1_table_generation.yml`, and `databricks/sql/10_workflow/`.
+- **Notebook wrappers:** Template-only companion wrappers under `databricks/notebooks/mifid_staging/` and `mifid_phase1_staging_notebook_jobs.yml` (staging support only; not production-grade).
 - **Docs:** Analysis, profiling, gates, reconciliation, readiness, workflow, governance, Step 18A audit, Step 18B handoff (this package).
 - **Target convention:** `main.regtech_ops_stg` only; `bi_output_regtechops_` for generated objects; `bi_output_regtechops_seed_` for seed tables.
 - **Staging jobs:** Non-production RegTechOps job/workflow skeletons intended as DE implementation input.
 
 Business logic authority remains **read-only** under `reference/mifid_databricks_migration_context/`. NOC and old Databricks attempt docs remain **reference-only**.
+Repository/Cursor-authored workflow and notebook definitions remain the source of truth; accepted Databricks UI/Genie/workspace edits must be copied back into Git to avoid drift.
 
 ---
 
