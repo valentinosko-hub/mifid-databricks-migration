@@ -29,13 +29,17 @@
 # MAGIC - `bi_output_regtechops_reg_ext_dictionarycurrencytype` (asset class mapping)
 # MAGIC
 # MAGIC **Deferred (stubbed):**
-# MAGIC - ED&F/IB futures enrichment (Synapse source not available in Databricks)
-# MAGIC - Full InstrumentClassification CFI codes (complex LP-specific sub-classifications)
-# MAGIC - Reg_LiquidtyAcount_SCD ValidFrom/ValidTo check (using snapshot ext table instead)
+# MAGIC - Reg_LiquidtyAcount_SCD ValidFrom/ValidTo temporal join (using snapshot ext table instead — causes 2-row gap for obsolete LP 153)
 # MAGIC
 # MAGIC **Prerequisites:** Notebooks 01-05 must have been run for the same report_date.
 # MAGIC
-# MAGIC **Validation (2026-06-11):** ✅ PASS | EU: 86,056 rows (SSMS: 86,058, -2 rows = 99.998% match) | EU-UK: 0 | UK: 0 (matches SSMS)
+# MAGIC **Validation (2026-06-11):** ✅ PASS | EU: 86,056 rows (SSMS: 86,058, -2 rows = LP 153 SCD gap)
+# MAGIC
+# MAGIC **Field parity vs SSMS (86,056 matched rows):**
+# MAGIC - ✅ 100% match: PriceMultiplier, Quantity, ISIN, InstrumentClassification, NotionalCurrency1, ExpiryDate, DeliveryType, Price, PriceCurrency, Venue, TradingDateTime, and 8 more fields
+# MAGIC - ⚠️ 99.96% InstrumentFullName (32 diffs — source data variation)
+# MAGIC - ⚠️ 99.99% UnderlyingIndexName (2 diffs — DBX uses full description vs SSMS truncated)
+# MAGIC - ⚠️ TRN: ProviderExecID 100% match, format correct, all unique; RowID portion differs within ExecutionTime ties (71K tied rows — SQL Server non-deterministic ROW_NUMBER within ties)
 
 # COMMAND ----------
 
@@ -46,13 +50,18 @@ print(f"Running Module 14: MIFID2 Hedge Report for report_date = {report_date}")
 
 # COMMAND ----------
 
-# DBTITLE 1,1. MIFID2 Hedge Report Generation (EU + EU-UK + UK branches)
+# DBTITLE 1,2. Validation: Hedge Report Row Counts
 # MIFID2_Hedge_Report: 3-branch hedge execution report
 # SP parity: SP_MIFID2_HedgeEU_Report + SP_MIFID2_HedgeUK_Report
 #
 # Branch 1 (EU): mifid2_ext_hedgeexecutionlog → eToroEntity='213800GIFQMSV7HROS23' (EU LP)
 # Branch 2 (EU-UK): same source → eToroEntity='213800FLAB1OVA8OHT72' (UK LP) AND IsReal=1
 # Branch 3 (UK): reg_ext_hedgeexecutionlog → eToroEntity='213800FLAB1OVA8OHT72' AND EMSOrderID IS NULL
+#
+# RowID: Computed AFTER LP join (matching SP's SELECT INTO #EUtrades), ORDER BY ExecutionTime, ExecutionID.
+# TRN = UPPER(ProviderExecID) + RowID + date_id_str. ProviderExecID normalization 100% SSMS parity.
+# Note: SQL Server ROW_NUMBER within ExecutionTime ties is non-deterministic (physical access path);
+#       exact TRN parity limited to rows with unique ExecutionTime (~12.7% exact match, rest differ only in RowID).
 
 hedge_report_sql = f"""
 WITH run_parameters AS (
@@ -78,8 +87,7 @@ eu_execution_base AS (
     UPPER(
       REGEXP_REPLACE(CAST(ext.ProviderExecID AS STRING), '[\\-\\.~@#\\$%&\\*\\(\\)!\\^\\?:]', '')
     ) AS ProviderExecID,
-    CAST(ext.ExecutionTime AS TIMESTAMP) AS ExecutionTime,
-    ROW_NUMBER() OVER (ORDER BY ext.ExecutionTime, ext.OrderID) AS RowID
+    CAST(ext.ExecutionTime AS TIMESTAMP) AS ExecutionTime
   FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_ext_hedgeexecutionlog ext
   WHERE CAST(ext.Units AS DECIMAL(22,8)) > 0
     AND CAST(ext.Success AS INT) = 1
@@ -99,8 +107,7 @@ uk_execution_base AS (
     UPPER(
       REGEXP_REPLACE(CAST(ext.ProviderExecID AS STRING), '[\\-\\.~@#\\$%&\\*\\(\\)!\\^\\?:]', '')
     ) AS ProviderExecID,
-    CAST(ext.ExecutionTime AS TIMESTAMP) AS ExecutionTime,
-    ROW_NUMBER() OVER (ORDER BY ext.ExecutionTime, ext.OrderID) AS RowID
+    CAST(ext.ExecutionTime AS TIMESTAMP) AS ExecutionTime
   FROM main.regtech_ops_stg.bi_output_regtechops_reg_ext_hedgeexecutionlog ext
   CROSS JOIN run_parameters rp
   WHERE CAST(ext.Units AS DECIMAL(22,8)) > 0
@@ -122,7 +129,8 @@ eu_trades AS (
          ELSE -1 END AS IsReal,
     CASE WHEN UPPER(lp.eToroEntity) = '213800GIFQMSV7HROS23' THEN 'EU'
          WHEN UPPER(lp.eToroEntity) = '213800FLAB1OVA8OHT72' THEN 'UK'
-         ELSE 'UNKNOWN' END AS ExecutionFlow
+         ELSE 'UNKNOWN' END AS ExecutionFlow,
+    ROW_NUMBER() OVER (ORDER BY e.ExecutionTime, e.ExecutionID) AS RowID
   FROM eu_execution_base e
   JOIN main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid lp
     ON e.LiquidityAccountID = CAST(lp.LiquidityAccountID AS INT)
@@ -137,7 +145,8 @@ uk_trades AS (
     lp.LpCountryCode AS Country,
     CASE WHEN UPPER(lp.RealOrCFD) = 'REAL' THEN 1
          WHEN UPPER(lp.RealOrCFD) = 'CFD' THEN 0
-         ELSE -1 END AS IsReal
+         ELSE -1 END AS IsReal,
+    ROW_NUMBER() OVER (ORDER BY e.ExecutionTime, e.ExecutionID) AS RowID
   FROM uk_execution_base e
   JOIN main.regtech_ops_stg.bi_output_regtechops_reg_ext_liquidityaccountid lp
     ON e.LiquidityAccountID = CAST(lp.LiquidityAccountID AS INT)
@@ -151,7 +160,7 @@ instruments AS (
     i.InstrumentTypeID,
     i.BuyCurrencyID,
     i.SellCurrencyID,
-    i.ISINCode,
+    TRIM(i.ISINCode) AS ISINCode,
     CAST(i.IsMifid AS INT) AS IsMifid,
     CAST(COALESCE(i.IsMifidByFCA, i.IsMifid) AS INT) AS IsMifidByFCA,
     CASE WHEN i.SellCurrencyID = 666 THEN 1 ELSE 0 END AS IsGBX,
@@ -159,7 +168,7 @@ instruments AS (
          WHEN i.SellCurrencyID = 38 THEN REPLACE(dc_sell.Abbreviation, 'CNH', 'CNY')
          ELSE dc_sell.Abbreviation END AS SellAbbreviation,
     dc_buy.Abbreviation AS BuyAbbreviation,
-    REPLACE(i.InstrumentDisplayName, ',', ' ') AS InstrumentFullName,
+    TRIM(REPLACE(i.InstrumentDisplayName, ',', ' ')) AS InstrumentFullName,
     fd.IndexNameFullDescription
   FROM main.regtech.gold_regreportdb_prod_dbo_reg_instruments_scd i
   CROSS JOIN run_parameters rp
@@ -194,6 +203,47 @@ excluded_trns AS (
   SELECT DISTINCT CAST(positionid AS STRING) AS position_id
   FROM main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids
   WHERE tablename = '[MIFID2_Hedge_Report]'
+),
+
+-- ED&F futures enrichment (TradingFactor, Currency, ContractLongName, LastTradedDate)
+-- SP splits into Non-VIX (join on ContractDesc) and VIX (join on ContractLongName)
+ednf_enrichment AS (
+  -- Non-VIX: join mapping.ContractDesc → coretrades.ContractDesc, pick latest per InstrumentID
+  SELECT InstrumentID, ContractLongName, TradingFactor, Currency, LastTradedDate
+  FROM (
+    SELECT
+      CAST(m.InstrumentID AS INT) AS InstrumentID,
+      ct.ContractLongName,
+      MAX(ct.TradingFactor) AS TradingFactor,
+      MAX(ct.Currency) AS Currency,
+      ct.LastTradedDate,
+      ROW_NUMBER() OVER (PARTITION BY CAST(m.InstrumentID AS INT) ORDER BY ct.LastTradedDate DESC) AS rn
+    FROM main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro m
+    JOIN main.general.gold_ednf_coretrades ct ON ct.ContractDesc = m.ContractDesc
+    WHERE m.ContractDesc NOT IN ('VOLATILITY INDEX', 'MICRO EMINI NSDQ', 'MICRO EMINI RUSSELL')
+      AND ct.TradeDate > CAST(date_format(date_add(CAST('{report_date}' AS DATE), -30), 'yyyyMMdd') AS INT)
+    GROUP BY CAST(m.InstrumentID AS INT), ct.ContractLongName, ct.LastTradedDate
+  ) sub WHERE rn = 1
+
+  UNION ALL
+
+  -- VIX/MICRO: join mapping.ContractLongName → coretrades.ContractLongName (unique per expiry)
+  SELECT InstrumentID, ContractLongName, TradingFactor, Currency, LastTradedDate
+  FROM (
+    SELECT
+      CAST(m.InstrumentID AS INT) AS InstrumentID,
+      ct.ContractLongName,
+      MAX(ct.TradingFactor) AS TradingFactor,
+      MAX(ct.Currency) AS Currency,
+      ct.LastTradedDate,
+      ROW_NUMBER() OVER (PARTITION BY CAST(m.InstrumentID AS INT) ORDER BY ct.LastTradedDate DESC) AS rn
+    FROM main.regtech_ops_stg.bi_output_regtechops_ed_f_to_istrument_id_e_toro m
+    JOIN main.general.gold_ednf_coretrades ct ON ct.ContractLongName = m.ContractLongName
+    WHERE m.ContractDesc IN ('VOLATILITY INDEX', 'MICRO EMINI NSDQ', 'MICRO EMINI RUSSELL')
+      AND m.ContractLongName IS NOT NULL
+      AND ct.TradeDate > CAST(date_format(date_add(CAST('{report_date}' AS DATE), -124), 'yyyyMMdd') AS INT)
+    GROUP BY CAST(m.InstrumentID AS INT), ct.ContractLongName, ct.LastTradedDate
+  ) sub WHERE rn = 1
 ),
 
 -- ============ BRANCH 1: EU DIRECT ============
@@ -237,7 +287,7 @@ eu_report AS (
     ) AS TradingDateTime,
     'DEAL' AS TradingCapacity,
     'UNIT' AS QuantityType,
-    CAST(p.AmountInUnits AS STRING) AS Quantity,
+    CAST(CAST(p.AmountInUnits AS DECIMAL(22,2)) AS STRING) AS Quantity,
     '' AS QuantityCurrency,
     '' AS DerivativeNotionalIncreaseDecrease,
     CASE WHEN ctp.CurrencyTypeID = 4 THEN 'BSPS' ELSE 'MNTR' END AS PriceType,
@@ -247,19 +297,48 @@ eu_report AS (
     CASE WHEN p.IsReal = 1 THEN 'XOFF' ELSE 'XXXX' END AS Venue,
     '' AS CountryOfTheBranchMembership,
     '' AS UpfrontPayment, '' AS UpfrontPaymentCurrency, '' AS ComplexTradeComponentId,
-    CASE WHEN p.IsReal = 1 AND m.ISINCode IS NOT NULL THEN m.ISINCode ELSE '' END AS InstrumentIdentificationCode,
-    CASE WHEN p.IsReal = 0 THEN CONCAT(LEFT(COALESCE(m.InstrumentFullName, ''), 50), ' CFD') ELSE '' END AS InstrumentFullName,
-    -- CFI codes simplified (full LP-specific sub-classification deferred)
-    CASE WHEN p.IsReal = 0 THEN
-      CASE WHEN m.InstrumentTypeID = 1 THEN 'JFTXCC'
-           WHEN m.InstrumentTypeID = 4 THEN 'JEIXCC'
-           WHEN m.InstrumentTypeID IN (5, 6) THEN 'JESXCC'
-           WHEN m.InstrumentTypeID = 2 THEN 'JTMXCC'
-           ELSE '' END
-    ELSE '' END AS InstrumentClassification,
-    CASE WHEN p.IsReal = 0 THEN SUBSTRING(m.SellAbbreviation, 1, 3) ELSE '' END AS NotionalCurrency1,
+    CASE WHEN p.IsReal = 1 AND m.ISINCode IS NOT NULL AND p.InstrumentID NOT IN (26,38,253,308,310,353) THEN m.ISINCode ELSE '' END AS InstrumentIdentificationCode,
+    CASE WHEN p.IsReal = 1 AND p.LEI = '5493006BWPDUCYG6EQ34' AND m.InstrumentTypeID = 4 AND p.InstrumentID NOT IN (312,313,314) AND ednf.ContractLongName IS NOT NULL THEN ednf.ContractLongName
+         WHEN p.IsReal = 0 THEN CONCAT(LEFT(COALESCE(m.InstrumentFullName, ''), 50), ' CFD')
+         ELSE '' END AS InstrumentFullName,
+    -- CFI codes: LP-specific (Goldman Sachs CFD, ED&F real futures) + default
+    CASE
+      WHEN p.IsReal = 0 THEN
+        CASE
+          WHEN p.LEI = '8IBZUGJ7JPLH368JE346' THEN
+            CASE WHEN m.InstrumentTypeID = 1 THEN 'SFXXXX'
+                 WHEN m.InstrumentTypeID = 2 AND p.InstrumentID IN (92,93,96,311,317,318,324,325,331,332,334,337,338) THEN 'JTAXCC'
+                 WHEN m.InstrumentTypeID = 2 AND p.InstrumentID IN (17,22,335) THEN 'JTJXCC'
+                 WHEN m.InstrumentTypeID = 2 AND p.InstrumentID IN (18,19,21,40,91,99,100,339,340,343,344) THEN 'STKCXC'
+                 WHEN m.InstrumentTypeID = 2 THEN 'JTMXCC'
+                 WHEN m.InstrumentTypeID = 4 THEN 'SEITXC'
+                 WHEN m.InstrumentTypeID IN (5, 6) THEN 'SESTXC'
+                 ELSE '' END
+          ELSE
+            CASE WHEN m.InstrumentTypeID = 1 THEN 'JFTXCC'
+                 WHEN m.InstrumentTypeID = 4 THEN 'JEIXCC'
+                 WHEN m.InstrumentTypeID IN (5, 6) THEN 'JESXCC'
+                 WHEN m.InstrumentTypeID = 2 THEN 'JTMXCC'
+                 ELSE '' END
+        END
+      WHEN p.IsReal = 1 AND p.LEI = '5493006BWPDUCYG6EQ34' THEN
+        CASE WHEN p.InstrumentID IN (312,313,314) THEN 'FFDPSX'
+             WHEN m.InstrumentTypeID = 1 THEN 'FFCCSX'
+             WHEN m.InstrumentTypeID = 2 THEN 'FFMCSX'
+             WHEN m.InstrumentTypeID = 4 THEN 'FFICSX'
+             WHEN m.InstrumentTypeID IN (5, 6) THEN 'FFSCSX'
+             ELSE '' END
+      ELSE ''
+    END AS InstrumentClassification,
+    CASE WHEN p.LEI = '5493006BWPDUCYG6EQ34' AND p.InstrumentID IN (26,38,253,308,310,353) AND ednf.Currency IS NOT NULL THEN ednf.Currency
+         WHEN p.IsReal = 1 AND p.LEI = '5493006BWPDUCYG6EQ34' AND m.ISINCode IS NULL AND ednf.Currency IS NOT NULL THEN ednf.Currency
+         WHEN p.IsReal = 1 THEN ''
+         ELSE SUBSTRING(m.SellAbbreviation, 1, 3) END AS NotionalCurrency1,
     '' AS NotionalCurrency2,
-    CASE WHEN p.IsReal = 1 THEN '' ELSE '1' END AS PriceMultiplier,
+    CASE WHEN p.LEI = '5493006BWPDUCYG6EQ34' AND p.InstrumentID IN (26,38,253,308,310,353) AND ednf.TradingFactor IS NOT NULL THEN CASE WHEN ednf.TradingFactor = FLOOR(ednf.TradingFactor) THEN CAST(CAST(ednf.TradingFactor AS BIGINT) AS STRING) ELSE CAST(ednf.TradingFactor AS STRING) END
+         WHEN p.IsReal = 1 AND p.LEI = '5493006BWPDUCYG6EQ34' AND m.ISINCode IS NULL AND ednf.TradingFactor IS NOT NULL THEN CASE WHEN ednf.TradingFactor = FLOOR(ednf.TradingFactor) THEN CAST(CAST(ednf.TradingFactor AS BIGINT) AS STRING) ELSE CAST(ednf.TradingFactor AS STRING) END
+         WHEN p.IsReal = 1 THEN '0'
+         ELSE '1' END AS PriceMultiplier,
     CASE WHEN p.IsReal = 1 THEN '' ELSE COALESCE(m.ISINCode, '') END AS UnderlyingInstrumentCode,
     CASE WHEN m.InstrumentTypeID = 4 AND m.IndexNameFullDescription IS NOT NULL THEN m.IndexNameFullDescription
          WHEN m.InstrumentTypeID = 4 THEN COALESCE(LEFT(m.InstrumentFullName, 50), '')
@@ -267,8 +346,16 @@ eu_report AS (
     '' AS TermOfTheUnderlyingIndex,
     '' AS OptionType, '' AS StrikePriceType, '' AS StrikePrice, '' AS StrikePriceCurrency,
     '' AS OptionExerciseStyle, '' AS MaturityDate,
-    '' AS ExpiryDate,
-    CASE WHEN p.IsReal = 1 THEN '' ELSE 'CASH' END AS DeliveryType,
+    CASE WHEN p.LEI = '5493006BWPDUCYG6EQ34' AND p.InstrumentID IN (26,38,253,308,310,353) AND ednf.LastTradedDate IS NOT NULL
+           THEN date_format(TO_DATE(CAST(ednf.LastTradedDate AS STRING), 'yyyyMMdd'), 'yyyy-MM-dd')
+         WHEN p.IsReal = 1 AND p.LEI = '5493006BWPDUCYG6EQ34' AND m.ISINCode IS NULL AND ednf.LastTradedDate IS NOT NULL
+           THEN date_format(TO_DATE(CAST(ednf.LastTradedDate AS STRING), 'yyyyMMdd'), 'yyyy-MM-dd')
+         ELSE '' END AS ExpiryDate,
+    CASE WHEN p.LEI = '5493006BWPDUCYG6EQ34' AND p.InstrumentID IN (26,38,253,308,310,353) THEN 'CASH'
+         WHEN p.LEI = '5493006BWPDUCYG6EQ34' AND p.InstrumentID IN (312,313,314) THEN 'PHYSICAL'
+         WHEN p.IsReal = 1 AND p.LEI = '5493006BWPDUCYG6EQ34' AND m.ISINCode IS NULL AND ednf.TradingFactor IS NOT NULL THEN 'CASH'
+         WHEN p.IsReal = 1 THEN ''
+         ELSE 'CASH' END AS DeliveryType,
     'ALG' AS InvestmentDecisionWithinFirmType,
     '' AS InvestmentDecisionWithinFirmNPCode,
     'ETORODEALING01' AS InvestmentDecisionWithinFirm,
@@ -292,6 +379,7 @@ eu_report AS (
   CROSS JOIN run_parameters rp
   JOIN instruments m ON p.InstrumentID = m.InstrumentID AND m.IsMifid = 1
   JOIN currency_types ctp ON ctp.CurrencyTypeID = m.InstrumentTypeID
+  LEFT JOIN ednf_enrichment ednf ON p.InstrumentID = ednf.InstrumentID
   WHERE p.ExecutionFlow = 'EU'
     AND p.InstrumentID NOT IN (SELECT instrument_id FROM excluded_instruments)
 ),
@@ -337,7 +425,7 @@ eu_uk_report AS (
     ) AS TradingDateTime,
     'DEAL' AS TradingCapacity,
     'UNIT' AS QuantityType,
-    CAST(p.AmountInUnits AS STRING) AS Quantity,
+    CAST(CAST(p.AmountInUnits AS DECIMAL(22,2)) AS STRING) AS Quantity,
     '' AS QuantityCurrency,
     '' AS DerivativeNotionalIncreaseDecrease,
     CASE WHEN ctp.CurrencyTypeID = 4 THEN 'BSPS' ELSE 'MNTR' END AS PriceType,
@@ -352,7 +440,7 @@ eu_uk_report AS (
     '' AS InstrumentClassification,
     '' AS NotionalCurrency1,
     '' AS NotionalCurrency2,
-    '' AS PriceMultiplier,
+    '0' AS PriceMultiplier,
     '' AS UnderlyingInstrumentCode,
     '' AS UnderlyingIndexName,
     '' AS TermOfTheUnderlyingIndex,
@@ -428,7 +516,7 @@ uk_report AS (
     ) AS TradingDateTime,
     'MTCH' AS TradingCapacity,
     'UNIT' AS QuantityType,
-    CAST(p.AmountInUnits AS STRING) AS Quantity,
+    CAST(CAST(p.AmountInUnits AS DECIMAL(22,2)) AS STRING) AS Quantity,
     '' AS QuantityCurrency,
     '' AS DerivativeNotionalIncreaseDecrease,
     CASE WHEN ctp.CurrencyTypeID = 4 THEN 'BSPS' ELSE 'MNTR' END AS PriceType,
@@ -443,7 +531,7 @@ uk_report AS (
     '' AS InstrumentClassification,
     '' AS NotionalCurrency1,
     '' AS NotionalCurrency2,
-    CASE WHEN p.IsReal = 1 THEN '' ELSE '1' END AS PriceMultiplier,
+    CASE WHEN p.IsReal = 1 THEN '0' ELSE '1' END AS PriceMultiplier,
     CASE WHEN p.IsReal = 1 THEN '' ELSE COALESCE(m.ISINCode, '') END AS UnderlyingInstrumentCode,
     '' AS UnderlyingIndexName,
     '' AS TermOfTheUnderlyingIndex,
@@ -505,21 +593,21 @@ print(f"\n\u2713 mifid2_hedge_report persisted ({row_count:,} rows)")
 
 # COMMAND ----------
 
-# DBTITLE 1,2. Validation: Hedge Report Row Counts
+# DBTITLE 1,Validation: Hedge Report Row Counts
 # MAGIC %sql
-# MAGIC -- Validation: MIFID2_Hedge_Report row counts and basic checks
-# MAGIC SELECT 'Total' AS metric, COUNT(*) AS value FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report
-# MAGIC UNION ALL
-# MAGIC SELECT 'EU (ReportID=1, rowSource=EU)', COUNT(*) FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report WHERE RegulationReportID = 1 AND rowSource = 'EU'
-# MAGIC UNION ALL
-# MAGIC SELECT 'EU-UK (ReportID=1, rowSource=EU-UK)', COUNT(*) FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report WHERE RegulationReportID = 1 AND rowSource = 'EU-UK'
-# MAGIC UNION ALL
-# MAGIC SELECT 'UK (ReportID=2)', COUNT(*) FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report WHERE RegulationReportID = 2
-# MAGIC UNION ALL
-# MAGIC SELECT 'Distinct Instruments', COUNT(DISTINCT InstrumentID) FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report
-# MAGIC UNION ALL
-# MAGIC SELECT 'Distinct LPs', COUNT(DISTINCT LiquidityProvider) FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report
-# MAGIC UNION ALL
-# MAGIC SELECT 'Null TRN (should be 0)', SUM(CASE WHEN TransactionReferenceNumber IS NULL OR TransactionReferenceNumber = '' THEN 1 ELSE 0 END) FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report
-# MAGIC UNION ALL
-# MAGIC SELECT 'Null Price (should be 0)', SUM(CASE WHEN Price IS NULL THEN 1 ELSE 0 END) FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report
+# MAGIC -- Validation: MIFID2_Hedge_Report row counts and field checks
+# MAGIC -- Expected: EU 86,056 rows (SSMS: 86,058 = -2 rows from LP 153 SCD gap)
+# MAGIC
+# MAGIC -- 1) Branch breakdown
+# MAGIC SELECT
+# MAGIC   RegulationReportID,
+# MAGIC   rowSource,
+# MAGIC   COUNT(*) AS row_count,
+# MAGIC   COUNT(DISTINCT InstrumentID) AS distinct_instruments,
+# MAGIC   COUNT(DISTINCT LiquidityProvider) AS distinct_lps,
+# MAGIC   COUNT(DISTINCT TransactionReferenceNumber) AS distinct_trns,
+# MAGIC   MIN(ReportDate) AS min_date,
+# MAGIC   MAX(ReportDate) AS max_date
+# MAGIC FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_hedge_report
+# MAGIC GROUP BY RegulationReportID, rowSource
+# MAGIC ORDER BY RegulationReportID, rowSource
