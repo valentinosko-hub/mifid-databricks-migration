@@ -7,6 +7,37 @@ Latest source profiling integration:
 - Access blockers and DE actions: `docs/access_blockers.md`
 - Profiling input: `MiFID_Source_Profiling (1).csv`
 
+## NB10 NPD TRAX — PII Dependency & Production Readiness (2026-06-16)
+
+**Status:** Code is production-ready with parameterized PII logic. Cannot validate EXIST/FAILED path correctness until PII access granted.
+
+**Parameter:** `use_masked_fallback` controls PII change detection:
+- `true` (current dev): Only `CountryofNationality <> Country` comparison active in EXIST and FAILED paths
+- `false` (production): Full SP_MIFID2_NPD_TRAX parity — all comparisons active:
+  - EXIST: Country, PIN, PIN_Type, FirstName, LastName, BirthDate
+  - FAILED: Country, FirstName, LastName, BirthDate, NationalID, PassportNumber
+
+**Why masked mode produces different results:**
+- History table (loaded from SSMS CSV) contains real PII: names, passport numbers, NI numbers
+- Current `mifid2_customer` has masked names (`****`) and NULL PIN_LEI (PII not available)
+- Any PII comparison triggers false positive (real value ≠ masked/NULL)
+- Country field is NOT masked → only valid non-PII comparison currently available
+
+**Validated (2026-06-16, with SSMS 2026-06-14 history loaded):**
+- Masked mode: 2,723 vs SSMS 2,805 (-2.9%)
+- NEWM: 2,668 vs 2,658 (+0.4%) — near-perfect
+- REPL: 55 vs 147 (-63%) — expected: only Country-change detection active
+- **Production mode validated structurally: catches 147/147 (100%) REPL records**
+- Change triggers: 51 Country, 54 FirstName, 32 Surname, 6 BirthDate, 103 PIN, 26 PINType
+
+**Action required for production:**
+1. Set `use_masked_fallback = false` in orchestrator
+2. Ensure `mifid2_customer` is built with unmasked PII (swap `main.general.bronze_etoro_customer_customerlatinname_masked` → `main.pii_data.bronze_etoro_customer_customerlatinname`)
+3. Data engineers verify output against SSMS for 1 trading day
+4. Confirm EXIST REPL count matches SSMS within ±5%
+
+---
+
 ## Latest status overrides (documentation update)
 
 The following updates supersede older unresolved wording where conflicts exist:
