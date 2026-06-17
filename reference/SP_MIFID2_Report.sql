@@ -1,0 +1,95 @@
+-- SP_MIFID2_Report — Full stored procedure from RegReportDB_Prod
+-- Saved from SSMS on 2026-06-17 for Databricks migration reference
+-- See NB08 (08_mifid2_report_output) for the Databricks implementation
+--
+-- KEY LOGIC SECTIONS:
+-- 1. #changelog: Latest PositionChangeLog per PositionID (ROW_NUMBER DESC)
+-- 2. #mirror: CopyFund positions with FundType lookup
+-- 3. #Positions CTE: Position population with OpenORClose assignment
+--    - UNION ALL: Same-day O+C positions get extra O event
+-- 4. Russian instruments exclusion (MIFID2_Instruments_To_Exclude, Real only)
+-- 5. Partial Close Logic: Replace father+children with InitialUnits O + children C
+-- 6. Split ratio adjustment on Open quantity
+-- 7. #trades: Price assignment (ChangeLog for O, LastOpPriceRate for C)
+-- 8. RegChange Logic (DSR-2273): Handle regulation movements
+-- 9. #tradesFinal: Merge trades + RegChange trades with OrigRegulationID
+-- 10. Final INSERT by regulation:
+--     - RegID=1 → MIFID2_Report (RegulationReportID=1, EU/CySEC)
+--     - RegID=2 → MIFID2_Report (RegulationReportID=2, UK/FCA)
+--     - RegID=2 → MIFID2_Report (RegulationReportID=1, FCA→EU intercompany)
+--     - RegID=9 → MIFID2_Report (RegulationReportID=1, Seychelles)
+--     - RegID=11 → MIFID2_ME_Report (ME, DSR-7907/DSR-8383)
+--
+-- ENTITY LEIs:
+-- eToro EU (CySEC): 213800GIFQMSV7HROS23
+-- eToro UK (FCA): 213800FLAB1OVA8OHT72
+-- eToro Seychelles: 549300L7LPQNKJQ1IW32
+-- eToro ME: 254900TH30J939UL7C24
+-- Goldman Sachs/ASIC: 549300OK2V4QF20B0D04
+
+-- ============================================================
+-- PARTIAL CLOSE LOGIC (implemented in NB08 cell "2c")
+-- ============================================================
+-- Step 1: Identify partial populations
+--   SELECT DISTINCT OriginalPositionID
+--   FROM #Positions
+--   WHERE PositionID != OriginalPositionID AND OpenOccurred >= @StartDate
+--
+-- Step 2: For those OriginalPositionIDs:
+--   - KEEP father's O event (PositionID = OriginalPositionID)
+--     with AmountInUnitsDecimal = COALESCE(InitialUnits, AmountInUnitsDecimal)
+--   - KEEP ALL C events (father + children)
+--   - REMOVE children's O events (PositionID != OriginalPositionID AND OpenORClose='O')
+--
+-- Step 3: Also saves removed records to MIFID2_Removed_OP_Partials (not implemented in DBX)
+
+-- ============================================================
+-- RUSSIAN INSTRUMENTS EXCLUSION (DSR-5819)
+-- ============================================================
+-- delete p from #Positions p
+--   inner join [dbo].[MIFID2_Instruments_To_Exclude] ins on p.InstrumentID = ins.InstrumentID
+-- where p.IsSettled = 1  -- only Real transactions
+--
+-- NOTE: MIFID2_Instruments_To_Exclude does NOT exist in Databricks gold layer.
+-- The existing regtech_excluded_instruments only has InstrumentID=624 (all reports).
+-- Impact: <742 rows on 2026-06-04 (0.04%) — negligible.
+
+-- ============================================================
+-- REGCHANGE LOGIC (DSR-2273)
+-- ============================================================
+-- Handles customers who moved between EU/UK/SC/ME regulations:
+-- 1. Identify RegChange customers (RegulationID or PrevRegulationID in 1,2,9)
+-- 2. Delete positions opened/closed under non-MIFID regulation
+-- 3. Handle EU↔UK switches (UKtoEU, EUtoUK tables)
+-- 4. Create RegChange positions from MIFID2_ext_RegChange_Position
+-- 5. 10-second threshold: DATEDIFF(SECOND, OpenOccurred, Migration_Occurred) > 10
+
+-- ============================================================
+-- REPORT ROUTING
+-- ============================================================
+-- RegID=1 → MIFID2_Report (RegulationReportID=1)
+-- RegID=2 → MIFID2_Report (ReportID=1 + ReportID=2)  -- FCA dual-reporting
+-- RegID=9 → MIFID2_Report (ReportID=1, TRN suffix='SC')
+-- RegID=11 → MIFID2_ME_Report (TRN suffix='ME')  -- DSR-7907/DSR-8383
+
+-- Full SP code too large for this file — see conversation thread 2026-06-17
+-- Contact: valentinosko@etoro.com for full SP source
+-- SSMS path: RegReportDB_Prod.dbo.SP_MIFID2_Report
+
+-- ============================================================
+-- IMPLEMENTATION STATUS (Databricks NB08)
+-- ============================================================
+-- ✅ Position population (ext_position + customer JOIN)
+-- ✅ Same-day O+C duplication (UNION ALL for extra O event)
+-- ✅ Split ratio adjustment (reg_ext_historysplitratio)
+-- ✅ ChangeLog price enrichment (ROW_NUMBER latest per PositionID)
+-- ✅ IsMifid instrument filter (SCD + Tradable=1)
+-- ✅ Exclusion filters (instruments, position_ids, CIDs)
+-- ✅ 4 regulation flows: EU, FCA→EU intercompany, SC, UK
+-- ✅ ME (RegID=11) → included in mifid2_report (kept together, not separate table)
+-- ✅ Partial close logic (2026-06-17): children O removed, father O uses InitialUnits
+-- ✅ CopyFund/FundType enrichment via mirror
+-- ✅ fn_replacechar UDF (diacritic→ASCII)
+-- ⚠️ Russian instruments exclusion: MIFID2_Instruments_To_Exclude NOT in DBX (negligible)
+-- ❌ RegChange logic: not yet implemented (complex, ~0 impact on 2026-06-04)
+-- ❌ PIN/UserAPI identity document type (PII-blocked)
