@@ -198,15 +198,15 @@ LEFT JOIN main.regtech_stg.silver_sharepoint_transactionreporting_regulation_rep
 WHERE f.cid IS NULL
   AND CAST(T.ReportDate AS DATE) = CAST('{report_date}' AS DATE)
   AND T.InstrumentID NOT IN (
-    SELECT COALESCE(instrument_id, 0)
+    SELECT COALESCE(CAST(instrumentid AS INT), 0)
     FROM main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_instruments
-    WHERE table_name = '[MIFID2_ETORO_Report]'
+    WHERE tablename = '[MIFID2_ETORO_Report]'
   )
   AND NOT EXISTS (
     SELECT 1
     FROM main.regtech_stg.silver_sharepoint_transactionreporting_regtech_excluded_position_ids b
-    WHERE CAST(T.PositionID AS STRING) = CAST(b.position_id AS STRING)
-      AND b.table_name = '[MIFID2_ETORO_Report]'
+    WHERE CAST(T.PositionID AS STRING) = CAST(b.positionid AS STRING)
+      AND b.tablename = '[MIFID2_ETORO_Report]'
   )
 """)
 

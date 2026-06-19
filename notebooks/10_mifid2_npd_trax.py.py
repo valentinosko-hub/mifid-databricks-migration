@@ -49,18 +49,58 @@
 # MAGIC **⚠️ Cannot verify LIVE output until PII access granted.** Logic follows SP exactly; validated structurally against SSMS export.
 # MAGIC
 # MAGIC **Validation (2026-06-15, masked mode):** 2,723 rows (SSMS: 2,805, -2.9%) — Country-only catches 35% of REPL.
+# MAGIC
+# MAGIC ---
+# MAGIC
+# MAGIC ## Parameter: `npd_history_source`
+# MAGIC
+# MAGIC Controls where the EXIST and FAILED paths read previous submission history from.
+# MAGIC
+# MAGIC | Value | Source | Use Case |
+# MAGIC |-------|--------|----------|
+# MAGIC | `gold` (default) | `main.regtech.gold_regreportdb_prod_dbo_mifid2_npd_trax` | **Dev/Testing & Masked mode.** Gold has continuous production-quality daily history from the SP. Required when our staging table has date gaps or when running in masked mode (see below). |
+# MAGIC | `self` | `main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax` | **Production with daily scheduling.** Self-referencing works when: (1) `use_masked_fallback=false` AND (2) the pipeline runs daily without gaps. |
+# MAGIC
+# MAGIC ### ⚠️ IMPORTANT: Why `self` + masked mode produces INCORRECT results
+# MAGIC
+# MAGIC The EXIST path compares **current customer data** against the **last submission record** in NPD TRAX.
+# MAGIC In masked mode, PII fields (Name, BirthDate, PIN) are not compared → those changes go undetected → no REPL record is written.
+# MAGIC
+# MAGIC If you run self-referencing for Day N in masked mode:
+# MAGIC - Customers whose only change was PII (not Country) → **NO record generated**
+# MAGIC - On Day N+1, `ids` references Day N output → those customers still aren't flagged
+# MAGIC - The PII change is **permanently lost** — it's invisible in both runs
+# MAGIC
+# MAGIC **Result:** Self-referencing in masked mode systematically undercounts REPL records.
+# MAGIC Gold-based history always has the correct production baseline regardless of PII mode.
+# MAGIC
+# MAGIC ### Data Engineer Checklist for Production
+# MAGIC 1. Set `use_masked_fallback = false` (requires `main.pii_data` access)
+# MAGIC 2. Set `npd_history_source = self` (once daily scheduling is active with no gaps)
+# MAGIC 3. Ensure the pipeline runs **every business day** — gaps cause EXIST to compare stale data
+# MAGIC 4. If a gap occurs (missed day), temporarily switch to `gold` for the catch-up run
 
 # COMMAND ----------
 
 # DBTITLE 1,Parameters
 dbutils.widgets.text("report_date", "2026-06-11", "Report Date (yyyy-MM-dd)")
 dbutils.widgets.dropdown("use_masked_fallback", "true", ["true", "false"], "Use Masked PII Fallback")
+dbutils.widgets.dropdown("npd_history_source", "gold", ["gold", "self"], "NPD History Source (gold=prod mirror, self=staging table)")
 
 report_date = dbutils.widgets.get("report_date")
 use_masked_fallback = dbutils.widgets.get("use_masked_fallback") == "true"
+npd_history_source = dbutils.widgets.get("npd_history_source")
+
+# Validate: self-referencing + masked mode is an invalid combination
+if npd_history_source == "self" and use_masked_fallback:
+    print("⚠️  WARNING: npd_history_source='self' + use_masked_fallback='true' produces INCORRECT results!")
+    print("   Masked mode cannot detect PII changes → REPL records are permanently lost in self-referencing.")
+    print("   Switching to 'gold' automatically. Set use_masked_fallback=false for self-referencing.")
+    npd_history_source = "gold"
 
 print(f"Running Module 15: MIFID2 NPD TRAX for report_date = {report_date}")
 print(f"  PII mode: {'MASKED (Country-only detection)' if use_masked_fallback else 'PRODUCTION (full SP parity)'}")
+print(f"  History source: {npd_history_source.upper()} {'(main.regtech.gold_regreportdb_prod_dbo_mifid2_npd_trax)' if npd_history_source == 'gold' else '(main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax)'}")
 
 # COMMAND ----------
 
@@ -69,6 +109,20 @@ print(f"  PII mode: {'MASKED (Country-only detection)' if use_masked_fallback el
 # SP parity: SP_MIFID2_NPD_TRAX
 # Paths: NEW (NEWM) + EXIST (REPL) + FAILED
 # RegChange path SKIPPED (corrupted sources)
+
+# Resolve history source table based on parameter
+if npd_history_source == "gold":
+    npd_history_table = "main.regtech.gold_regreportdb_prod_dbo_mifid2_npd_trax"
+    # Gold has AcceptedTRAX as boolean; cast to INT for comparison
+    accepted_trax_cast = "CAST(c.AcceptedTRAX AS INT)"
+    exist_accepted_cast = "CAST(a.AcceptedTRAX AS INT) AS AcceptedTRAX"
+else:
+    npd_history_table = "main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax"
+    # Self-referencing table has AcceptedTRAX as INT already
+    accepted_trax_cast = "c.AcceptedTRAX"
+    exist_accepted_cast = "a.AcceptedTRAX"
+
+print(f"  Using history table: {npd_history_table}")
 
 # --- PII comparison clauses (controlled by use_masked_fallback parameter) ---
 # PRODUCTION (use_masked_fallback=false): Full SP parity — all change detection fields active
@@ -89,9 +143,12 @@ else:
 
 npd_trax_sql = f"""
 WITH
+-- History source: controlled by npd_history_source parameter
+-- 'gold' = production mirror (for dev/testing/masked mode/gap recovery)
+-- 'self' = staging table (for production daily runs with full PII detection)
 ids AS (
   SELECT CID, RegulationID, MAX(ReportDate) AS ReportDate
-  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax
+  FROM {npd_history_table}
   WHERE ReportDate < CAST('{report_date}' AS DATE)
   GROUP BY CID, RegulationID
 ),
@@ -109,10 +166,11 @@ new_customers AS (
 ),
 exist_all AS (
   SELECT a.CID, a.Action, a.CountryofNationality, a.FirstNames, a.Surnames,
-    a.DateofBirth, a.PassportNumber, a.NationalID, a.PIN, a.AcceptedTRAX,
+    a.DateofBirth, a.PassportNumber, a.NationalID, a.PIN,
+    {exist_accepted_cast},
     b.Country, b.FirstName, b.LastName, b.BirthDate AS CustBirthDate,
     b.PIN_Type, b.PIN_LEI, a.OrigPINType, a.Entity, a.TraxAccount, a.RegulationID
-  FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax a
+  FROM {npd_history_table} a
   JOIN ids c ON a.CID = c.CID AND a.ReportDate = c.ReportDate AND a.RegulationID = c.RegulationID
   JOIN customer_all b ON a.CID = b.CID AND c.RegulationID = b.RegulationID
   WHERE b.RegulationID <> 0
@@ -145,8 +203,8 @@ failed_projection AS (
     current_timestamp() AS UpdateDate
   FROM customer_all a
   JOIN ids b ON a.CID = b.CID
-  JOIN main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax c ON b.CID=c.CID AND b.RegulationID=c.RegulationID AND b.ReportDate=c.ReportDate
-  WHERE a.RegulationID = 0 AND (c.AcceptedTRAX=0 OR c.AcceptedTRAX IS NULL)
+  JOIN {npd_history_table} c ON b.CID=c.CID AND b.RegulationID=c.RegulationID AND b.ReportDate=c.ReportDate
+  WHERE a.RegulationID = 0 AND ({accepted_trax_cast}=0 OR c.AcceptedTRAX IS NULL)
     AND (c.CountryofNationality<>a.Country {failed_pii_clause})
 ),
 new_exist_projection AS (
@@ -226,19 +284,18 @@ new_count = df_new.count()
 print(f"NPD TRAX new records: {new_count:,} rows")
 df_new.groupBy("Entity", "Action").count().orderBy("Entity", "Action").show()
 
-# MERGE: Delete existing for report_date + matching CID/RegulationID, then append
+# Write: CREATE OR REPLACE (single-date output per run)
+# Gold mirror has complete history for ids/exist/failed comparisons,
+# so no need to accumulate in staging table.
 df_new.createOrReplaceTempView("npd_trax_new")
-# Delete ALL existing records for this report_date (full replace for the day)
 spark.sql(f"""
-  DELETE FROM main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax
-  WHERE ReportDate = CAST('{report_date}' AS DATE)
+  CREATE OR REPLACE TABLE main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax
+  USING DELTA
+  LOCATION 'abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/mifid2_npd_trax'
+  AS SELECT * FROM npd_trax_new
 """)
 
-df_new.write.format("delta").mode("append") \
-    .option("path", "abfss://analysis@stgdpdlwe.dfs.core.windows.net/BI_OUTPUT/RegTechOps/mifid2_npd_trax") \
-    .saveAsTable("main.regtech_ops_stg.bi_output_regtechops_mifid2_npd_trax")
-
-print(f"\n\u2713 mifid2_npd_trax: {new_count:,} records upserted for {report_date}")
+print(f"\n\u2713 mifid2_npd_trax: {new_count:,} records written for {report_date}")
 
 # COMMAND ----------
 
