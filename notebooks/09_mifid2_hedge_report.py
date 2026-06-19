@@ -121,7 +121,7 @@ uk_execution_base AS (
 eu_trades AS (
   SELECT
     e.*,
-    CAST(LTRIM(RTRIM(lp.LiquidityAccountName)) AS STRING) AS LiquidityProvider,
+    LEFT(CAST(LTRIM(RTRIM(lp.LiquidityAccountName)) AS STRING), 30) AS LiquidityProvider,
     lp.LEI,
     lp.LpCountryCode AS Country,
     CASE WHEN UPPER(lp.RealOrCFD) = 'REAL' THEN 1
@@ -140,7 +140,7 @@ eu_trades AS (
 uk_trades AS (
   SELECT
     e.*,
-    CAST(LTRIM(RTRIM(lp.LiquidityAccountName)) AS STRING) AS LiquidityProvider,
+    LEFT(CAST(LTRIM(RTRIM(lp.LiquidityAccountName)) AS STRING), 30) AS LiquidityProvider,
     lp.LEI,
     lp.LpCountryCode AS Country,
     CASE WHEN UPPER(lp.RealOrCFD) = 'REAL' THEN 1
